@@ -1,3 +1,7 @@
+body, html {
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
 /* The switch - the box around the slider */
 .switch {
     position: absolute;
@@ -6,6 +10,8 @@
     display: inline-block;
     width: 60px;
     height: 34px;
+    max-width: 100%; /* Ensure slider does not exceed the viewport width */
+    box-sizing: border-box; /* Include padding and border in the element's total width */
 }
 
 /* Hide default checkbox */
@@ -62,3 +68,11 @@ input:checked + .slider:before {
 .slider.round:before {
     border-radius: 50%;
 }        
+
+/* Adjustments for smaller screens */
+@media (max-width: 600px) {
+    .switch {
+        padding: 0 10px; /* Adjust padding */
+        margin: 0 auto; /* Center the slider */
+    }
+}

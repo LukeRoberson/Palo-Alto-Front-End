@@ -1,14 +1,14 @@
-import flask
 from flask import Flask, request
 import platform
 from flask import render_template
+from importlib.metadata import version
 
 app = Flask(__name__)
 
 
 @app.route('/')
 def index():
-    flask_version = flask.__version__
+    flask_version = version("flask")
     ip_address = request.remote_addr
     os_version = platform.platform()
 
