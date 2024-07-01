@@ -3,7 +3,56 @@
     background-color: #FFF;
     color: #000;
 }
+
+.light-mode .header {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.light-mode .nav-bar {
+    background-color: #f0f0f0;
+    color: #000;
+}
+
+.light-mode .nav-bar a {
+    background-color: #f0f0f0;
+    color: #000;
+}
+
+.light-mode .nav-bar a:hover {
+    color: blue;
+}
+
+.light-mode .toggle-btn {
+    background-color: #f0f0f0;
+    color: black;
+}
+
 .dark-mode {
     background-color: #333;
     color: #FFF;
+}
+
+.dark-mode .header {
+    background-color: #222;
+    color: #CCC;
+}
+
+.dark-mode .nav-bar {
+    background-color: #222;
+    color: #CCC;
+}
+
+.dark-mode .nav-bar a {
+    background-color: #222;
+    color: #CCC;
+}
+
+.dark-mode .nav-bar a:hover {
+    color: yellow;
+}
+
+.dark-mode .toggle-btn {
+    background-color: #222;
+    color: #CCC;
 }

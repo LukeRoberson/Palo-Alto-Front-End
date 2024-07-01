@@ -3,9 +3,6 @@ html, body {
     padding: 0;
 }
 .header {
-    background-color: #333;
-    color: white;
-    padding: 1rem;
     position: absolute;
     top: 0;
     width: 100%;
@@ -16,4 +13,9 @@ html, body {
 body {
     margin-top: 70px; /* Adjust based on the height of your header */
     transition: background-color 0.5s, color 0.5s;
+}
+#main-content {
+    padding: 20px;
+    margin-left: 20px;
+    transition: padding-left 0.5s ease;
 }

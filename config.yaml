@@ -1,0 +1,7 @@
+---
+azure:
+  tenant-id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  app-id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx"
+  app-secret: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx"
+  redirect-uri: "http://localhost:5000/getAToken"
+  

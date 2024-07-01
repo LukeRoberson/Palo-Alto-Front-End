@@ -1,0 +1,56 @@
+.nav-bar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 250px;
+    height: 100%;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 40px;
+    margin-top: 65px;
+}
+
+.nav-bar a {
+    padding: 10px 15px;
+    text-decoration: none;
+    font-size: 18px;
+    display: block;
+    transition: 0.5s;
+}
+
+.nav-bar.collapsed {
+    width: 50px;
+    transition: width 0.5s ease;
+}
+.nav-bar.expanded {
+    width: 250px; /* Adjust based on actual expanded width */
+    transition: width 0.5s ease;
+}
+.toggle-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 50px;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 0 5px 5px 0;
+}
+/* Hide text in nav links when nav bar is shrunk, but keep icons */
+.nav-bar.shrink a {
+    font-size: 0; /* Hide text */
+}
+
+.nav-bar.shrink a i {
+    font-size: 16px; /* Adjust icon size as needed */
+    margin-right: 0; /* Remove margin if any */
+}
+
+/* Optional: Adjust the nav-bar and links for a better layout in shrink mode */
+.nav-bar.shrink {
+    width: 50px; /* Adjust based on your design */
+}
+
+.nav-bar.shrink a {
+    justify-content: center; /* Center icons in the links */
+    padding: 10px; /* Adjust padding for better spacing */
+}

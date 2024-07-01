@@ -8,8 +8,8 @@ body, html {
     right: 60px; /* Positioning the switch to the right */
     top: 30%; /* Positioning the switch in the middle */
     display: inline-block;
-    width: 60px;
-    height: 34px;
+    width: 40px;
+    height: 20px;
     max-width: 100%; /* Ensure slider does not exceed the viewport width */
     box-sizing: border-box; /* Include padding and border in the element's total width */
 }
@@ -37,10 +37,10 @@ body, html {
 .slider:before {
     position: absolute;
     content: "";
-    height: 26px;
-    width: 26px;
-    left: 4px;
-    bottom: 4px;
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
     background-color: white;
     -webkit-transition: .4s;
     transition: .4s;
@@ -57,12 +57,12 @@ input:focus + .slider {
 input:checked + .slider:before {
     -webkit-transform: translateX(26px);
     -ms-transform: translateX(26px);
-    transform: translateX(26px);
+    transform: translateX(20px);
 }
 
 /* Rounded sliders */
 .slider.round {
-    border-radius: 34px;
+    border-radius: 20px;
 }
 
 .slider.round:before {
