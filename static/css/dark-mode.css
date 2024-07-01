@@ -1,11 +1,11 @@
-/* Light and Dark mode styles */
+/* Light mode styles */
 .light-mode {
     background-color: #FFF;
     color: #000;
 }
 
 .light-mode .header {
-    background-color: #f0f0f0;
+    background-color: #bdbdbd;
     color: #333;
 }
 
@@ -20,7 +20,7 @@
 }
 
 .light-mode .nav-bar a:hover {
-    color: blue;
+    color: red;
 }
 
 .light-mode .toggle-btn {
@@ -28,13 +28,14 @@
     color: black;
 }
 
+/* Dark mode styles */
 .dark-mode {
     background-color: #333;
     color: #FFF;
 }
 
 .dark-mode .header {
-    background-color: #222;
+    background-color: #161616;
     color: #CCC;
 }
 

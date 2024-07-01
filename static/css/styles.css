@@ -1,19 +1,23 @@
 html, body {
     margin: 0;
     padding: 0;
+    font-family: "Raleway", sans-serif;
 }
+
 .header {
     position: absolute;
     top: 0;
     width: 100%;
     z-index: 1000;
     display: flex;
-    justify-content: center; /* This centers the flex items horizontally */
+    justify-content: center;
 }
+
 body {
-    margin-top: 70px; /* Adjust based on the height of your header */
+    margin-top: 70px;
     transition: background-color 0.5s, color 0.5s;
 }
+
 #main-content {
     padding: 20px;
     margin-left: 20px;

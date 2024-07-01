@@ -70,6 +70,30 @@ def index():
     )
 
 
+@app.route('/devices')
+# @auth()
+def devices():
+    return render_template('devices.html')
+
+
+@app.route('/objects')
+# @auth()
+def objects():
+    return render_template('objects.html')
+
+
+@app.route('/policies')
+# @auth()
+def policies():
+    return render_template('policies.html')
+
+
+@app.route('/settings')
+# @auth()
+def settings():
+    return render_template('settings.html')
+
+
 # Redirect unauthenticated requests to Azure AD sign-in page
 @app.errorhandler(401)
 def custom_401(error):
@@ -109,4 +133,4 @@ def callback():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

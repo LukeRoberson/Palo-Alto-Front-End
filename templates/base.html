@@ -12,7 +12,8 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     </head>
     <body class="light-mode">
-        <div class="header">
+        <!-- Header at the top of the screen -->
+        <header class="header">
             <div style="flex-grow: 1; text-align: center;">
                 <h2>My Flask App</h2>
             </div>
@@ -20,14 +21,42 @@
                 <input type="checkbox" id="mode-toggle">
                 <span class="slider round"></span>
             </label>
-        </div>
-        <div class="nav-bar" id="navBar">
-            <a href="#"><i class="fas fa-home"></i> Home</a>
-            <a href="#"><i class="fas fa-cogs"></i> Services</a>
-            <a href="#"><i class="fas fa-info-circle"></i> About</a>
-            <a href="#"><i class="fas fa-envelope"></i> Contact</a>
+        </header>
+
+        <!-- Navigation bar on the left -->
+        <nav class="nav-bar" id="navBar">
+            <div class="nav-item">
+                <a href="/devices">
+                    <span class="nav-icon"><i class="fas fa-network-wired"></i></span>
+                    <span class="nav-text">Devices</div>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/objects">
+                    <span class="nav-icon"><i class="fas fa-list"></i></span>
+                    <span class="nav-text">Objects</div>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/policies">
+                    <span class="nav-icon"><i class="fas fa-code"></i></span>
+                    <span class="nav-text">Policies</div>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/settings">
+                    <span class="nav-icon"><i class="fas fa-cogs"></i></span>
+                    <span class="nav-text">Settings</div>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/">
+                    <span class="nav-icon"><i class="fas fa-info-circle"></i></span>
+                    <span class="nav-text">About</div>
+                </a>
+            </div>
             <div class="toggle-btn" onclick="toggleNav()">☰</div>
-        </div>
+        </nav>
 
         <div id="main-content">
             {% block content %}
