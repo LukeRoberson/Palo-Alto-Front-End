@@ -1,4 +1,7 @@
 .venv/
 *.pyc
 *.pyo
+*.cer
+*.key
+*.pem
 config.yaml

@@ -2,9 +2,20 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Your page-specific content goes here -->
-<p>Welcome to the Flask App!</p>
-<p>Flask Version: {{ flask_version }}</p>
-<p>IP Address: {{ ip_address }}</p>
-<p>OS Version: {{ os_version }}</p>
+
+<table class="w3-table w3-striped w3-white w3-half w3-display-middle">
+    <tr>
+        <td><b>Flask Version</b></td>
+        <td><i>{{ flask_version }}</i></td>
+    </tr>
+    <tr>
+        <td><b>IP Address</b></td>
+        <td><i>{{ ip_address }}</i></td>
+    </tr>
+    <tr>
+        <td><b>OS Version</b></td>
+        <td><i>{{ os_version }}</i></td>
+    </tr>
+</table>
+
 {% endblock %}

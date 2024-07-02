@@ -231,4 +231,10 @@ def callback():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(
+        debug=config.web_debug,
+        ssl_context=(
+            'certificates/cert.pem',
+            'certificates/key.pem',
+        )
+    )

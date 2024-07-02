@@ -2,7 +2,200 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Your page-specific content goes here -->
-<p>Device Page</p>
+
+<!-- Header -->
+<header class="w3-container" style="padding-top:22px">
+    <h2><b><i class="fa fa-dashboard"></i> Device Dashboard</b></h2>
+</header>
+
+<!-- Info Cards -->
+<div class="w3-row-padding w3-margin-bottom">
+    <!-- Panel #1 -->
+    <div class="w3-quarter">
+      <div class="w3-container w3-red w3-padding-16">
+        <div class="w3-left"><i class="fa-solid fa-list-ol w3-xxxlarge"></i></div>
+        <div class="w3-right">
+          <h2>0</h2>
+        </div>
+        <div class="w3-clear"></div>
+        <h4>Device Count</h4>
+      </div>
+    </div>
+
+    <!-- Panel #2 -->
+    <div class="w3-quarter">
+      <div class="w3-container w3-blue w3-padding-16">
+        <div class="w3-left"><i class="fa fa-building-shield w3-xxxlarge"></i></div>
+        <div class="w3-right">
+          <h2>0</h2>
+        </div>
+        <div class="w3-clear"></div>
+        <h4>Site Count</h4>
+      </div>
+    </div>
+
+    <!-- Panel #3 -->
+    <div class="w3-quarter">
+      <div class="w3-container w3-teal w3-padding-16">
+        <div class="w3-left"><i class="fa fa-share-alt w3-xxxlarge"></i></div>
+        <div class="w3-right">
+          <h2>0</h2>
+        </div>
+        <div class="w3-clear"></div>
+        <h4>Device Count</h4>
+      </div>
+    </div>
+
+    <!-- Panel #4 -->
+    <div class="w3-quarter">
+        <div class="w3-container w3-orange w3-padding-16">
+          <div class="w3-left"><i class="fa fa-share-alt w3-xxxlarge"></i></div>
+          <div class="w3-right">
+            <h2>0</h2>
+          </div>
+          <div class="w3-clear"></div>
+          <h4>Device Count</h4>
+        </div>
+    </div>
+</div>
+
+<!-- Device List -->
+<br><hr>
+<header class="w3-container">
+    <h2>Devices</h2>
+</header>
+
+<div class="w3-row-padding w3-margin-bottom">
+    <!-- Device Card -->
+    <div class="w3-third">
+        <div class="w3-container w3-padding-16">
+            <div class="w3-card-4">
+            <header class="w3-container w3-light-grey">
+                <h3>Firewall-1</h3>
+            </header>
+            <br>
+            <div class="w3-container">
+                <table class="w3-table">
+                    <tr>
+                        <td><b>Site</b></td>
+                        <td>HQ</td>
+                    </tr>
+                    <tr>
+                        <td><b>Model</b></td>
+                        <td>PA1420</td>
+                    </tr>
+                    <tr>
+                        <td><b>HA Partner</b></td>
+                        <td>Firewall-2</td>
+                    </tr>
+                </table>
+            </div>
+            <br>
+            <button class="w3-button w3-block w3-blue">Download Config</button>
+            <button class="w3-button w3-block w3-green">Edit</button>
+            <button class="w3-button w3-block w3-red">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Device Card -->
+    <div class="w3-third">
+        <div class="w3-container w3-padding-16">
+            <div class="w3-card-4">
+                <header class="w3-container w3-light-grey">
+                    <h3>Firewall-2</h3>
+                </header>
+                <br>
+                <div class="w3-container">
+                    <table class="w3-table">
+                        <tr>
+                            <td><b>Site</b></td>
+                            <td>HQ</td>
+                        </tr>
+                        <tr>
+                            <td><b>Model</b></td>
+                            <td>PA1420</td>
+                        </tr>
+                        <tr>
+                            <td><b>HA Partner</b></td>
+                            <td>Firewall-1</td>
+                        </tr>
+                    </table>
+                </div>
+                <br>
+                <button class="w3-button w3-block w3-blue">Download Config</button>
+                <button class="w3-button w3-block w3-green">Edit</button>
+                <button class="w3-button w3-block w3-red">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Device Card -->
+    <div class="w3-third">
+        <div class="w3-container w3-padding-16">
+            <div class="w3-card-4">
+                <header class="w3-container w3-light-grey">
+                    <h3>Branch-FW</h3>
+                </header>
+                <br>
+                <div class="w3-container">
+                    <table class="w3-table">
+                        <tr>
+                            <td><b>Site</b></td>
+                            <td>Branch</td>
+                        </tr>
+                        <tr>
+                            <td><b>Model</b></td>
+                            <td>PA1420</td>
+                        </tr>
+                        <tr>
+                            <td><b>HA Partner</b></td>
+                            <td>None</td>
+                        </tr>
+                    </table>
+                </div>
+                <br>
+                <button class="w3-button w3-block w3-blue">Download Config</button>
+                <button class="w3-button w3-block w3-green">Edit</button>
+                <button class="w3-button w3-block w3-red">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Site List -->
+<br><hr>
+<header class="w3-container">
+    <h2>Sites</h2>
+</header>
+
+<div class="w3-row-padding w3-margin-bottom">
+    <!-- Site Card -->
+    <div class="w3-third">
+        <div class="w3-container w3-padding-16">
+            <div class="w3-card-4">
+                <header class="w3-container w3-light-grey">
+                    <h3>HQ</h3>
+                </header>
+                <button class="w3-button w3-block w3-green">Edit</button>
+                <button class="w3-button w3-block w3-red">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Site Card -->
+    <div class="w3-third">
+        <div class="w3-container w3-padding-16">
+            <div class="w3-card-4">
+                <header class="w3-container w3-light-grey">
+                    <h3>Branch</h3>
+                </header>
+                <button class="w3-button w3-block w3-green">Edit</button>
+                <button class="w3-button w3-block w3-red">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 {% endblock %}
