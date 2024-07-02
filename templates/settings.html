@@ -1,8 +1,77 @@
-<!-- index.html -->
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Your page-specific content goes here -->
-<p>Settings Page</p>
+
+<div class="w3-container">
+    <div class="w3-container">
+        <h2>Azure Settings</h2>
+    </div>
+    <form class="w3-panel w3-card">
+        <p>
+            <label>Tenant ID</label>
+            <input class="w3-input w3-border" type="text">
+        </p>
+        <p>
+            <label>Application ID</label>
+            <input class="w3-input w3-border" type="text">
+        </p>
+        <p>
+            <label>Application Secret</label>
+            <input class="w3-input w3-border" type="text">
+        </p>
+        <p>
+            <label>Callback URL</label>
+            <input class="w3-input w3-border" type="text">
+        </p>
+        <button class="w3-btn w3-green w3-round">Save</button>
+    </form>
+</div>
+<br>
+
+<div class="w3-container">
+    <div class="w3-container">
+        <h2>SQL Settings</h2>
+    </div>
+    <form class="w3-panel w3-card">
+        <p>
+            <label>SQL Server</label>
+            <input class="w3-input w3-border" type="text">
+        </p>
+        <p>
+            <label>SQL Port</label>
+            <input class="w3-input w3-border" type="text">
+        </p>
+        <p>
+            <label>SQL Database</label>
+            <input class="w3-input w3-border" type="text">
+        </p>
+        <p>
+            <label>Authentication Type</label>
+            <input class="w3-input w3-border" type="text">
+        </p>
+    </form>
+</div>
+<br>
+
+<div class="w3-container">
+    <div class="w3-container">
+        <h2>General Settings</h2>
+    </div>
+    <form class="w3-panel w3-card">
+        <p>
+            <label>Local IP</label>
+            <input class="w3-input w3-border" type="text">
+        </p>
+        <p>
+            <label>Local Port</label>
+            <input class="w3-input w3-border" type="text">
+        </p>
+        <p>
+            <label>Debug Mode</label>
+            <input class="w3-input w3-border" type="text">
+        </p>
+    </form>
+</div>
+<br>
 
 {% endblock %}

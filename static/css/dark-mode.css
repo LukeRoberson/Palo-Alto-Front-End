@@ -20,7 +20,7 @@
 }
 
 .light-mode .nav-bar a:hover {
-    color: red;
+    color: green;
 }
 
 .light-mode .toggle-btn {
@@ -28,9 +28,15 @@
     color: black;
 }
 
+.light-mode .w3-card {
+    background-color: #f0f0f0;
+    color: black;
+}
+
+
 /* Dark mode styles */
 .dark-mode {
-    background-color: #333;
+    background-color: #4d4b4b;
     color: #FFF;
 }
 
@@ -55,5 +61,10 @@
 
 .dark-mode .toggle-btn {
     background-color: #222;
+    color: #CCC;
+}
+
+.dark-mode .w3-card {
+    background-color: #333;
     color: #CCC;
 }

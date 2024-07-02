@@ -4,4 +4,14 @@ azure:
   app-id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx"
   app-secret: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx"
   redirect-uri: "http://localhost:5000/getAToken"
-  
+
+sql:
+  server: "127.0.0.1"
+  port: 1433
+  database: "database-name"
+  auth_type: "ActiveDirectory"
+
+web:
+  ip: "127.0.0.1"
+  port: 5000
+  debug: True
