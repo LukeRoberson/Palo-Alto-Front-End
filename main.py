@@ -9,29 +9,23 @@ from flask import (
 
 import platform
 from importlib.metadata import version
-from yaml import safe_load
 from flask_azure_oauth import FlaskAzureOauth
 import requests
 from requests.exceptions import HTTPError
 import colorama
+from settings import AppSettings
 
 
 # Create a Flask web app
 app = Flask(__name__)
 
 # Load the configuration from the config.yaml file
-with open('config.yaml') as f:
-    config = safe_load(f)
-
-redirect_uri = config['azure']['redirect-uri']
-azure_tenant = config['azure']['tenant-id']
-azure_app = config['azure']['app-id']
-azure_secret = config['azure']['app-secret']
+config = AppSettings()
 
 # Set the Azure configuration settings
-app.config['AZURE_OAUTH_TENANCY'] = azure_tenant
-app.config['AZURE_OAUTH_APPLICATION_ID'] = azure_app
-app.config['AZURE_OAUTH_CLIENT_SECRET'] = azure_secret
+app.config['AZURE_OAUTH_TENANCY'] = config.azure_tenant
+app.config['AZURE_OAUTH_APPLICATION_ID'] = config.azure_app
+app.config['AZURE_OAUTH_CLIENT_SECRET'] = config.azure_secret
 
 # Azure authentication
 auth = FlaskAzureOauth()
@@ -91,13 +85,26 @@ def policies():
 @app.route('/settings')
 # @auth()
 def settings():
-    return render_template('settings.html')
+    return render_template(
+        'settings.html',
+        tenant_id=config.azure_tenant,
+        app_id=config.azure_app,
+        app_secret=config.azure_secret,
+        callback_url=config.redirect_uri,
+        sql_server=config.sql_server,
+        sql_port=config.sql_port,
+        sql_database=config.sql_database,
+        sql_auth=config.sql_auth_type,
+        web_ip=config.web_ip,
+        web_port=config.web_port,
+        web_debug=config.web_debug
+    )
 
 
 # Redirect unauthenticated requests to Azure AD sign-in page
 @app.errorhandler(401)
 def custom_401(error):
-    azure_ad_sign_in_url = f"https://login.microsoftonline.com/{azure_tenant}/oauth2/v2.0/authorize?client_id={azure_app}&response_type=code&redirect_uri={redirect_uri}&response_mode=query&scope=openid%20profile%20email"
+    azure_ad_sign_in_url = f"https://login.microsoftonline.com/{config.azure_tenant}/oauth2/v2.0/authorize?client_id={config.azure_app}&response_type=code&redirect_uri={config.redirect_uri}&response_mode=query&scope=openid%20profile%20email"
     return redirect(azure_ad_sign_in_url)
 
 
@@ -107,15 +114,15 @@ def callback():
     code = request.args.get('code')
 
     # Prepare the data for the token request
-    token_url = f"https://login.microsoftonline.com/{azure_tenant}/oauth2/v2.0/token"
+    token_url = f"https://login.microsoftonline.com/{config.azure_tenant}/oauth2/v2.0/token"
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     data = {
-        'client_id': azure_app,
+        'client_id': config.azure_app,
         'scope': 'openid profile email',
         'code': code,
-        'redirect_uri': redirect_uri,
+        'redirect_uri': config.redirect_uri,
         'grant_type': 'authorization_code',
-        'client_secret': azure_secret,
+        'client_secret': config.azure_secret,
     }
 
     # Make a POST request to get the access token
