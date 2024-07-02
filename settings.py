@@ -73,5 +73,9 @@ class AppSettings():
             }
         }
 
-        with open('config.yaml', 'w') as f:
-            safe_dump(config, f)
+        try:
+            with open('config.yaml', 'w') as f:
+                safe_dump(config, f)
+
+        except Exception as e:
+            print(e)

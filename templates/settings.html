@@ -6,27 +6,30 @@
     <div class="w3-container">
         <h2>Azure Settings</h2>
     </div>
-    <form class="w3-panel w3-card">
+    <form id="settings-azure" class="w3-panel w3-card" method="post">
         <p>
             <label>Tenant ID</label>
-            <input class="w3-input w3-border" type="text" value="{{ tenant_id }}">
+            <input class="w3-input w3-border" type="text" name="tenant_id" value="{{ tenant_id }}">
         </p>
         <p>
             <label>Application ID</label>
-            <input class="w3-input w3-border" type="text" value="{{ app_id }}">
+            <input class="w3-input w3-border" type="text" name="app_id" value="{{ app_id }}">
         </p>
         <p>
             <label>Application Secret</label>
-            <input class="w3-input w3-border" type="text" value="{{ app_secret }}">
+            <input class="w3-input w3-border" type="text" name="app_secret" value="{{ app_secret }}">
         </p>
         <p>
             <label>Callback URL</label>
-            <input class="w3-input w3-border" type="text" value="{{ callback_url }}">
+            <input class="w3-input w3-border" type="text" name="callback_url" value="{{ callback_url }}">
         </p>
         <p>
-            <button class="w3-btn w3-green w3-round">Save</button>
+            <button type="submit" class="w3-btn w3-green w3-round">Save</button>
         </p>
     </form>
+
+    <!-- Display result message -->
+    <div id="message"></div>
 </div>
 <br>
 
@@ -34,22 +37,22 @@
     <div class="w3-container">
         <h2>SQL Settings</h2>
     </div>
-    <form class="w3-panel w3-card">
+    <form id="settings-sql" class="w3-panel w3-card">
         <p>
             <label>SQL Server</label>
-            <input class="w3-input w3-border" type="text" value="{{ sql_server }}">
+            <input class="w3-input w3-border" type="text" name="sql_server" value="{{ sql_server }}">
         </p>
         <p>
             <label>SQL Port</label>
-            <input class="w3-input w3-border" type="text" value="{{ sql_port }}">
+            <input class="w3-input w3-border" type="text" name="sql_port" value="{{ sql_port }}">
         </p>
         <p>
             <label>SQL Database</label>
-            <input class="w3-input w3-border" type="text" value="{{ sql_database }}">
+            <input class="w3-input w3-border" type="text" name="sql_database" value="{{ sql_database }}">
         </p>
         <p>
             <label>Authentication Type</label>
-            <input class="w3-input w3-border" type="text" value="{{ sql_auth }}">
+            <input class="w3-input w3-border" type="text" name="sql_auth" value="{{ sql_auth }}">
         </p>
         <p>
             <button class="w3-btn w3-green w3-round">Save</button>
@@ -63,20 +66,20 @@
     <div class="w3-container">
         <h2>General Settings</h2>
     </div>
-    <form class="w3-panel w3-card">
+    <form id="settings-web" class="w3-panel w3-card">
         <p>
             <label>Local IP</label>
-            <input class="w3-input w3-border" type="text" value="{{ web_ip }}">
+            <input class="w3-input w3-border" type="text" name="web_ip" value="{{ web_ip }}">
         </p>
         <p>
             <label>Local Port</label>
-            <input class="w3-input w3-border" type="text" value="{{ web_port }}">
+            <input class="w3-input w3-border" type="text" name="web_port" value="{{ web_port }}">
         </p>
         <p>
             <label>Debug Mode</label>
-            <input class="w3-radio" name="flask_debug" type="radio" value="on" {% if web_debug %}checked{% endif %}>
+            <input class="w3-radio" name="web_debug" type="radio" value="on" {% if web_debug %}checked{% endif %}>
                 <label>On</label>
-            <input class="w3-radio" name="flask_debug" type="radio" value="off" {% if not web_debug %}checked{% endif %}>
+            <input class="w3-radio" name="web_debug" type="radio" value="off" {% if not web_debug %}checked{% endif %}>
                 <label>Off</label>
         </p>
         <p>

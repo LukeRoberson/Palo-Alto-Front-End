@@ -4,7 +4,8 @@ from flask import (
     redirect,
     session,
     url_for,
-    render_template
+    render_template,
+    jsonify,
 )
 
 import platform
@@ -99,6 +100,96 @@ def settings():
         web_port=config.web_port,
         web_debug=config.web_debug
     )
+
+
+# Button Actions
+@app.route('/save_azure', methods=['POST'])
+def save_azure():
+    try:
+        config.azure_tenant = request.form['tenant_id']
+        config.azure_app = request.form['app_id']
+        config.azure_secret = request.form['app_secret']
+        config.redirect_uri = request.form['callback_url']
+        config.write_config()
+        return jsonify(
+            {
+                "result": "Success",
+                "message": "Settings saved"
+            }
+        )
+
+    except KeyError as e:
+        print(
+            colorama.Fore.RED,
+            f"An error occurred while saving the Azure settings: {e}",
+            colorama.Style.RESET_ALL
+        )
+        return jsonify(
+            {
+                "result": "Failure",
+                "message": str(e)
+            }
+        ), 500
+
+
+@app.route('/save_sql', methods=['POST'])
+def save_sql():
+    try:
+        config.sql_server = request.form['sql_server']
+        config.sql_port = request.form['sql_port']
+        config.sql_database = request.form['sql_database']
+        config.sql_auth_type = request.form['sql_auth']
+        config.write_config()
+        return jsonify(
+            {
+                "result": "Success",
+                "message": "Settings saved"
+            }
+        )
+
+    except KeyError as e:
+        print(
+            colorama.Fore.RED,
+            f"An error occurred while saving the Azure settings: {e}",
+            colorama.Style.RESET_ALL
+        )
+        return jsonify(
+            {
+                "result": "Failure",
+                "message": str(e)
+            }
+        ), 500
+
+
+@app.route('/save_web', methods=['POST'])
+def save_web():
+    try:
+        config.web_ip = request.form['web_ip']
+        config.web_port = request.form['web_port']
+        if request.form['web_debug'] == 'on':
+            config.web_debug = True
+        else:
+            config.web_debug = False
+        config.write_config()
+        return jsonify(
+            {
+                "result": "Success",
+                "message": "Settings saved"
+            }
+        )
+
+    except KeyError as e:
+        print(
+            colorama.Fore.RED,
+            f"An error occurred while saving the Azure settings: {e}",
+            colorama.Style.RESET_ALL
+        )
+        return jsonify(
+            {
+                "result": "Failure",
+                "message": str(e)
+            }
+        ), 500
 
 
 # Redirect unauthenticated requests to Azure AD sign-in page
