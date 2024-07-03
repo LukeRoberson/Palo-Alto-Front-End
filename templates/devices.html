@@ -61,11 +61,11 @@
 
 <!-- Device List -->
 <br><hr>
-<header class="w3-container">
-    <h2>Devices</h2>
-</header>
-
 <div class="w3-row-padding w3-margin-bottom">
+    <header class="w3-container">
+        <h2>Devices</h2>
+    </header>
+    
     <!-- Device Card -->
     <div class="w3-third">
         <div class="w3-container w3-padding-16">
@@ -161,15 +161,16 @@
             </div>
         </div>
     </div>
+    <button class="w3-button w3-block w3-green" id="add_device">Add Device</button>
 </div>
 
 <!-- Site List -->
 <br><hr>
-<header class="w3-container">
-    <h2>Sites</h2>
-</header>
-
 <div class="w3-row-padding w3-margin-bottom">
+    <header class="w3-container">
+        <h2>Sites</h2>
+    </header>
+
     <!-- Site Card -->
     <div class="w3-third">
         <div class="w3-container w3-padding-16">
@@ -195,7 +196,55 @@
             </div>
         </div>
     </div>
+    <button class="w3-button w3-block w3-green" id="add_site">Add Site</button>
 </div>
 
+<!-- The Device Modal -->
+<div id="deviceModal" class="w3-modal">
+    <div class="w3-modal-content w3-card-4 w3-animate-zoom" style="max-width:600px">
+        <div class="w3-center"><br>
+            <span onclick="document.getElementById('deviceModal').style.display='none'" class="w3-button w3-xlarge w3-hover-red w3-display-topright" title="Close Modal">&times;</span>
+            <h3>Add Site</h3>
+        </div>
+        <form class="w3-container">
+            <div class="w3-section">
+                <label><b>Device Name</b></label>
+                <input class="w3-input w3-border w3-margin-bottom" type="text" placeholder="Friendly Name" name="deviceName" required>
+                <label><b>Hostname</b></label>
+                <input class="w3-input w3-border w3-margin-bottom" type="text" placeholder="Hostname of IP of the device" name="hostName" required>
+                <label><b>Site Membership</b></label>
+                <input class="w3-input w3-border w3-margin-bottom" type="text" placeholder="The site this belongs to" name="siteMember" required>
+                <label><b>API Key</b></label>
+                <input class="w3-input w3-border w3-margin-bottom" type="text" placeholder="API key to access the device" name="apiKey" required>
+                <button class="w3-button w3-block w3-green w3-section w3-padding" type="submit">Submit</button>
+            </div>
+        </form>
+
+        <div class="w3-container w3-border-top w3-padding-16 w3-light-grey">
+            <button onclick="document.getElementById('deviceModal').style.display='none'" type="button" class="w3-button w3-red">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- The Site Modal -->
+<div id="siteModal" class="w3-modal">
+    <div class="w3-modal-content w3-card-4 w3-animate-zoom" style="max-width:600px">
+        <div class="w3-center"><br>
+            <span onclick="document.getElementById('siteModal').style.display='none'" class="w3-button w3-xlarge w3-hover-red w3-display-topright" title="Close Modal">&times;</span>
+            <h3>Add Site</h3>
+        </div>
+        <form class="w3-container">
+            <div class="w3-section">
+                <label><b>Site Name</b></label>
+                <input class="w3-input w3-border w3-margin-bottom" type="text" placeholder="Enter the name of the site" name="siteName" required>
+                <button class="w3-button w3-block w3-green w3-section w3-padding" type="submit">Submit</button>
+            </div>
+        </form>
+
+        <div class="w3-container w3-border-top w3-padding-16 w3-light-grey">
+            <button onclick="document.getElementById('siteModal').style.display='none'" type="button" class="w3-button w3-red">Cancel</button>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

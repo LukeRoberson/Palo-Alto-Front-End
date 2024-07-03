@@ -20,3 +20,7 @@ To enable this, place two files in the **certificates** directory:
 
 These are base64 encoded private and public keys.
 
+# Known Issues
+
+* Switching between light and dark mode sometimes needs a refresh to apply correctly
+* The navbar does not stay 'shrunk' when changing pages

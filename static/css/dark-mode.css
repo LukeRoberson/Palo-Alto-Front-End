@@ -33,6 +33,11 @@
     color: black;
 }
 
+.light-mode .w3-panel {
+    background-color: #f0f0f0;
+    color: black;
+}
+
 
 /* Dark mode styles */
 .dark-mode {
@@ -67,4 +72,19 @@
 .dark-mode .w3-card {
     background-color: #333;
     color: #CCC;
+}
+
+.dark-mode .w3-panel {
+    background-color: #333;
+    color: #CCC;
+}
+
+.w3-container.dark-mode, .w3-container.dark-mode input, .w3-container.dark-mode select, .w3-container.dark-mode textarea, .w3-container.dark-mode button {
+    background-color: #333;
+    color: #fff;
+}
+
+.w3-container.light-mode, .w3-container.light-mode input, .w3-container.light-mode select, .w3-container.light-mode textarea, .w3-container.light-mode button {
+    background-color: #fff;
+    color: #000;
 }
