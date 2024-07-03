@@ -2,56 +2,234 @@
 Creates and reads entries in an SQL database
 """
 
-import pyodbc
 from typing import Union
-from colorama import init, Fore, Style
-import datetime
+import pymssql
+import traceback as tb
 
 
-# Colourama initialisation
-init(autoreset=True)
-
-
-class Sql():
+class SqlServer:
     '''
     Connect to an SQL server/database to read and write
+    Supports being instantiated with the 'with' statement
 
     Methods:
+        __init__()
+            Class constructor
+        __enter__()
+            Called when the 'with' statement is used
+        __exit__()
+            Called when the 'with' statement is finished
+        connect()
+            Connect to an SQL server
+        disconnect()
+            Gracefully disconnect from the server
+        create_table()
+            Create a table
         add()
-            Adds an entry to the database
-        read_last()
-            Reads the last entry in a database
-        read_since()
-            Reads all entries since a particular time
+            Add a record
+        read()
+            Read a record
+        update()
+            Update a record
+        delete()
+            Delete a record
     '''
 
     def __init__(
         self,
         server: str,
         database: str,
-        debug: bool = False
+        table: str
     ) -> None:
         '''
         Class constructor
 
-        Set up variables for the SQL server and database
+        Gets the SQL server/db/table names
+        Sets up empty connection and cursor objects
+
+        Args:
+            server : str
+                The server name
+            database : str
+                The database name
+            table : str
+                The table name
         '''
 
         self.server = server
         self.db = database
-        self.debug = debug
+        self.table = table
+        self.conn = None
+        self.cursor = None
+
+    def __enter__(
+        self
+    ) -> 'SqlServer':
+        """
+        Called when the 'with' statement is used
+        Calls the 'connect' method to connect to the server
+
+        Returns:
+            self
+                The instantiated object
+        """
+
+        self.connect()
+        return self
+
+    def __exit__(
+        self,
+        exc_type: Union[Exception, None],
+        exc_value: Union[Exception, None],
+        traceback: Union[Exception, None],
+    ) -> None:
+        """
+        Called when the 'with' statement is finished
+        Calls the 'disconnect' method to gracefully close the connection
+            to the server
+        """
+
+        # Close the connection to the server
+        self.disconnect()
+
+        # handle errors that were raised
+        if exc_type:
+            print(
+                f"Exception of type {exc_type.__name__} occurred: {exc_value}"
+            )
+            if traceback:
+                print("Traceback:")
+                print(tb.format_tb(traceback))
+
+    def connect(
+        self
+    ) -> None:
+        '''
+        Connect to the SQL server
+
+        Raises:
+            pymssql.DataError
+            pymssql.OperationalError
+            pymssql.IntegrityError
+            pymssql.InternalError
+            pymssql.ProgrammingError
+            pymssql.NotSupportedError
+            pymssql.Error
+        '''
+
+        # Connect to the server and database
+        try:
+            self.conn = pymssql.connect(
+                server=self.server,
+                database=self.db
+            )
+
+        # Handle errors
+        except pymssql.DataError as e:
+            raise Exception("A data error has occurred") from e
+
+        except pymssql.OperationalError as e:
+            raise Exception(
+                ("An operational error has occurred ",
+                 "while connecting to the database")
+            ) from e
+
+        except pymssql.IntegrityError as e:
+            raise Exception("An Integrity error has occurred") from e
+
+        except pymssql.InternalError as e:
+            raise Exception("An internal error has occurred") from e
+
+        except pymssql.ProgrammingError as e:
+            if 'Cannot open database' in str(e):
+                print("Unable to open the database")
+                print("Make sure the name is correct, and credentials are ok")
+
+            raise Exception("A programming error has occurred") from e
+
+        except pymssql.NotSupportedError as e:
+            raise Exception("A 'not supported' error has occurred") from e
+
+        except pymssql.Error as e:
+            raise Exception("A generic error has occurred") from e
+
+        # If the connection was successful, create a cursor
+        self.cursor = self.conn.cursor()
+
+    def disconnect(
+        self
+    ) -> None:
+        """
+        Gracefully close the connection to the server
+        """
+
+        self.cursor.close()
+        self.conn.close()
+
+    def create_table(
+        self,
+        fields: dict[str, str]
+    ) -> bool:
+        '''
+        Creates a table in an SQL database
+
+        Args:
+            fields : dict
+                Fields to create in the table
+
+        Returns:
+            True : bool
+                If there were no errors
+            False : bool
+                If there were errors
+        '''
+
+        print(f"Creating the '{self.table}' table...")
+
+        # Build a valid SQL 'CREATE TABLE' command
+        sql_string = f'CREATE TABLE {self.table} ('
+        for field in fields:
+            sql_string += field + ' ' + fields[field] + ','
+        sql_string = sql_string.rstrip(',') + ')'
+
+        # Attempt to connect to the SQL server
+        try:
+            self.cursor.execute(sql_string)
+
+        # If there's a problem, print errors and quit
+        except pymssql.ProgrammingError as e:
+            if '42S01' in str(e):
+                print(f"The '{self.table}' table already exists")
+            else:
+                print(
+                    (f"Programming error: {e}. "
+                     "Check that there are no typos in the SQL syntax")
+                )
+            return False
+
+        except Exception as e:
+            print(f"SQL execution error: {e}")
+            return False
+
+        # Commit the SQL changes
+        try:
+            self.conn.commit()
+
+        # Handle errors
+        except Exception as e:
+            print(f"SQL commit error: {e}")
+            return False
+
+        return True
 
     def add(
         self,
-        table: str,
-        fields: dict
+        fields: dict[str, str],
     ) -> bool:
         '''
         Add an entry to the database
 
         Args:
-            table : str
-                The database table to write to
             fields : dict
                 A dictionary that includes named fields and values to write
 
@@ -75,233 +253,209 @@ class Sql():
         # Populate the columns and values (comma after each entry)
         for field in fields:
             columns += field + ', '
-            values += str(fields[field]) + ', '
+            values += f"\'{str(fields[field])}\', "
 
         # Clean up the trailing comma, to make this valid
         columns = columns.strip(", ")
         values = values.strip(", ")
 
         # Build the SQL command as a string
-        sql_string = f'INSERT INTO {table} ('
+        sql_string = f'INSERT INTO {self.table} ('
         sql_string += columns
         sql_string += ')'
 
         sql_string += '\nVALUES '
         sql_string += f'({values});'
 
-        # Optionally, we can debug this to the terminal
-        if self.debug:
-            print(
-                Fore.MAGENTA,
-                f"DEBUG (sql.py): {sql_string}",
-                Style.RESET_ALL
-            )
-
-        # Connect to db, run the SQL command, commit the transaction
+        # Try to execute the SQL command (add rows)
         try:
-            with pyodbc.connect(
-                    'Driver={SQL Server};'
-                    'Server=%s;'
-                    'Database=%s;'
-                    'Trusted_Connection=yes;'
-                    % (self.server, self.db)) as self.conn:
+            self.cursor.execute(sql_string)
 
-                # The cursor is a pointer to an area in the database
-                self.cursor = self.conn.cursor()
-
-                # Try to execute the SQL command (add rows)
-                try:
-                    self.cursor.execute(sql_string)
-                except Exception as err:
-                    print(
-                        Fore.RED,
-                        f"SQL execution error: {err}",
-                        Style.RESET_ALL
-                    )
-
-                    return False
-
-                # Commit the transaction
-                try:
-                    self.conn.commit()
-                except Exception as err:
-                    print(
-                        Fore.RED,
-                        f"SQL commit error: {err}",
-                        Style.RESET_ALL
-                    )
-
-                    return False
-
-        # If the SQL server connection failed
         except Exception as err:
-            print(
-                Fore.RED,
-                f"Error {err} connecting to the SQL database",
-                Style.RESET_ALL
-            )
+            if 'Violation of PRIMARY KEY constraint' in str(err):
+                print("Error: This primary key already exists")
+            else:
+                print(f"SQL execution error: {err}")
+                print(f"attempted to write:\n{fields}")
+                print(sql_string)
+            return False
 
+        # Commit the transaction
+        try:
+            self.conn.commit()
+        except Exception as err:
+            print(f"SQL commit error: {err}")
             return False
 
         # If all was good, return True
         return True
 
-    def read_last(
+    def read(
         self,
-        table: str,
-    ) -> Union[str, bool]:
+        field: str,
+        value: str,
+    ) -> Union[list, None, bool]:
         '''
-        Read the last entry in a table
+        Read an entry from the database
+        Leave field and value empty to read all entries
 
         Args:
-            table : str
-                The database table to write to
+            field : str
+                The field to look in (usually ID)
+            value : str
+                The value to look for (perhaps a UUID)
 
         Raises:
             Exception
-                If there were errors connecting to the server
-            Exception
-                If there were errors reading
+                If there were errors reading from the database
 
         Returns:
-            entry : str
-                The entry retrieved from the SQL server
+            entry : list
+                A list of entries
+                Each entry is a pymssql.Row object
+            None :
+                If there was no match
             False : boolean
                 If the read failed
         '''
 
-        # Connect to the SQL database
+        # Build the SQL string
+        sql_string = "SELECT *\n"
+        sql_string += f"FROM [{self.db}].[dbo].[{self.table}]"
+
+        if field == '':
+            sql_string += ';'
+        else:
+            sql_string += '\n'
+            sql_string += f"WHERE {field} = \'{value}\';"
+
+        # Send the SQL command to the server and execute
+        entry = []
         try:
-            with pyodbc.connect(
-                    'Driver={SQL Server};'
-                    'Server=%s;'
-                    'Database=%s;'
-                    'Trusted_Connection=yes;'
-                    % (self.server, self.db)) as self.conn:
-                self.cursor = self.conn.cursor()
+            self.cursor.execute(sql_string)
+            for row in self.cursor:
+                entry.append(row)
 
-                # Send the SQL command to the server and execute
-                try:
-                    self.cursor.execute(
-                        f"SELECT TOP 1 * \
-                        FROM [NetworkAssistant_Alerts].[dbo].[{table}] \
-                        ORDER BY id DESC"
-                    )
-                    for row in self.cursor:
-                        entry = row
-
-                # If there was a problem reading
-                except Exception as err:
-                    print(
-                        Fore.RED,
-                        f"SQL read error: {err}",
-                        Style.RESET_ALL,
-                    )
-
-                    return False
-
-        # If there was a problem connecting to the server
+        # If there was a problem reading
         except Exception as err:
-            print(
-                Fore.RED,
-                f"Error {err} connecting to the SQL database",
-                Style.RESET_ALL,
-            )
-
+            if '42S02' in str(err):
+                print("Invalid object")
+                print("Check the table name is correct")
+            else:
+                print(f"SQL read error: {err}")
             return False
 
         # If it all worked, return the entry
         return entry
 
-    # Read entries between date/times
-    def read_since(
+    def update(
         self,
-        table: str,
-        start_date: datetime,
-        start_time: datetime,
-        end_date: datetime,
-        end_time: datetime,
-    ) -> Union[list, bool]:
+        field: str,
+        value: str,
+        body: dict[str, str]
+    ) -> Union[str, None, bool]:
         '''
-        Read entries between particular date/times
+        Update an entry in the database
 
-        Args:
-            table : str
-                The database table to write to
-            start_date : datetime
-                The starting date
-            start_time : datetime
-                The starting time
-            end_date : datetime
-                The ending date
-            end_time : datetime
-                The ending time
+        Parameters:
+            field : str
+                The field to look in (usually an ID)
+            value : str
+                The value to look for (usually a UUID)
+            body : dict
+                Values to update
 
         Raises:
             Exception
-                If there were errors connecting to the server
-            Exception
-                If there were errors reading
+                If there were errors reading from the database
 
         Returns:
-            entry : list
-                A list of entries retrieved from the SQL server
+            entry : str
+                The entry, it it was found
+            None :
+                If there was no match
             False : boolean
                 If the read failed
         '''
 
-        # A list of entries
-        entry = []
+        # Build the UPDATE command
+        sql_string = f"UPDATE [{self.db}].[dbo].[{self.table}]\n"
 
-        # Connect to db
+        # Build the SET command
+        sql_string += "SET "
+        for entry in body:
+            sql_string += f"{entry} = \'{body[entry]}\', "
+
+        # Clean up the SET command
+        sql_string = sql_string.strip(", ")
+        sql_string += '\n'
+
+        # Build the WHERE command
+        sql_string += f"WHERE {field} = \'{value}\';"
+
+        # Try updating the entry
         try:
-            with pyodbc.connect(
-                    'Driver={SQL Server};'
-                    'Server=%s;'
-                    'Database=%s;'
-                    'Trusted_Connection=yes;'
-                    % (self.server, self.db)) as self.conn:
-                self.cursor = self.conn.cursor()
+            self.cursor.execute(sql_string)
 
-                # Send the SQL command
-                try:
-                    self.cursor.execute(
-                        f"SELECT * \
-                        FROM [NetworkAssistant_Alerts].[dbo].[{table}] \
-                        WHERE \
-                        (logdate = '{start_date}' \
-                            AND logtime between '{start_time}' \
-                            AND '23:59:59') OR \
-                        (logdate = '{end_date}' \
-                            AND logtime between '00:00:00' \
-                            AND '{end_time}') OR \
-                        (logdate between '{start_date}' AND '{end_date}') AND \
-                        (message NOT LIKE '' AND message NOT LIKE '0')"
-                    )
-
-                    # Add the results to the list to return
-                    for row in self.cursor:
-                        entry.append(row)
-
-                # If there was a problem reading
-                except Exception as err:
-                    print(
-                        Fore.RED,
-                        f"SQL read error: {err}",
-                        Style.RESET_ALL
-                    )
-
-                    return False
-
-        # If there was a problem connecting to the DB
+        # If there was a problem updating
         except Exception as err:
-            print(
-                Fore.RED,
-                f"Error {err} connecting to the SQL database",
-                Style.RESET_ALL
-            )
-
+            print(f"SQL read error: {err}")
             return False
 
-        # If all worked, return the entries
-        return entry
+        # Commit the transaction
+        try:
+            self.conn.commit()
+        except Exception as err:
+            print(f"SQL commit error: {err}")
+            return False
+
+        # If it all worked
+        return True
+
+    def delete(
+        self,
+        field: str,
+        value: str,
+    ) -> bool:
+        '''
+        Delete an entry from the database
+
+        Args:
+            field : str
+                The field to search by
+            value : str
+                The value in the field to find
+
+        Raises:
+            Exception
+                If there were errors deleting from the database
+
+        Returns:
+            True : boolean
+                If the write was successful
+            False : boolean
+                If the write failed
+        '''
+
+        # Build the SQL string
+        sql_string = f'DELETE FROM {self.table}\n'
+        sql_string += f'WHERE {field} = \'{value}\';'
+
+        # Try to execute the SQL command (add rows)
+        try:
+            self.cursor.execute(sql_string)
+
+        except Exception as err:
+            print(f"SQL execution error: {err}")
+            return False
+
+        # Commit the transaction
+        try:
+            self.conn.commit()
+
+        except Exception as err:
+            print(f"SQL commit error: {err}")
+            return False
+
+        # If all was good, return True
+        return True

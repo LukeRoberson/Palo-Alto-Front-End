@@ -15,6 +15,7 @@ import requests
 from requests.exceptions import HTTPError
 import colorama
 from settings import AppSettings
+from sql import SqlServer
 
 
 # Create a Flask web app
@@ -49,6 +50,41 @@ except Exception as e:
     )
     print(e)
 
+
+def get_sites() -> list:
+    '''
+    Get all sites from the database
+    '''
+
+    with SqlServer(
+        server=config.sql_server,
+        database=config.sql_database,
+        table='sites',
+    ) as sql:
+        output = sql.read(
+            field='',
+            value='',
+        )
+
+    return output
+
+
+def get_devices() -> list:
+    '''
+    Get all Palo Alto devices from the database
+    '''
+
+    with SqlServer(
+        server=config.sql_server,
+        database=config.sql_database,
+        table='devices',
+    ) as sql:
+        output = sql.read(
+            field='vendor',
+            value='paloalto',
+        )
+
+    return output
 
 @app.route('/')
 # @auth()
