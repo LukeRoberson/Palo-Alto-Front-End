@@ -6,6 +6,7 @@ Tracks each of these objects, and contains methods to manage them
 import uuid
 from sql import SqlServer
 from settings import AppSettings
+from colorama import Fore, Style
 
 
 class Site:
@@ -172,6 +173,98 @@ class SiteManager():
                     id=site[0]
                 )
             )
+
+    def add_site(
+        self,
+        name: str,
+    ) -> Site:
+        '''
+        Add a new site to the database
+        Assigns a new unique ID to the site
+        Checks if the site name already exists
+
+        Args:
+            name (str): The name of the site
+
+        Returns:
+            Site: A new Site object if successful, otherwise None
+        '''
+
+        # Refresh the site list from the database
+        self.get_sites()
+
+        # Create a new unique ID for the site
+        id = self._new_uuid()
+
+        # Check if the name already exists in the database
+        for site in self.site_list:
+            # Names must be unique
+            if name == site.name:
+                print(
+                    Fore.RED,
+                    f"Site '{name}' already exists in the database.",
+                    Style.RESET_ALL
+                )
+                return None
+
+        # Create a new Site object
+        print(
+            Fore.GREEN,
+            f"Adding site '{name}' with ID '{id}' to the database.",
+            Style.RESET_ALL
+        )
+        new_site = Site(
+            name=name,
+            id=id
+        )
+
+        print(type(new_site.id))
+
+        # Add to the database
+        with SqlServer(
+            server=self.sql_server,
+            database=self.sql_database,
+            table='sites',
+        ) as sql:
+            result = sql.add(
+                fields={
+                    'id': new_site.id,
+                    'name': new_site.name,
+                }
+            )
+
+        if result:
+            # Refresh the site list
+            self.get_sites()
+            return new_site
+
+        else:
+            return False
+
+    def _new_uuid(
+        self
+    ) -> uuid:
+        '''
+        Generate a new UUID for a site
+        Ensures the UUID is unique in the database
+
+        Returns:
+            UUID: A unique site UUID
+        '''
+
+        # Loop until a unique ID is found
+        collision = True
+        while collision:
+            id = uuid.uuid4()
+            collision = False
+
+            for site in self.site_list:
+                # If there is a collision, set the flag and break
+                if id == site.id:
+                    collision = True
+                    break
+
+        return id
 
 
 class DeviceManager():

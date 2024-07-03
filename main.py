@@ -16,9 +16,7 @@ from requests.exceptions import HTTPError
 import colorama
 from settings import AppSettings
 from sql import SqlServer
-from device import Site, SiteManager, DeviceManager
-import uuid
-from colorama import Fore, Style
+from device import SiteManager, DeviceManager
 
 
 # Create a Flask web app
@@ -63,61 +61,6 @@ def azure_auth() -> FlaskAzureOauth:
         print(e)
 
     return auth
-
-
-def add_site(
-    name: str,
-) -> Site:
-    '''
-    Add a new site to the database
-    Checks if the site name or ID already exists
-        If the name exists, return None, this is an error
-        If the ID exists, generate a new one recursively
-
-    Args:
-        name (str): The name of the site
-
-    Returns:
-        Site: A new Site object if successful, otherwise None
-    '''
-
-    # Create a new ID for the site
-    id = uuid.uuid4()
-
-    # Check if the name or ID already exists in the database
-    site_list = site_manager.get_sites()
-    for site in site_list:
-        # Names must be unique
-        if name == site.name:
-            print(
-                Fore.RED,
-                f"Site '{name}' already exists in the database.",
-                Style.RESET_ALL
-            )
-            return None
-
-        # IDs must be unique, but a new one can be generated recursively
-        if id == site.id:
-            print(
-                Fore.RED,
-                f"Site ID '{id}' already exists in the database.",
-                Style.RESET_ALL
-            )
-            print("Generating a new ID...")
-            return add_site(name)
-
-    # Create a new Site object
-    print(
-        Fore.GREEN,
-        f"Adding site '{name}' with ID '{id}' to the database.",
-        Style.RESET_ALL
-    )
-    new_site = Site(
-        name=name,
-        id=id
-    )
-
-    return new_site
 
 
 # Authenticate the user with Azure AD
@@ -298,22 +241,56 @@ def test_sql():
             return jsonify(
                 {
                     "result": "Success",
-                    "message": f"Successful Connection to {config.sql_server}\\{config.sql_database}"
+                    "message": (
+                        f"Connected to {config.sql_server}\\"
+                        f"{config.sql_database}"
+                    )
                 }
             )
         else:
             return jsonify(
                 {
                     "result": "Failure",
-                    "message": f"Failed to connect to {config.sql_server}\\{config.sql_database}"
+                    "message": (
+                        f"Failed to connect to {config.sql_server}\\"
+                        f"{config.sql_database}"
+                    )
                 }
             )
+
+
+@app.route('/add_site', methods=['POST'])
+def add_site():
+    new_site = site_manager.add_site(request.form['siteName'])
+
+    if new_site:
+        return jsonify(
+            {
+                "result": "Success",
+                "message": f"Site '{new_site.name}' added successfully"
+            }
+        )
+
+    else:
+        return jsonify(
+            {
+                "result": "Failure",
+                "message": f"Site '{request.form['siteName']}' can't be added"
+            }
+        ), 500
 
 
 # Redirect unauthenticated requests to Azure AD sign-in page
 @app.errorhandler(401)
 def custom_401(error):
-    azure_ad_sign_in_url = f"https://login.microsoftonline.com/{config.azure_tenant}/oauth2/v2.0/authorize?client_id={config.azure_app}&response_type=code&redirect_uri={config.redirect_uri}&response_mode=query&scope=openid%20profile%20email"
+    base_url = "https://login.microsoftonline.com"
+    tenant = f"{config.azure_tenant}/oauth2/v2.0/authorize"
+    params = (
+        f"client_id={config.azure_app}&response_type=code"
+        f"&redirect_uri={config.redirect_uri}&response_mode=query"
+        f"&scope=openid%20profile%20email"
+    )
+    azure_ad_sign_in_url = f"{base_url}/{tenant}?{params}"
     return redirect(azure_ad_sign_in_url)
 
 
@@ -323,7 +300,10 @@ def callback():
     code = request.args.get('code')
 
     # Prepare the data for the token request
-    token_url = f"https://login.microsoftonline.com/{config.azure_tenant}/oauth2/v2.0/token"
+    token_url = (
+        "https://login.microsoftonline.com/"
+        f"{config.azure_tenant}/oauth2/v2.0/token"
+    )
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
     data = {
         'client_id': config.azure_app,
