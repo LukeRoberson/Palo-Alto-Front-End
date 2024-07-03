@@ -16,7 +16,9 @@ from requests.exceptions import HTTPError
 import colorama
 from settings import AppSettings
 from sql import SqlServer
-from device import Site, Device
+from device import Site, SiteManager, DeviceManager
+import uuid
+from colorama import Fore, Style
 
 
 # Create a Flask web app
@@ -63,82 +65,67 @@ def azure_auth() -> FlaskAzureOauth:
     return auth
 
 
-def get_sites() -> list:
+def add_site(
+    name: str,
+) -> Site:
     '''
-    Get all sites from the database
+    Add a new site to the database
+    Checks if the site name or ID already exists
+        If the name exists, return None, this is an error
+        If the ID exists, generate a new one recursively
 
-    (1) Read all sites from SQL Server
-    (2) Create class objects for each site
-    (3) Append each object to a list
+    Args:
+        name (str): The name of the site
 
     Returns:
-        list: A list of Site objects
+        Site: A new Site object if successful, otherwise None
     '''
 
-    # Read all sites from the database
-    with SqlServer(
-        server=config.sql_server,
-        database=config.sql_database,
-        table='sites',
-    ) as sql:
-        output = sql.read(
-            field='',
-            value='',
-        )
+    # Create a new ID for the site
+    id = uuid.uuid4()
 
-    # Create a list of Site objects
-    site_list = []
-    for site in output:
-        site_list.append(
-            Site(
-                name=site[1],
-                id=site[0]
+    # Check if the name or ID already exists in the database
+    site_list = site_manager.get_sites()
+    for site in site_list:
+        # Names must be unique
+        if name == site.name:
+            print(
+                Fore.RED,
+                f"Site '{name}' already exists in the database.",
+                Style.RESET_ALL
             )
-        )
+            return None
 
-    return site_list
-
-
-def get_devices() -> list:
-    '''
-    Get all Palo Alto devices from the database
-
-    (1) Read all devices from SQL Server
-        Filter: Vendor must be 'paloalto'
-    (2) Create class objects for each site
-    (3) Append each object to a list
-
-    '''
-
-    # Read paloalto devices from the database
-    with SqlServer(
-        server=config.sql_server,
-        database=config.sql_database,
-        table='devices',
-    ) as sql:
-        output = sql.read(
-            field='vendor',
-            value='paloalto',
-        )
-
-    # Create a list of Device objects
-    device_list = []
-    for device in output:
-        device_list.append(
-            Device(
-                name=device[1].split('.')[0],
-                id=device[0],
-                hostname=device[1],
-                site=device[2],
-                key=device[9],
+        # IDs must be unique, but a new one can be generated recursively
+        if id == site.id:
+            print(
+                Fore.RED,
+                f"Site ID '{id}' already exists in the database.",
+                Style.RESET_ALL
             )
-        )
+            print("Generating a new ID...")
+            return add_site(name)
 
-    return device_list
+    # Create a new Site object
+    print(
+        Fore.GREEN,
+        f"Adding site '{name}' with ID '{id}' to the database.",
+        Style.RESET_ALL
+    )
+    new_site = Site(
+        name=name,
+        id=id
+    )
+
+    return new_site
 
 
 # Authenticate the user with Azure AD
 auth = azure_auth()
+
+# Manage the sites and devices
+site_manager = SiteManager(config)
+device_manager = DeviceManager(config)
 
 
 @app.route('/')
@@ -159,15 +146,21 @@ def index():
 @app.route('/devices')
 # @auth()
 def devices():
-    device_list = get_devices()
-    site_list = get_sites()
+    '''
+    Gets sites and devices from the database
+    Used when populating the devices.html template
+    '''
+
+    # Refresh the site and device list
+    site_manager.get_sites()
+    device_manager.get_devices()
 
     return render_template(
         'devices.html',
-        device_list=device_list,
-        site_list=site_list,
-        device_count=len(device_list),
-        site_count=len(site_list),
+        device_list=device_manager.device_list,
+        site_list=site_manager.site_list,
+        device_count=len(device_manager),
+        site_count=len(site_manager),
     )
 
 
