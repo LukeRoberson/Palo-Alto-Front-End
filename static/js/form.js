@@ -24,8 +24,52 @@ function attachFormSubmitListener(formElement, endpoint) {
 
 // Attach the event listener to each form
 attachFormSubmitListener(document.getElementById('settings-azure'), '/save_azure');
-attachFormSubmitListener(document.getElementById('settings-sql'), '/save_sql');
 attachFormSubmitListener(document.getElementById('settings-web'), '/save_web');
+
+// Function to attach a click event listener to a button
+function attachButtonClickListener(buttonId, endpoint) {
+    const button = document.getElementById(buttonId); // Correctly get the button element
+    if (!button) {
+        console.error('Button not found:', buttonId);
+        return;
+    }
+
+    button.addEventListener('click', function(event) {
+        event.preventDefault();
+
+        // Assuming the form is the parent of the button
+        // This might need adjustment based on your HTML structure
+        const form = this.closest('form');
+        if (!form) {
+            console.error('Form not found for button:', buttonId);
+            return;
+        }
+
+        const formData = new FormData(form);
+
+        fetch(endpoint, {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Check the 'result' field and display the message with appropriate color
+            if (data.result === 'Success') {
+                showNotification(data.message, 'Success');
+            } else if (data.result === 'Failure') {
+                showNotification(data.message, 'Failure');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+}
+attachButtonClickListener('saveSql', '/save_sql');
+attachButtonClickListener('testSql', '/test_sql');
 
 // Pop up a notification message at the bottom right of the screen
 function showNotification(message, type) {

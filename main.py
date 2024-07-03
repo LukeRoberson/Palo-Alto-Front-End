@@ -86,6 +86,7 @@ def get_devices() -> list:
 
     return output
 
+
 @app.route('/')
 # @auth()
 def index():
@@ -226,6 +227,31 @@ def save_web():
                 "message": str(e)
             }
         ), 500
+
+
+@app.route('/test_sql', methods=['POST'])
+def test_sql():
+    with SqlServer(
+        server=request.form['sql_server'],
+        database=request.form['sql_database'],
+        table='sites',
+    ) as sql:
+        result = sql.test_connection()
+        print(result)
+        if result:
+            return jsonify(
+                {
+                    "result": "Success",
+                    "message": f"Successful Connection to {config.sql_server}\\{config.sql_database}"
+                }
+            )
+        else:
+            return jsonify(
+                {
+                    "result": "Failure",
+                    "message": f"Failed to connect to {config.sql_server}\\{config.sql_database}"
+                }
+            )
 
 
 # Redirect unauthenticated requests to Azure AD sign-in page

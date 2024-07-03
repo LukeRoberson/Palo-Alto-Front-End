@@ -101,20 +101,38 @@ class SqlServer:
                 print("Traceback:")
                 print(tb.format_tb(traceback))
 
+    def test_connection(
+        self
+    ) -> bool:
+        '''
+        A simple method to test the connection to the SQL server
+
+        Returns:
+            True : bool
+                If the connection was successful
+            False : bool
+                If the connection failed
+        '''
+
+        # Attempt to connect to the database
+        result = self.connect()
+        print(f"Connection result: {result}")
+
+        if result:
+            self.disconnect()
+            return True
+        else:
+            return False
+
     def connect(
         self
-    ) -> None:
+    ) -> bool:
         '''
         Connect to the SQL server
 
-        Raises:
-            pymssql.DataError
-            pymssql.OperationalError
-            pymssql.IntegrityError
-            pymssql.InternalError
-            pymssql.ProgrammingError
-            pymssql.NotSupportedError
-            pymssql.Error
+        Returns:
+            True : bool
+                If the connection was successful
         '''
 
         # Connect to the server and database
@@ -125,36 +143,28 @@ class SqlServer:
             )
 
         # Handle errors
-        except pymssql.DataError as e:
-            raise Exception("A data error has occurred") from e
-
         except pymssql.OperationalError as e:
-            raise Exception(
-                ("An operational error has occurred ",
-                 "while connecting to the database")
-            ) from e
+            print(f"Operational error: {e}\n")
+            return False
+
+        except pymssql.DataError as e:
+            print(f"Data error: {e}\n")
+            return False
 
         except pymssql.IntegrityError as e:
-            raise Exception("An Integrity error has occurred") from e
+            print(f"Integrity error: {e}\n")
+            return False
 
         except pymssql.InternalError as e:
-            raise Exception("An internal error has occurred") from e
+            print(f"Internal error: {e}\n")
+            return False
 
-        except pymssql.ProgrammingError as e:
-            if 'Cannot open database' in str(e):
-                print("Unable to open the database")
-                print("Make sure the name is correct, and credentials are ok")
+        except Exception as e:
+            print(f"Connection error: {e}\n")
+            return False
 
-            raise Exception("A programming error has occurred") from e
-
-        except pymssql.NotSupportedError as e:
-            raise Exception("A 'not supported' error has occurred") from e
-
-        except pymssql.Error as e:
-            raise Exception("A generic error has occurred") from e
-
-        # If the connection was successful, create a cursor
         self.cursor = self.conn.cursor()
+        return True
 
     def disconnect(
         self
@@ -163,8 +173,11 @@ class SqlServer:
         Gracefully close the connection to the server
         """
 
-        self.cursor.close()
-        self.conn.close()
+        if self.cursor:
+            self.cursor.close()
+
+        if self.conn:
+            self.conn.close()
 
     def create_table(
         self,
