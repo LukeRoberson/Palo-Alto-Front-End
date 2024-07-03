@@ -16,6 +16,7 @@ from requests.exceptions import HTTPError
 import colorama
 from settings import AppSettings
 from sql import SqlServer
+from device import Site, Device
 
 
 # Create a Flask web app
@@ -24,38 +25,57 @@ app = Flask(__name__)
 # Load the configuration from the config.yaml file
 config = AppSettings()
 
-# Set the Azure configuration settings
-app.config['AZURE_OAUTH_TENANCY'] = config.azure_tenant
-app.config['AZURE_OAUTH_APPLICATION_ID'] = config.azure_app
-app.config['AZURE_OAUTH_CLIENT_SECRET'] = config.azure_secret
 
-# Azure authentication
-auth = FlaskAzureOauth()
-try:
-    auth.init_app(app)
+def azure_auth() -> FlaskAzureOauth:
+    '''
+    Set up Azure AD authentication for the Flask app
 
-except HTTPError as e:
-    print(
-        colorama.Fore.RED,
-        "There is a problem connecting to Azure's authentication URL.",
-        colorama.Style.RESET_ALL
-    )
-    print(e)
+    Returns:
+        FlaskAzureOauth: An instance of the FlaskAzureOauth class
+    '''
 
-except Exception as e:
-    print(
-        colorama.Fore.RED,
-        "An error occurred while setting up Azure authentication.",
-        colorama.Style.RESET_ALL
-    )
-    print(e)
+    # Set the Azure configuration settings
+    app.config['AZURE_OAUTH_TENANCY'] = config.azure_tenant
+    app.config['AZURE_OAUTH_APPLICATION_ID'] = config.azure_app
+    app.config['AZURE_OAUTH_CLIENT_SECRET'] = config.azure_secret
+
+    # Azure authentication
+    auth = FlaskAzureOauth()
+    try:
+        auth.init_app(app)
+
+    except HTTPError as e:
+        print(
+            colorama.Fore.RED,
+            "There is a problem connecting to Azure's authentication URL.",
+            colorama.Style.RESET_ALL
+        )
+        print(e)
+
+    except Exception as e:
+        print(
+            colorama.Fore.RED,
+            "An error occurred while setting up Azure authentication.",
+            colorama.Style.RESET_ALL
+        )
+        print(e)
+
+    return auth
 
 
 def get_sites() -> list:
     '''
     Get all sites from the database
+
+    (1) Read all sites from SQL Server
+    (2) Create class objects for each site
+    (3) Append each object to a list
+
+    Returns:
+        list: A list of Site objects
     '''
 
+    # Read all sites from the database
     with SqlServer(
         server=config.sql_server,
         database=config.sql_database,
@@ -66,14 +86,31 @@ def get_sites() -> list:
             value='',
         )
 
-    return output
+    # Create a list of Site objects
+    site_list = []
+    for site in output:
+        site_list.append(
+            Site(
+                name=site[1],
+                id=site[0]
+            )
+        )
+
+    return site_list
 
 
 def get_devices() -> list:
     '''
     Get all Palo Alto devices from the database
+
+    (1) Read all devices from SQL Server
+        Filter: Vendor must be 'paloalto'
+    (2) Create class objects for each site
+    (3) Append each object to a list
+
     '''
 
+    # Read paloalto devices from the database
     with SqlServer(
         server=config.sql_server,
         database=config.sql_database,
@@ -84,7 +121,24 @@ def get_devices() -> list:
             value='paloalto',
         )
 
-    return output
+    # Create a list of Device objects
+    device_list = []
+    for device in output:
+        device_list.append(
+            Device(
+                name=device[1].split('.')[0],
+                id=device[0],
+                hostname=device[1],
+                site=device[2],
+                key=device[9],
+            )
+        )
+
+    return device_list
+
+
+# Authenticate the user with Azure AD
+auth = azure_auth()
 
 
 @app.route('/')
@@ -105,7 +159,16 @@ def index():
 @app.route('/devices')
 # @auth()
 def devices():
-    return render_template('devices.html')
+    device_list = get_devices()
+    site_list = get_sites()
+
+    return render_template(
+        'devices.html',
+        device_list=device_list,
+        site_list=site_list,
+        device_count=len(device_list),
+        site_count=len(site_list),
+    )
 
 
 @app.route('/objects')
