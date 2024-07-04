@@ -3,58 +3,59 @@
 
 {% block content %}
 
-<!-- Header -->
-<header class="w3-container" style="padding-top:22px">
-    <h2><b><i class="fa fa-dashboard"></i> Device Dashboard</b></h2>
-</header>
-
 <!-- Info Cards -->
 <div class="w3-row-padding w3-margin-bottom">
-    <!-- Panel #1 -->
-    <div class="w3-quarter">
-      <div class="w3-container w3-red w3-padding-16">
-        <div class="w3-left"><i class="fa-solid fa-list-ol w3-xxxlarge"></i></div>
-        <div class="w3-right">
-          <h2>{{ device_count }}</h2>
+    <div class="w3-container">
+        <header class="w3-container" style="padding-top:22px">
+            <h2><b><i class="fa fa-dashboard"></i> Device Dashboard</b></h2>
+        </header>
+    
+        <!-- Panel #1 -->
+        <div class="w3-quarter">
+        <div class="w3-container w3-red w3-padding-16">
+            <div class="w3-left"><i class="fa-solid fa-list-ol w3-xxxlarge"></i></div>
+            <div class="w3-right">
+            <h2>{{ device_count }}</h2>
+            </div>
+            <div class="w3-clear"></div>
+            <h4>Device Count</h4>
         </div>
-        <div class="w3-clear"></div>
-        <h4>Device Count</h4>
-      </div>
-    </div>
-
-    <!-- Panel #2 -->
-    <div class="w3-quarter">
-      <div class="w3-container w3-blue w3-padding-16">
-        <div class="w3-left"><i class="fa fa-building-shield w3-xxxlarge"></i></div>
-        <div class="w3-right">
-          <h2>{{ site_count }}</h2>
         </div>
-        <div class="w3-clear"></div>
-        <h4>Site Count</h4>
-      </div>
-    </div>
 
-    <!-- Panel #3 -->
-    <div class="w3-quarter">
-      <div class="w3-container w3-teal w3-padding-16">
-        <div class="w3-left"><i class="fa fa-share-alt w3-xxxlarge"></i></div>
-        <div class="w3-right">
-          <h2>0</h2>
+        <!-- Panel #2 -->
+        <div class="w3-quarter">
+        <div class="w3-container w3-blue w3-padding-16">
+            <div class="w3-left"><i class="fa fa-building-shield w3-xxxlarge"></i></div>
+            <div class="w3-right">
+            <h2>{{ site_count }}</h2>
+            </div>
+            <div class="w3-clear"></div>
+            <h4>Site Count</h4>
         </div>
-        <div class="w3-clear"></div>
-        <h4>HA Pairs</h4>
-      </div>
-    </div>
+        </div>
 
-    <!-- Panel #4 -->
-    <div class="w3-quarter">
-        <div class="w3-container w3-orange w3-padding-16">
-          <div class="w3-left"><i class="fa fa-share-alt w3-xxxlarge"></i></div>
-          <div class="w3-right">
+        <!-- Panel #3 -->
+        <div class="w3-quarter">
+        <div class="w3-container w3-teal w3-padding-16">
+            <div class="w3-left"><i class="fa fa-share-alt w3-xxxlarge"></i></div>
+            <div class="w3-right">
             <h2>0</h2>
-          </div>
-          <div class="w3-clear"></div>
-          <h4>Future Panel</h4>
+            </div>
+            <div class="w3-clear"></div>
+            <h4>HA Pairs</h4>
+        </div>
+        </div>
+
+        <!-- Panel #4 -->
+        <div class="w3-quarter">
+            <div class="w3-container w3-orange w3-padding-16">
+            <div class="w3-left"><i class="fa fa-share-alt w3-xxxlarge"></i></div>
+            <div class="w3-right">
+                <h2>0</h2>
+            </div>
+            <div class="w3-clear"></div>
+            <h4>Future Panel</h4>
+            </div>
         </div>
     </div>
 </div>
@@ -107,35 +108,37 @@
 <!-- Site List -->
 <br><hr>
 <div class="w3-row-padding w3-margin-bottom">
-    <header class="w3-container">
-        <h2>Sites</h2>
-    </header>
+    <div class="w3-container">
+        <header class="w3-container">
+            <h2>Sites</h2>
+        </header>
 
-    <!-- Site Cards -->
-    {% for site in site_list %}
-    <div class="w3-quarter">
-        <div class="w3-container w3-padding-16 site-card">
-            <div class="w3-card-4">
-                <header class="w3-container w3-light-grey">
-                    <h3>{{ site.name }}</h3>
-                </header>
-                <br>
-                <div class="w3-container">
-                    <table class="w3-table">
-                        <tr>
-                            <td><b>ID</b></td>
-                            <td>{{ site.id }}</td>
-                        </tr>
-                    </table>
+        <!-- Site Cards -->
+        {% for site in site_list %}
+        <div class="w3-quarter">
+            <div class="w3-container w3-padding-16 site-card">
+                <div class="w3-card-4">
+                    <header class="w3-container w3-light-grey">
+                        <h3>{{ site.name }}</h3>
+                    </header>
+                    <br>
+                    <div class="w3-container">
+                        <table class="w3-table">
+                            <tr>
+                                <td><b>ID</b></td>
+                                <td>{{ site.id }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <button data-site-id="{{ site.id }}" data-site-name="{{ site.name }}" class="w3-button w3-block w3-green site-edit-button">Edit</button>
+                    <button data-site-id="{{ site.id }}" class="w3-button w3-block w3-red site-delete-button">Delete</button>
                 </div>
-                <button data-site-id="{{ site.id }}" data-site-name="{{ site.name }}" class="w3-button w3-block w3-green site-edit-button">Edit</button>
-                <button data-site-id="{{ site.id }}" class="w3-button w3-block w3-red site-delete-button">Delete</button>
             </div>
         </div>
-    </div>
-    {% endfor %} 
+        {% endfor %} 
 
-    <button class="w3-button w3-block w3-green" id="add_site">Add Site</button>
+        <button class="w3-button w3-block w3-green" id="add_site">Add Site</button>
+    </div>
 </div>
 
 <!-- The Add Device Modal -->

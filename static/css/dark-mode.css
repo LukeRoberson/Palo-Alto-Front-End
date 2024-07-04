@@ -38,6 +38,11 @@
     color: black;
 }
 
+.w3-container.light-mode, .w3-container.light-mode input, .w3-container.light-mode select, .w3-container.light-mode textarea, .w3-container.light-mode button {
+    background-color: #fff;
+    color: #000;
+}
+
 
 /* Dark mode styles */
 .dark-mode {
@@ -82,9 +87,4 @@
 .w3-container.dark-mode, .w3-container.dark-mode input, .w3-container.dark-mode select, .w3-container.dark-mode textarea, .w3-container.dark-mode button {
     background-color: #333;
     color: #fff;
-}
-
-.w3-container.light-mode, .w3-container.light-mode input, .w3-container.light-mode select, .w3-container.light-mode textarea, .w3-container.light-mode button {
-    background-color: #fff;
-    color: #000;
 }
