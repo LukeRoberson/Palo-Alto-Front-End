@@ -18,6 +18,8 @@ class Site:
     Methods:
         __init__: Constructor for Site class
         __str__: String representation of the site
+        __len__: Returns the number of devices assigned to the site
+        device_count: Returns the number of devices assigned to the site
     '''
 
     def __init__(
@@ -37,6 +39,9 @@ class Site:
         self.name = name
         self.id = id
 
+        # Devices assigned to the site
+        self.devices = []
+
     def __str__(
         self
     ) -> str:
@@ -49,6 +54,32 @@ class Site:
         '''
 
         return self.name
+
+    def __len__(
+        self
+    ) -> int:
+        '''
+        Returns the number of devices assigned to the site
+
+        Returns:
+            int: Number of devices assigned to the site
+        '''
+
+        return len(self.devices)
+
+    @property
+    def device_count(
+        self
+    ) -> int:
+        '''
+        Returns the number of devices assigned to the site
+        Exposed as a property so it can be accessed directly
+
+        Returns:
+            int: Number of devices assigned to the site
+        '''
+
+        return self.__len__()
 
 
 class Device:
@@ -86,6 +117,9 @@ class Device:
         self.hostname = hostname
         self.site = site
         self.key = key
+
+        # Track the site name
+        self.site_name = ''
 
     def __str__(
         self
@@ -366,6 +400,7 @@ class DeviceManager():
         delete_device: Delete a device from the database
         update_device: Update a device in the database
         _new_uuid: Generate a new UUID for a device
+        _site_assignment: Assign devices to sites
     '''
 
     def __init__(
@@ -440,6 +475,9 @@ class DeviceManager():
                     key=device[9],
                 )
             )
+
+        # Assign devices to sites
+        self._site_assignment()
 
     def add_device(
         self,
@@ -652,3 +690,31 @@ class DeviceManager():
                     break
 
         return id
+
+    def _site_assignment(
+        self,
+    ) -> None:
+        '''
+        Assign devices to sites
+
+        Go through devices, and match to a site object
+        Update the site object with the device ID
+        '''
+
+        # Reset the device list per site
+        for site in self.site_manager.site_list:
+            site.devices = []
+
+        # Loop through devices and sites to find a match
+        for device in self.device_list:
+            # Reset the site name
+            device.site_name = ''
+
+            for site in self.site_manager.site_list:
+                if device.site == site.id:
+                    # Track the device in the site's list
+                    site.devices.append(device.id)
+
+                    # Track the site name in the device
+                    device.site_name = site.name
+                    break
