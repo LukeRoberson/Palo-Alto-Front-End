@@ -99,10 +99,57 @@ siteBtn.onclick = function() {
   siteModal.style.display = "block";
 }
 
-// When the user clicks anywhere outside of the modal, close it
-window.onclick = function(event) {
-  if (event.target == modal) {
-    devModal.style.display = "none";
-    siteModal.style.display = "none";
-  }
-}
+document.querySelectorAll('.site-delete-button').forEach(button => {
+    button.addEventListener('click', function(event) {
+        // Directly use event.currentTarget to get the 'data-site-id'
+        var siteId = event.currentTarget.getAttribute('data-site-id');
+        
+        fetch('/delete_site', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ siteId }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Check the 'result' field and display the message with appropriate color
+            if (data.result === 'Success') {
+                showNotification(data.message, 'Success');
+                // Reload the page to update the site list
+                location.reload();location.reload();
+            } else if (data.result === 'Failure') {
+                showNotification(data.message, 'Failure');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+
+    });
+});
+
+document.querySelectorAll('.device-delete-button').forEach(button => {
+    button.addEventListener('click', function(event) {
+        // Directly use event.currentTarget to get the 'data-device-id'
+        var deviceId = event.currentTarget.getAttribute('data-device-id');
+        
+        fetch('/delete_device', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ deviceId }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Check the 'result' field and display the message with appropriate color
+            if (data.result === 'Success') {
+                showNotification(data.message, 'Success');
+                // Reload the page to update the site list
+                location.reload();location.reload();
+            } else if (data.result === 'Failure') {
+                showNotification(data.message, 'Failure');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+});

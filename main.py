@@ -307,6 +307,50 @@ def add_device():
         ), 500
 
 
+@app.route('/delete_site', methods=['POST'])
+def delete_site():
+    site_id = request.json['siteId']
+    result = site_manager.delete_site(site_id)
+
+    if result:
+        return jsonify(
+            {
+                "result": "Success",
+                "message": f"Site '{site_id}' deleted"
+            }
+        )
+
+    else:
+        return jsonify(
+            {
+                "result": "Failure",
+                "message": f"Site '{site_id}' can't be deleted"
+            }
+        ), 500
+
+
+@app.route('/delete_device', methods=['POST'])
+def delete_device():
+    device_id = request.json['deviceId']
+    result = device_manager.delete_device(device_id)
+
+    if result:
+        return jsonify(
+            {
+                "result": "Success",
+                "message": f"Device '{device_id}' deleted"
+            }
+        )
+
+    else:
+        return jsonify(
+            {
+                "result": "Failure",
+                "message": f"Device '{device_id}' can't be deleted"
+            }
+        ), 500
+
+
 # Redirect unauthenticated requests to Azure AD sign-in page
 @app.errorhandler(401)
 def custom_401(error):

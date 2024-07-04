@@ -70,7 +70,7 @@
     <!-- Populate device cards from the list -->
     {% for device in device_list %}
     <div class="w3-third">
-        <div class="w3-container w3-padding-16">
+        <div class="w3-container w3-padding-16 device-card">
             <div class="w3-card-4">
             <header class="w3-container w3-light-grey">
                 <h3>{{ device.name }}</h3>
@@ -93,9 +93,9 @@
                 </table>
             </div>
             <br>
-            <button class="w3-button w3-block w3-blue">Download Config</button>
-            <button class="w3-button w3-block w3-green">Edit</button>
-            <button class="w3-button w3-block w3-red">Delete</button>
+            <button data-device-id="{{ device.id }}" class="w3-button w3-block w3-blue device-download-button">Download Config</button>
+            <button data-device-id="{{ device.id }}" class="w3-button w3-block w3-green device-edit-button">Edit</button>
+            <button data-device-id="{{ device.id }}" class="w3-button w3-block w3-red device-delete-button">Delete</button>
             </div>
         </div>
     </div>
@@ -114,17 +114,26 @@
     <!-- Site Cards -->
     {% for site in site_list %}
     <div class="w3-quarter">
-        <div class="w3-container w3-padding-16">
+        <div class="w3-container w3-padding-16 site-card">
             <div class="w3-card-4">
                 <header class="w3-container w3-light-grey">
                     <h3>{{ site.name }}</h3>
                 </header>
-                <button class="w3-button w3-block w3-green">Edit</button>
-                <button class="w3-button w3-block w3-red">Delete</button>
+                <br>
+                <div class="w3-container">
+                    <table class="w3-table">
+                        <tr>
+                            <td><b>ID</b></td>
+                            <td>{{ site.id }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <button data-site-id="{{ site.id }}" class="w3-button w3-block w3-green site-edit-button">Edit</button>
+                <button data-site-id="{{ site.id }}" class="w3-button w3-block w3-red site-delete-button">Delete</button>
             </div>
         </div>
     </div>
-    {% endfor %}
+    {% endfor %} 
 
     <button class="w3-button w3-block w3-green" id="add_site">Add Site</button>
 </div>

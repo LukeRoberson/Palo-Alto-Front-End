@@ -112,6 +112,7 @@ class SiteManager():
         __len__: Returns the number of sites
         get_sites: Get all sites from the database
         add_site: Add a new site to the database
+        delete_site: Delete a site from the database
         _new_uuid: Generate a new UUID for a site
     '''
 
@@ -130,6 +131,7 @@ class SiteManager():
         # Sql Server connection
         self.sql_server = config.sql_server
         self.sql_database = config.sql_database
+        self.table = 'sites'
 
         # List of all sites
         self.site_list = []
@@ -164,7 +166,7 @@ class SiteManager():
         with SqlServer(
             server=self.sql_server,
             database=self.sql_database,
-            table='sites',
+            table=self.table,
         ) as sql:
             output = sql.read(
                 field='',
@@ -231,7 +233,7 @@ class SiteManager():
         with SqlServer(
             server=self.sql_server,
             database=self.sql_database,
-            table='sites',
+            table=self.table,
         ) as sql:
             result = sql.add(
                 fields={
@@ -244,6 +246,42 @@ class SiteManager():
             # Refresh the site list
             self.get_sites()
             return new_site
+
+        else:
+            return False
+
+    def delete_site(
+        self,
+        id: uuid,
+    ) -> bool:
+        '''
+        Delete a site from the database
+
+        Args:
+            id (uuid): The unique identifier for the site
+
+        Returns:
+            bool: True if successful, otherwise False
+        '''
+
+        # Refresh the site list from the database
+        self.get_sites()
+
+        # Delete the site from the database, based on the ID
+        with SqlServer(
+            server=self.sql_server,
+            database=self.sql_database,
+            table=self.table,
+        ) as sql:
+            result = sql.delete(
+                field='id',
+                value=id,
+            )
+
+        if result:
+            # Refresh the site list
+            self.get_sites()
+            return True
 
         else:
             return False
@@ -279,6 +317,14 @@ class DeviceManager():
     A class to manage all devices
     Stores all devices in a list (from the database)
     Adds and removes devices
+
+    Methods:
+        __init__: Constructor for DeviceManager class
+        __len__: Returns the number of devices
+        get_devices: Get all devices from the database
+        add_device: Add a new device to the database
+        delete_device: Delete a device from the database
+        _new_uuid: Generate a new UUID for a device
     '''
 
     def __init__(
@@ -298,6 +344,7 @@ class DeviceManager():
         # Sql Server connection
         self.sql_server = config.sql_server
         self.sql_database = config.sql_database
+        self.table = 'devices'
 
         # Site manager object
         self.site_manager = site_manager
@@ -333,7 +380,7 @@ class DeviceManager():
         with SqlServer(
             server=self.sql_server,
             database=self.sql_database,
-            table='devices',
+            table=self.table,
         ) as sql:
             output = sql.read(
                 field='vendor',
@@ -429,7 +476,7 @@ class DeviceManager():
         with SqlServer(
             server=self.sql_server,
             database=self.sql_database,
-            table='devices',
+            table=self.table,
         ) as sql:
             result = sql.add(
                 fields={
@@ -450,6 +497,42 @@ class DeviceManager():
             # Refresh the device list
             self.get_devices()
             return new_device
+
+        else:
+            return False
+
+    def delete_device(
+        self,
+        id: uuid,
+    ) -> bool:
+        '''
+        Delete a device from the database
+
+        Args:
+            id (uuid): The unique identifier for the device
+
+        Returns:
+            bool: True if successful, otherwise False
+        '''
+
+        # Refresh the device list from the database
+        self.get_devices()
+
+        # Delete the device from the database, based on the ID
+        with SqlServer(
+            server=self.sql_server,
+            database=self.sql_database,
+            table=self.table,
+        ) as sql:
+            result = sql.delete(
+                field='id',
+                value=id,
+            )
+
+        if result:
+            # Refresh the site list
+            self.get_devices()
+            return True
 
         else:
             return False
