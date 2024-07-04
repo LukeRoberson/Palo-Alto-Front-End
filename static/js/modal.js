@@ -50,6 +50,45 @@ siteSubmitBtn.addEventListener("click", function(event) {
     // Close the open modal
     devModal.style.display = "none";
     siteModal.style.display = "none";
+
+    // Reload the page to update the site list
+    location.reload();location.reload();
+});
+
+// Add event listener for submit button in 'add device' modal
+var siteSubmitBtn = document.getElementById("deviceSubmit");
+siteSubmitBtn.addEventListener("click", function(event) {
+    event.preventDefault();
+
+    const form = this.closest('form');
+    if (!form) {
+        console.error('Form not found for button:', buttonId);
+        return;
+    }
+
+    const formData = new FormData(form);
+
+    fetch('/add_device', {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Check the 'result' field and display the message with appropriate color
+        if (data.result === 'Success') {
+            showNotification(data.message, 'Success');
+        } else if (data.result === 'Failure') {
+            showNotification(data.message, 'Failure');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+
+    // Close the open modal
+    devModal.style.display = "none";
+    siteModal.style.display = "none";
+
+    // Reload the page to update the device list
+    location.reload();location.reload();
 });
 
 // When the user clicks the button, open the modal 

@@ -106,6 +106,13 @@ class SiteManager():
     A class to manage all sites
     Stores all sites in a list (from the database)
     Adds and removes sites
+
+    Methods:
+        __init__: Constructor for SiteManager class
+        __len__: Returns the number of sites
+        get_sites: Get all sites from the database
+        add_site: Add a new site to the database
+        _new_uuid: Generate a new UUID for a site
     '''
 
     def __init__(
@@ -277,6 +284,7 @@ class DeviceManager():
     def __init__(
         self,
         config: AppSettings,
+        site_manager: SiteManager,
     ) -> None:
         '''
         Constructor for DeviceManager class
@@ -284,13 +292,17 @@ class DeviceManager():
 
         Args:
             config (AppSettings): Application settings
+            site_manager (SiteManager): Site manager object
         '''
 
         # Sql Server connection
         self.sql_server = config.sql_server
         self.sql_database = config.sql_database
 
-        # List of all sites
+        # Site manager object
+        self.site_manager = site_manager
+
+        # List of all devices
         self.device_list = []
 
     def __len__(
@@ -340,3 +352,129 @@ class DeviceManager():
                     key=device[9],
                 )
             )
+
+    def add_device(
+        self,
+        name: str,
+        hostname: str,
+        site: uuid,
+        key: str,
+    ) -> Device:
+        '''
+        Add a new device to the database
+        Assigns a new unique ID to the device
+        Checks if the device name already exists
+
+        Args:
+            name (str): The name of the device
+
+        Returns:
+            Device: A new Device object if successful, otherwise None
+        '''
+
+        # Confirm the API key is valid
+        if key == '' or len(key) < 32:
+            print(
+                Fore.RED,
+                f"API key '{key}' is invalid.",
+                Style.RESET_ALL
+            )
+            return None
+
+        # Check if the site exists
+        site_ids = []
+        for site_id in self.site_manager.site_list:
+            site_ids.append(str(site_id.id))
+
+        if site not in site_ids:
+            print(
+                Fore.RED,
+                f"Site '{site}' does not exist in the database.",
+                Style.RESET_ALL
+            )
+            return None
+
+        # Refresh the device list from the database
+        self.get_devices()
+
+        # Create a new unique ID for the device
+        id = self._new_uuid()
+
+        # Check if the name already exists in the database
+        for device in self.device_list:
+            # Names must be unique
+            if hostname == device.hostname:
+                print(
+                    Fore.RED,
+                    f"Device '{hostname}' already exists in the database.",
+                    Style.RESET_ALL
+                )
+                return None
+
+        # Create a new Device object
+        print(
+            Fore.GREEN,
+            f"Adding device '{hostname}' with ID '{id}' to the database.",
+            Style.RESET_ALL
+        )
+        new_device = Device(
+            name=hostname.split('.')[0],
+            id=id,
+            hostname=hostname,
+            site=site,
+            key=key,
+        )
+
+        # Add to the database
+        with SqlServer(
+            server=self.sql_server,
+            database=self.sql_database,
+            table='devices',
+        ) as sql:
+            result = sql.add(
+                fields={
+                    'id': new_device.id,
+                    'name': new_device.name,
+                    'site': new_device.site,
+                    'vendor': 'paloalto',
+                    'type': 'firewall',
+                    'auth_type': 'token',
+                    'username': '',
+                    'secret': '',
+                    'salt': '',
+                    'token': new_device.key,
+                }
+            )
+
+        if result:
+            # Refresh the device list
+            self.get_devices()
+            return new_device
+
+        else:
+            return False
+
+    def _new_uuid(
+        self
+    ) -> uuid:
+        '''
+        Generate a new UUID for a device
+        Ensures the UUID is unique in the database
+
+        Returns:
+            UUID: A unique device UUID
+        '''
+
+        # Loop until a unique ID is found
+        collision = True
+        while collision:
+            id = uuid.uuid4()
+            collision = False
+
+            for device in self.device_list:
+                # If there is a collision, set the flag and break
+                if id == device.id:
+                    collision = True
+                    break
+
+        return id

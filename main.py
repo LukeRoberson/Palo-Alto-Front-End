@@ -68,7 +68,7 @@ auth = azure_auth()
 
 # Manage the sites and devices
 site_manager = SiteManager(config)
-device_manager = DeviceManager(config)
+device_manager = DeviceManager(config, site_manager)
 
 
 @app.route('/')
@@ -276,6 +276,33 @@ def add_site():
             {
                 "result": "Failure",
                 "message": f"Site '{request.form['siteName']}' can't be added"
+            }
+        ), 500
+
+
+@app.route('/add_device', methods=['POST'])
+def add_device():
+    device_name = request.form['deviceName']
+    new_device = device_manager.add_device(
+        name=device_name,
+        hostname=request.form['hostName'],
+        site=request.form['siteMember'],
+        key=request.form['apiKey'],
+    )
+
+    if new_device:
+        return jsonify(
+            {
+                "result": "Success",
+                "message": f"Device '{new_device.name}' added successfully"
+            }
+        )
+
+    else:
+        return jsonify(
+            {
+                "result": "Failure",
+                "message": f"Device '{device_name}' can't be added"
             }
         ), 500
 
