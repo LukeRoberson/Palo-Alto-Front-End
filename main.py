@@ -261,13 +261,14 @@ def test_sql():
 
 @app.route('/add_site', methods=['POST'])
 def add_site():
-    new_site = site_manager.add_site(request.form['siteName'])
+    site_name = request.form['siteName']
+    new_site = site_manager.add_site(site_name)
 
     if new_site:
         return jsonify(
             {
                 "result": "Success",
-                "message": f"Site '{new_site.name}' added successfully"
+                "message": f"Site '{site_name}' added successfully"
             }
         )
 
@@ -275,7 +276,7 @@ def add_site():
         return jsonify(
             {
                 "result": "Failure",
-                "message": f"Site '{request.form['siteName']}' can't be added"
+                "message": f"Site '{site_name}' can't be added"
             }
         ), 500
 
@@ -347,6 +348,60 @@ def delete_device():
             {
                 "result": "Failure",
                 "message": f"Device '{device_id}' can't be deleted"
+            }
+        ), 500
+
+
+@app.route('/update_site', methods=['POST'])
+def update_site():
+    print(request.form)
+    site_name = request.form['siteEditName']
+    updated_site = site_manager.update_site(
+        id=request.form['siteEditId'],
+        name=site_name
+    )
+
+    if updated_site:
+        return jsonify(
+            {
+                "result": "Success",
+                "message": f"Site '{site_name}' updated successfully"
+            }
+        )
+
+    else:
+        return jsonify(
+            {
+                "result": "Failure",
+                "message": f"Site '{site_name}' can't be updated"
+            }
+        ), 500
+
+
+@app.route('/update_device', methods=['POST'])
+def update_device():
+    device_name = request.form['deviceEditName']
+    updated_device = device_manager.update_device(
+        id=request.form['deviceEditId'],
+        name=device_name,
+        hostname=request.form['hostNameEdit'],
+        site=request.form['siteMemberEdit'],
+        key=request.form['apiKeyEdit'],
+    )
+
+    if updated_device:
+        return jsonify(
+            {
+                "result": "Success",
+                "message": f"Device '{device_name}' updated successfully"
+            }
+        )
+
+    else:
+        return jsonify(
+            {
+                "result": "Failure",
+                "message": f"Device '{device_name}' can't be updated"
             }
         ), 500
 

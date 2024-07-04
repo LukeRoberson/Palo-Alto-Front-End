@@ -113,6 +113,7 @@ class SiteManager():
         get_sites: Get all sites from the database
         add_site: Add a new site to the database
         delete_site: Delete a site from the database
+        update_site: Update a site in the database
         _new_uuid: Generate a new UUID for a site
     '''
 
@@ -227,8 +228,6 @@ class SiteManager():
             id=id
         )
 
-        print(type(new_site.id))
-
         # Add to the database
         with SqlServer(
             server=self.sql_server,
@@ -286,6 +285,47 @@ class SiteManager():
         else:
             return False
 
+    def update_site(
+        self,
+        id: uuid,
+        name: str,
+    ) -> bool:
+        '''
+        Update a site in the database
+
+        Args:
+            id (uuid): The unique identifier for the site
+            name (str): The new name for the site
+
+        Returns:
+            bool: True if successful, otherwise False
+        '''
+
+        # Refresh the site list from the database
+        self.get_sites()
+
+        # Update the site in the database, based on the ID
+        with SqlServer(
+            server=self.sql_server,
+            database=self.sql_database,
+            table=self.table,
+        ) as sql:
+            result = sql.update(
+                field='id',
+                value=id,
+                body={
+                    'name': name,
+                }
+            )
+
+        if result:
+            # Refresh the site list
+            self.get_sites()
+            return True
+
+        else:
+            return False
+
     def _new_uuid(
         self
     ) -> uuid:
@@ -324,6 +364,7 @@ class DeviceManager():
         get_devices: Get all devices from the database
         add_device: Add a new device to the database
         delete_device: Delete a device from the database
+        update_device: Update a device in the database
         _new_uuid: Generate a new UUID for a device
     '''
 
@@ -531,6 +572,56 @@ class DeviceManager():
 
         if result:
             # Refresh the site list
+            self.get_devices()
+            return True
+
+        else:
+            return False
+
+    def update_device(
+        self,
+        id: uuid,
+        name: str,
+        hostname: str,
+        site: uuid,
+        key: str,
+
+    ) -> bool:
+        '''
+        Update a device in the database
+
+        Args:
+            id (uuid): The unique identifier for the device
+            name (str): The new name for the device
+            hostname (str): The new hostname for the device
+            site (uuid): The new site for the device
+            key (str): The new API key for the device
+
+        Returns:
+            bool: True if successful, otherwise False
+        '''
+
+        # Refresh the device list from the database
+        self.get_devices()
+
+        # Update the device in the database, based on the ID
+        with SqlServer(
+            server=self.sql_server,
+            database=self.sql_database,
+            table=self.table,
+        ) as sql:
+            result = sql.update(
+                field='id',
+                value=id,
+                body={
+                    'name': hostname,
+                    'site': site,
+                    'token': key,
+                }
+            )
+
+        if result:
+            # Refresh the device list
             self.get_devices()
             return True
 
