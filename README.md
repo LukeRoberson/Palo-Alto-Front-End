@@ -2,6 +2,11 @@
 
 A web front end to simplify some aspects of Palo Alto firewall management
 
+# Requirements
+
+* Python 3.10 or later
+* Modules are contained in requirements.txt
+
 # Configuration
 
 ## General Configuration
@@ -19,6 +24,13 @@ To enable this, place two files in the **certificates** directory:
 * key.pem
 
 These are base64 encoded private and public keys.
+
+## Password Encryption
+When a password for a device is saved to the database, it needs to be encrypted. This makes use of a master password, which is stored in the local machine's environment variables.
+
+To set this up, create an environment variable called **api_master_pw**, and add a very strong password as the value.
+
+This is protected by the local operating system, so is secure.
 
 # Known Issues
 

@@ -2,7 +2,6 @@
 Creates and reads entries in an SQL database
 """
 
-from typing import Union
 import pymssql
 import traceback as tb
 
@@ -79,9 +78,9 @@ class SqlServer:
 
     def __exit__(
         self,
-        exc_type: Union[Exception, None],
-        exc_value: Union[Exception, None],
-        traceback: Union[Exception, None],
+        exc_type: Exception | None,
+        exc_value: Exception | None,
+        traceback: Exception | None,
     ) -> None:
         """
         Called when the 'with' statement is finished
@@ -307,7 +306,7 @@ class SqlServer:
         self,
         field: str,
         value: str,
-    ) -> Union[list, None, bool]:
+    ) -> list | None | bool:
         '''
         Read an entry from the database
         Leave field and value empty to read all entries
@@ -366,7 +365,7 @@ class SqlServer:
         field: str,
         value: str,
         body: dict[str, str]
-    ) -> Union[str, None, bool]:
+    ) -> str | None | bool:
         '''
         Update an entry in the database
 
