@@ -683,6 +683,22 @@ class DeviceManager():
         salt_encoded = base64.b64encode(salt).decode('utf-8')
         password_encoded = base64.b64encode(password).decode('utf-8')
 
+        # Read the current password and salt
+        for device in self.device_list:
+            if device.id == id:
+                current_password = device.password
+                current_salt = device.salt
+                break
+
+        # If the password and salt have not changed, use the current values
+        #   This is so we don't try encrypting an already encrypted password
+        if (
+            password_encoded == current_password and
+            salt_encoded == current_salt
+        ):
+            password_encoded = current_password
+            salt_encoded = current_salt
+
         # Update the device in the database, based on the ID
         with SqlServer(
             server=self.sql_server,
