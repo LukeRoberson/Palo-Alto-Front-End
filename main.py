@@ -17,6 +17,7 @@ import colorama
 from settings import AppSettings
 from sql import SqlServer
 from device import SiteManager, DeviceManager
+from encryption import CryptoSecret
 
 
 # Create a Flask web app
@@ -284,11 +285,18 @@ def add_site():
 @app.route('/add_device', methods=['POST'])
 def add_device():
     device_name = request.form['deviceName']
+
+    with CryptoSecret() as crypto:
+        encrypted_key, salt = crypto.encrypt(request.form['apiPass'])
+
     new_device = device_manager.add_device(
         name=device_name,
         hostname=request.form['hostName'],
         site=request.form['siteMember'],
         key=request.form['apiKey'],
+        username=request.form['apiUser'],
+        password=encrypted_key,
+        salt=salt,
     )
 
     if new_device:
@@ -381,12 +389,19 @@ def update_site():
 @app.route('/update_device', methods=['POST'])
 def update_device():
     device_name = request.form['deviceEditName']
+
+    with CryptoSecret() as crypto:
+        encrypted_key, salt = crypto.encrypt(request.form['apiPassEdit'])
+
     updated_device = device_manager.update_device(
         id=request.form['deviceEditId'],
         name=device_name,
         hostname=request.form['hostNameEdit'],
         site=request.form['siteMemberEdit'],
         key=request.form['apiKeyEdit'],
+        username=request.form['apiUserEdit'],
+        password=encrypted_key,
+        salt=salt,
     )
 
     if updated_device:

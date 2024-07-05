@@ -7,6 +7,7 @@ import uuid
 from sql import SqlServer
 from settings import AppSettings
 from colorama import Fore, Style
+import base64
 
 
 class Site:
@@ -100,6 +101,9 @@ class Device:
         hostname: str,
         site: uuid,
         key: str,
+        username: str,
+        password: str,
+        salt: str,
     ) -> None:
         '''
         Constructor for Device class
@@ -109,14 +113,23 @@ class Device:
             id (uuid): Unique identifier for the site
             hostname (str): Hostname of the device
             site (uuid): Site identifier
-            key (str): API key for the device
+            key (str): REST API key for the device
+            username (str): Username for the device (XML API)
+            password (str): Encrypted password for the device (XML API)
+            salt (str): Salt for the encrypted (XML API)
         '''
 
+        # Device details
         self.name = name
         self.id = id
         self.hostname = hostname
         self.site = site
+
+        # API details
         self.key = key
+        self.username = username
+        self.password = password
+        self.salt = salt
 
         # Track the site name
         self.site_name = ''
@@ -473,6 +486,9 @@ class DeviceManager():
                     hostname=device[1],
                     site=device[2],
                     key=device[9],
+                    username=device[6],
+                    password=device[7],
+                    salt=device[8],
                 )
             )
 
@@ -485,6 +501,9 @@ class DeviceManager():
         hostname: str,
         site: uuid,
         key: str,
+        username: str,
+        password: str,
+        salt: str,
     ) -> Device:
         '''
         Add a new device to the database
@@ -493,6 +512,12 @@ class DeviceManager():
 
         Args:
             name (str): The name of the device
+            hostname (str): The hostname of the device
+            site (uuid): The site identifier for the device
+            key (str): The REST API key for the device
+            username (str): The username for the device (XML API)
+            password (str): The encrypted password for the device (XML API)
+            salt (str): The salt for the password (XML API)
 
         Returns:
             Device: A new Device object if successful, otherwise None
@@ -537,6 +562,10 @@ class DeviceManager():
                 )
                 return None
 
+        # 'salt' and 'password' are bytes objects
+        salt_encoded = base64.b64encode(salt).decode('utf-8')
+        password_encoded = base64.b64encode(password).decode('utf-8')
+
         # Create a new Device object
         print(
             Fore.GREEN,
@@ -549,6 +578,9 @@ class DeviceManager():
             hostname=hostname,
             site=site,
             key=key,
+            username=username,
+            password=password_encoded,
+            salt=salt_encoded,
         )
 
         # Add to the database
@@ -565,9 +597,9 @@ class DeviceManager():
                     'vendor': 'paloalto',
                     'type': 'firewall',
                     'auth_type': 'token',
-                    'username': '',
-                    'secret': '',
-                    'salt': '',
+                    'username': username,
+                    'secret': password,
+                    'salt': salt,
                     'token': new_device.key,
                 }
             )
@@ -623,7 +655,9 @@ class DeviceManager():
         hostname: str,
         site: uuid,
         key: str,
-
+        username: str,
+        password: str,
+        salt: str,
     ) -> bool:
         '''
         Update a device in the database
@@ -633,7 +667,10 @@ class DeviceManager():
             name (str): The new name for the device
             hostname (str): The new hostname for the device
             site (uuid): The new site for the device
-            key (str): The new API key for the device
+            key (str): The new REST API key for the device
+            username (str): The new username for the device (XML API)
+            password (str): The new encrypted password for the device (XML API)
+            salt (str): The new salt for the password (XML API)
 
         Returns:
             bool: True if successful, otherwise False
@@ -641,6 +678,10 @@ class DeviceManager():
 
         # Refresh the device list from the database
         self.get_devices()
+
+        # 'salt' and 'password' are bytes objects
+        salt_encoded = base64.b64encode(salt).decode('utf-8')
+        password_encoded = base64.b64encode(password).decode('utf-8')
 
         # Update the device in the database, based on the ID
         with SqlServer(
@@ -655,6 +696,9 @@ class DeviceManager():
                     'name': hostname,
                     'site': site,
                     'token': key,
+                    'username': username,
+                    'secret': password_encoded,
+                    'salt': salt_encoded,
                 }
             )
 

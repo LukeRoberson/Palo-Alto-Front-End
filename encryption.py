@@ -77,6 +77,13 @@ class CryptoSecret:
         # Get master PW from env variable
         self.master = os.getenv('api_master_pw')
 
+        if self.master is None:
+            print(
+                Fore.RED,
+                "The master password is not set in the environment",
+                Style.RESET_ALL
+            )
+
     def __enter__(
         self
     ) -> object:
