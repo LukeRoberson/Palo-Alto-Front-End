@@ -18,6 +18,7 @@ from settings import AppSettings
 from sql import SqlServer
 from device import SiteManager, DeviceManager
 from encryption import CryptoSecret
+import base64
 
 
 # Create a Flask web app
@@ -285,9 +286,12 @@ def add_site():
 @app.route('/add_device', methods=['POST'])
 def add_device():
     device_name = request.form['deviceName']
+    password = request.form['apiPass']
 
-    with CryptoSecret() as crypto:
-        encrypted_key, salt = crypto.encrypt(request.form['apiPass'])
+    with CryptoSecret() as encryptor:
+        encrypted = encryptor.encrypt(password)
+        encrypted_key = encrypted[0].decode()
+        salt = base64.urlsafe_b64encode(encrypted[1]).decode()
 
     new_device = device_manager.add_device(
         name=device_name,
@@ -389,9 +393,12 @@ def update_site():
 @app.route('/update_device', methods=['POST'])
 def update_device():
     device_name = request.form['deviceEditName']
+    password = request.form['apiPassEdit']
 
-    with CryptoSecret() as crypto:
-        encrypted_key, salt = crypto.encrypt(request.form['apiPassEdit'])
+    with CryptoSecret() as encryptor:
+        encrypted = encryptor.encrypt(password)
+        encrypted_key = encrypted[0].decode()
+        salt = base64.urlsafe_b64encode(encrypted[1]).decode()
 
     updated_device = device_manager.update_device(
         id=request.form['deviceEditId'],
