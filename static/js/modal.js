@@ -297,3 +297,41 @@ siteSubmitBtn.addEventListener("click", function(event) {
     devModal.style.display = "none";
     siteModal.style.display = "none";
 });
+
+// Button to download configuration file
+document.querySelectorAll('.device-download-button').forEach(button => {
+    button.addEventListener('click', function(event) {
+        var deviceId = event.currentTarget.getAttribute('data-device-id');
+        
+        fetch('/download_config', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ deviceId }),
+        })
+        .then(response => {
+            // Extract filename from the custom header
+            const filename = response.headers.get('X-Filename') || 'default_filename.xml';
+            return response.blob().then(blob => ({ blob, filename }));
+        })
+        .then(({ blob, filename }) => {
+            // Create a new URL for the blob
+            const url = window.URL.createObjectURL(blob);
+            // Create a temporary anchor element
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            // Use the filename from the header
+            a.download = filename;
+            // Append the anchor to the document
+            document.body.appendChild(a);
+            // Trigger the download by simulating a click on the anchor
+            a.click();
+            // Clean up by revoking the object URL and removing the anchor
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        })
+        .catch(error => console.error('Error:', error));
+    });
+});

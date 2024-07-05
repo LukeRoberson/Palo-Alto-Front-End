@@ -6,6 +6,7 @@ from flask import (
     url_for,
     render_template,
     jsonify,
+    Response,
 )
 
 import platform
@@ -19,13 +20,17 @@ from sql import SqlServer
 from device import SiteManager, DeviceManager
 from encryption import CryptoSecret
 import base64
+from api import DeviceApi
+import xml.etree.ElementTree as ET
+from datetime import datetime
+
+
+# Load the configuration from the config.yaml file
+config = AppSettings()
 
 
 # Create a Flask web app
 app = Flask(__name__)
-
-# Load the configuration from the config.yaml file
-config = AppSettings()
 
 
 def azure_auth() -> FlaskAzureOauth:
@@ -426,6 +431,66 @@ def update_device():
                 "message": f"Device '{device_name}' can't be updated"
             }
         ), 500
+
+
+@app.route('/download_config', methods=['POST'])
+def download_config():
+    device_id = request.json['deviceId']
+    table = 'devices'
+    global config
+
+    # Read the device details from the database
+    with SqlServer(
+        server=config.sql_server,
+        database=config.sql_database,
+        table=table,
+    ) as sql:
+        output = sql.read(
+            field='id',
+            value=device_id,
+        )
+
+    # Parse the device details
+    hostname = output[0][1]
+    username = output[0][6]
+    password = output[0][7]
+    salt = output[0][8]
+
+    # Decrypt the password
+    with CryptoSecret() as decryptor:
+        # Decrypt the password
+        real_pw = decryptor.decrypt(
+            secret=password,
+            salt=base64.urlsafe_b64decode(salt.encode())
+        )
+    api_pass = base64.b64encode(f'{username}:{real_pw}'.encode()).decode()
+
+    # Connect to the API
+    my_device = DeviceApi(
+        hostname=hostname,
+        xml_key=api_pass,
+    )
+
+    # Get the XML data, and clean it up (the API adds extra XML tags)
+    xml_config = my_device.get_config()
+    root = ET.fromstring(xml_config)
+    result_content = root.find('.//config')
+    if result_content is not None:
+        cleaned_xml = ET.tostring(
+            result_content,
+            encoding='unicode',
+            method='xml'
+        )
+    else:
+        cleaned_xml = ''
+
+    # Return the cleaned XML as a file download
+    filename = f"{hostname}_{datetime.now().strftime('%Y%m%d%H%M%S')}.xml"
+    print(f"downloading {filename}")
+    response = Response(cleaned_xml, mimetype='text/xml')
+    response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response.headers['X-Filename'] = filename
+    return response
 
 
 # Redirect unauthenticated requests to Azure AD sign-in page
