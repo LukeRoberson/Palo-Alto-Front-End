@@ -488,7 +488,9 @@ def download_config():
     filename = f"{hostname}_{datetime.now().strftime('%Y%m%d%H%M%S')}.xml"
     print(f"downloading {filename}")
     response = Response(cleaned_xml, mimetype='text/xml')
-    response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response.headers['Content-Disposition'] = (
+        f'attachment; filename="{filename}"'
+    )
     response.headers['X-Filename'] = filename
     return response
 
