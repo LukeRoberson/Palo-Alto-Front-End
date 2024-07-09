@@ -1,25 +1,47 @@
-// Get the modal
+/*
+    Manage all modals (pop-up windows) and their associated buttons
+
+    Modal list:
+    - Add Device modal
+    - Add Site modal
+    - Edit Device modal
+    - Edit Site modal
+*/
+
+// Get modals as global variables
 var devModal = document.getElementById("deviceModal");
 var siteModal = document.getElementById("siteModal");
 var devEditModal = document.getElementById("deviceEditModal");
 var siteEditModal = document.getElementById("siteEditModal");
 
-// Get the button that opens the modal
+// Get the buttons that open the modals, and add event listeners
 var devBtn = document.getElementById("add_device");
 var siteBtn = document.getElementById("add_site");
+devBtn.addEventListener('click', () => openModal(devModal));
+siteBtn.addEventListener('click', () => openModal(siteModal));
 
-// Get the <span> element that closes the modal
-var closeButtons = document.getElementsByClassName("close");
-
-// Iterate over all close buttons to add click event listeners
-for (var i = 0; i < closeButtons.length; i++) {
-  closeButtons[i].onclick = function() {
-      // Assuming each close button is a direct child of the modal content
-      // which is a direct child of the modal itself
-      var modal = this.parentElement.parentElement;
-      modal.style.display = "none";
-  }
+// Function to open a modal
+function openModal(modal) {
+    modal.style.display = "block";
 }
+
+// Get all <span> elements (close 'x') that closes modals, and add event listeners
+var closeButtons = document.getElementsByClassName("close");
+for (var i = 0; i < closeButtons.length; i++) {
+    closeButtons[i].onclick = closeModal;
+}
+
+// Function to close the modal
+function closeModal() {
+    var modal = this.parentElement.parentElement;
+    modal.style.display = "none";
+}
+
+
+
+
+
+
 
 // Add event listener for submit button in 'add site' modal
 var siteSubmitBtn = document.getElementById("siteSubmit");
@@ -102,15 +124,6 @@ deviceSubmitBtn.addEventListener("click", function(event) {
     // Reload the page to update the device list
     location.reload();
 });
-
-// When the user clicks the button, open the modal 
-devBtn.onclick = function() {
-  devModal.style.display = "block";
-}
-
-siteBtn.onclick = function() {
-  siteModal.style.display = "block";
-}
 
 // Button to delete sites
 document.querySelectorAll('.site-delete-button').forEach(button => {

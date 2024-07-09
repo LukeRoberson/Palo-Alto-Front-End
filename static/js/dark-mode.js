@@ -1,3 +1,7 @@
+/*
+    Toggle between light and dark modes
+*/
+
 // Applies a theme based on whatever has been saved in local storage
 function applySavedTheme() {
     // Read the saved theme and put in variable
@@ -15,6 +19,7 @@ function applySavedTheme() {
     }
 }
 
+// Toggles between light and dark mode, by reading the state of the slider
 function toggleDarkMode() {
     if (modeToggle.checked) {
         document.body.classList.add("dark-mode");
@@ -29,9 +34,9 @@ function toggleDarkMode() {
     }
 }
 
-// Ensure the DOM is fully loaded before executing any script
+// Ensure the DOM is fully loaded, then apply the saved theme
 document.addEventListener('DOMContentLoaded', applySavedTheme);
 
-// Assuming modeToggle is statically defined in the HTML
+// Event listener for the mode toggle slider
 const modeToggle = document.getElementById('mode-toggle');
 modeToggle.addEventListener('change', toggleDarkMode);

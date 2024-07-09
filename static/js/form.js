@@ -1,3 +1,7 @@
+/*
+    Manage any form submission and button click events
+*/
+
 // Function to attach a submit event listener to a form
 function attachFormSubmitListener(formElement, endpoint) {
     formElement.addEventListener('submit', function(e) {
@@ -105,3 +109,4 @@ function showNotification(message, type) {
         document.body.removeChild(notification);
     }, 3000);
 }
+
