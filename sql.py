@@ -39,7 +39,8 @@ class SqlServer:
         self,
         server: str,
         database: str,
-        table: str
+        table: str,
+        port: int = 1433
     ) -> None:
         '''
         Class constructor
@@ -54,11 +55,17 @@ class SqlServer:
                 The database name
             table : str
                 The table name
+            port : int
+                The port number (default is 1433)
         '''
 
+        # SQL server information
         self.server = server
+        self.port = port
         self.db = database
         self.table = table
+
+        # Connection and cursor objects
         self.conn = None
         self.cursor = None
 
@@ -138,7 +145,7 @@ class SqlServer:
         # Connect to the server and database
         try:
             self.conn = pymssql.connect(
-                server=self.server,
+                server=f"{self.server}:{self.port}",
                 database=self.db
             )
 
