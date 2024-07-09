@@ -13,65 +13,73 @@
 
     <!-- Panel #1 -->
     <div class="w3-quarter">
-        <div class="w3-container w3-red w3-padding-16">
-            <div class="w3-left">
-                <i class="fa-solid fa-list-ol w3-xxxlarge"></i>
+        <a href="#devicesSection" style="text-decoration: none;">
+            <div class="w3-container w3-red w3-padding-16">
+                <div class="w3-left">
+                    <i class="fa-solid fa-list-ol w3-xxxlarge"></i>
+                </div>
+                <div class="w3-right">
+                    <h2>{{ device_count }}</h2>
+                </div>
+                <div class="w3-clear"></div>
+                <h4>Device Count</h4>
             </div>
-            <div class="w3-right">
-                <h2>{{ device_count }}</h2>
-            </div>
-            <div class="w3-clear"></div>
-            <h4>Device Count</h4>
-        </div>
+        </a>
     </div>
 
     <!-- Panel #2 -->
     <div class="w3-quarter">
-        <div class="w3-container w3-blue w3-padding-16">
-            <div class="w3-left">
-                <i class="fa fa-building-shield w3-xxxlarge"></i>
+        <a href="#sitesSection" style="text-decoration: none;">
+            <div class="w3-container w3-blue w3-padding-16">
+                <div class="w3-left">
+                    <i class="fa fa-building-shield w3-xxxlarge"></i>
+                </div>
+                <div class="w3-right">
+                    <h2>{{ site_count }}</h2>
+                </div>
+                <div class="w3-clear"></div>
+                <h4>Site Count</h4>
             </div>
-            <div class="w3-right">
-                <h2>{{ site_count }}</h2>
-            </div>
-            <div class="w3-clear"></div>
-            <h4>Site Count</h4>
-        </div>
+        </a>
     </div>
 
     <!-- Panel #3 -->
     <div class="w3-quarter">
-        <div class="w3-container w3-teal w3-padding-16">
-            <div class="w3-left">
-                <i class="fa fa-share-alt w3-xxxlarge"></i>
+        <a href="#haSection" style="text-decoration: none;">
+            <div class="w3-container w3-teal w3-padding-16">
+                <div class="w3-left">
+                    <i class="fa fa-share-alt w3-xxxlarge"></i>
+                </div>
+                <div class="w3-right">
+                    <h2>0</h2>
+                </div>
+                <div class="w3-clear"></div>
+                <h4>HA Pairs</h4>
             </div>
-            <div class="w3-right">
-                <h2>0</h2>
-            </div>
-            <div class="w3-clear"></div>
-            <h4>HA Pairs</h4>
-        </div>
+        </a>
     </div>
 
     <!-- Panel #4 -->
     <div class="w3-quarter">
-        <div class="w3-container w3-orange w3-padding-16">
-            <div class="w3-left">
-                <i class="fa fa-share-alt w3-xxxlarge"></i>
+        <a href="#devicesSection" style="text-decoration: none;">
+            <div class="w3-container w3-orange w3-padding-16">
+                <div class="w3-left">
+                    <i class="fa fa-share-alt w3-xxxlarge"></i>
+                </div>
+                <div class="w3-right">
+                    <h2>0</h2>
+                </div>
+                <div class="w3-clear"></div>
+                <h4>Future Panel</h4>
             </div>
-            <div class="w3-right">
-                <h2>0</h2>
-            </div>
-            <div class="w3-clear"></div>
-            <h4>Future Panel</h4>
-        </div>
+        </a>
     </div>
 </div>
 
 <!-- Device List -->
 <br><hr>
 <div class="w3-row-padding w3-margin-bottom">
-    <header class="w3-container">
+    <header class="w3-container" id="devicesSection">
         <h2>Devices</h2>
     </header>
     
@@ -146,7 +154,7 @@
 <!-- HA Pair List -->
 <br><hr>
 <div class="w3-row-padding w3-margin-bottom">
-    <header class="w3-container">
+    <header class="w3-container" id="haSection">
         <h2>HA Pairs</h2>
     </header>
 
@@ -190,7 +198,7 @@
 <br><hr>
 <div class="w3-row-padding w3-margin-bottom">
     <div class="w3-container">
-        <header class="w3-container">
+        <header class="w3-container" id="sitesSection">
             <h2>Sites</h2>
         </header>
 
