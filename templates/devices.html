@@ -96,11 +96,31 @@
                         </tr>
                         <tr>
                             <td><b>Model</b></td>
-                            <td>PA1420</td>
+                            <td>{{ device.model }}</td>
+                        </tr>
+                        <tr>
+                            <td><b>Serial</b></td>
+                            <td>{{ device.serial }}</td>
+                        </tr>
+                        <tr>
+                            <td><b>Version</b></td>
+                            <td>{{ device.version }}</td>
+                        </tr>
+                        <tr>
+                            <td><b>HA enabled</b></td>
+                            <td>{{ device.ha_enabled }}</td>
+                        </tr>
+                        <tr>
+                            <td><b>HA State</b></td>
+                            <td>{{ device.ha_local_state }}</td>
                         </tr>
                         <tr>
                             <td><b>HA Partner</b></td>
-                            <td>Firewall-2</td>
+                            <td>{{ device.ha_peer_serial }}</td>
+                        </tr>
+                        <tr>
+                            <td><b>HA Partner State</b></td>
+                            <td>{{ device.ha_peer_state }}</td>
                         </tr>
                     </table>
                 </div>

@@ -3,10 +3,13 @@ Classes to manage sites and devices
 Tracks each of these objects, and contains methods to manage them
 '''
 
-import uuid
 from sql import SqlServer
 from settings import AppSettings
+from api import DeviceApi
+from encryption import CryptoSecret
+
 from colorama import Fore, Style
+import uuid
 import base64
 
 
@@ -96,7 +99,6 @@ class Device:
 
     def __init__(
         self,
-        name: str,
         id: uuid,
         hostname: str,
         site: uuid,
@@ -104,12 +106,14 @@ class Device:
         username: str,
         password: str,
         salt: str,
+        name: str = '',
+        serial: str = '',
+        ha_partner_serial: str = '',
     ) -> None:
         '''
         Constructor for Device class
 
         Args:
-            name (str): Friendly name of the device
             id (uuid): Unique identifier for the site
             hostname (str): Hostname of the device
             site (uuid): Site identifier
@@ -117,6 +121,9 @@ class Device:
             username (str): Username for the device (XML API)
             password (str): Encrypted password for the device (XML API)
             salt (str): Salt for the encrypted (XML API)
+            name (str): Friendly name of the device
+            serial (str): Serial number of the device
+            ha_partner_serial (str): Serial number of the HA partner
         '''
 
         # Device details
@@ -124,12 +131,22 @@ class Device:
         self.id = id
         self.hostname = hostname
         self.site = site
+        self.serial = serial
+        self.ha_partner_serial = ha_partner_serial
+        self.model = None
+        self.version = None
 
         # API details
         self.key = key
         self.username = username
         self.password = password
         self.salt = salt
+
+        # HA Details
+        self.ha_enabled = None
+        self.ha_local_state = None
+        self.ha_peer_state = None
+        self.ha_peer_serial = None
 
         # Track the site name
         self.site_name = ''
@@ -146,6 +163,114 @@ class Device:
         '''
 
         return self.name
+
+    def get_details(
+        self,
+    ) -> None:
+        '''
+        Get the device details from the API
+        Update the device object
+        '''
+
+        settings = AppSettings()
+        table = 'devices'
+
+        with SqlServer(
+            server=settings.sql_server,
+            database=settings.sql_database,
+            table=table,
+        ) as sql:
+            output = sql.read(
+                field='id',
+                value=self.id,
+            )
+
+        # Extract the details from the SQL output
+        hostname = output[0][1]
+        username = output[0][6]
+        password = output[0][7]
+        salt = output[0][8]
+
+        # Decrypt the password
+        with CryptoSecret() as decryptor:
+            print(f"Decrypting password for device '{hostname}'.")
+            # Decrypt the password
+            real_pw = decryptor.decrypt(
+                secret=password,
+                salt=base64.urlsafe_b64decode(salt.encode())
+            )
+
+        # Encode the username and password for the API
+        if real_pw:
+            api_pass = base64.b64encode(
+                f'{username}:{real_pw}'.encode()
+            ).decode()
+
+        # If the password was not decrypted, return
+        else:
+            print(
+                Fore.RED,
+                f"Error decrypting password for device '{hostname}'.",
+                Style.RESET_ALL
+            )
+            return
+
+        # Create the device API object
+        dev_api = DeviceApi(
+            hostname=hostname,
+            xml_key=api_pass,
+        )
+
+        # Get device details
+        details = dev_api.get_device()
+        ha = dev_api.get_ha()
+
+        # Update the device object
+        #   Integers are returned if the API call fails
+        if type(details) is not int:
+            self.model = details[0]
+            self.serial = details[1]
+            self.version = details[2]
+
+        # Update the HA details
+        if type(ha) is not int:
+            self.ha_enabled = ha[0]
+
+            if self.ha_enabled:
+                self.ha_local_state = ha[1]
+                self.ha_peer_state = ha[2]
+                self.ha_peer_serial = ha[3]
+
+        # Update the DB
+        if type(details) is not int or type(ha) is not int:
+            self._update_db()
+
+    def _update_db(
+        self,
+    ) -> None:
+        '''
+        Update the device details in the database
+        '''
+
+        # Update the device in the database, based on the ID
+        settings = AppSettings()
+        table = 'devices'
+
+        with SqlServer(
+            server=settings.sql_server,
+            database=settings.sql_database,
+            table=table,
+        ) as sql:
+            sql.update(
+                field='id',
+                value=self.id,
+                body={
+                    'name': self.hostname,
+                    'site': self.site,
+                    'serial': self.serial,
+                    'ha_partner': self.ha_peer_serial,
+                }
+            )
 
 
 class SiteManager():
@@ -477,20 +602,25 @@ class DeviceManager():
             )
 
         # Create a list of Device objects
+        #   Iterate through the device list in SQL output
         self.device_list = []
         for device in output:
-            self.device_list.append(
-                Device(
-                    name=device[1].split('.')[0],
-                    id=device[0],
-                    hostname=device[1],
-                    site=device[2],
-                    key=device[9],
-                    username=device[6],
-                    password=device[7],
-                    salt=device[8],
-                )
+            # Create a new device object, and add to the list
+            this_device = Device(
+                id=device[0],
+                hostname=device[1],
+                site=device[2],
+                key=device[9],
+                username=device[6],
+                password=device[7],
+                salt=device[8],
+                name=device[10],
+                serial=device[11],
+                ha_partner_serial=device[12],
             )
+
+            self.device_list.append(this_device)
+            this_device.get_details()
 
         # Assign devices to sites
         self._site_assignment()
@@ -511,7 +641,7 @@ class DeviceManager():
         Checks if the device name already exists
 
         Args:
-            name (str): The name of the device
+            friendly_name (str): The name of the device
             hostname (str): The hostname of the device
             site (uuid): The site identifier for the device
             key (str): The REST API key for the device
@@ -573,7 +703,7 @@ class DeviceManager():
             Style.RESET_ALL
         )
         new_device = Device(
-            name=hostname.split('.')[0],
+            name=name,
             id=id,
             hostname=hostname,
             site=site,
@@ -695,6 +825,7 @@ class DeviceManager():
                     'username': username,
                     'secret': password,
                     'salt': salt,
+                    'friendly_name': name,
                 }
             )
 
