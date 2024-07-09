@@ -170,6 +170,72 @@ class DeviceApi:
         # Return as a tuple
         return model.text, serial.text, version.text
 
+    def get_ha(
+        self,
+    ) -> bool | Tuple[bool, str, str, str] | int:
+        '''
+        Get high availability details
+        This uses the XML API
+
+        Returns:
+            bool: Whether the device is enabled
+                Returns False if HA is disabled
+            Tuple:
+                bool: Whether the device is enabled
+                str: The local state of the device
+                str: The peer state of the device
+                str: The peer serial number
+            int: The response code if an error occurred
+        '''
+
+        # Build the request
+        url = (
+            f"{self.xml_base_url}/?type=op"
+            "&cmd=<show><high-availability><state>"
+            "</state></high-availability></show>"
+        )
+        headers = {
+            "Authorization": f'Basic {self.xml_key}',
+        }
+
+        # Send the request
+        response = requests.get(
+            url,
+            headers=headers
+        )
+
+        # Check the response code for errors
+        if response.status_code != 200:
+            root = ET.fromstring(response.text)
+            msg_tag = root.find(".//msg")
+
+            print(
+                Fore.RED,
+                msg_tag.text,
+                Style.RESET_ALL
+            )
+
+            return response.status_code
+
+        # Extract the HA state
+        root = ET.fromstring(response.text)
+        enabled = root.find(".//enabled")
+
+        # Check if HA is enabled
+        if enabled.text == 'yes':
+            enabled = True
+        else:
+            enabled = False
+            return enabled
+
+        # Extract the peer IP and state
+        local_state = root.find(".//state")
+        peer_state = root.find(".//peer-info/state")
+        peer_serial = root.find(".//peer-info/serial-num")
+
+        # Return as a tuple
+        return enabled, local_state.text, peer_state.text, peer_serial.text
+
     def get_tags(
         self
     ) -> list:
