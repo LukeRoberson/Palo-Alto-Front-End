@@ -37,155 +37,108 @@ function closeModal() {
     modal.style.display = "none";
 }
 
+// Setup delete buttons for sites and devices
+setupDeleteButton('.site-delete-button', '/delete_site');
+setupDeleteButton('.device-delete-button', '/delete_device');
 
-
-
-
-
-
-// Add event listener for submit button in 'add site' modal
-var siteSubmitBtn = document.getElementById("siteSubmit");
-siteSubmitBtn.addEventListener("click", function(event) {
-    event.preventDefault();
-
-    const form = this.closest('form');
-    if (!form) {
-        console.error('Form not found for button:', buttonId);
-        return;
-    }
-
-    const formData = new FormData(form);
-
-    fetch('/add_site', {
-        method: 'POST',
-        body: formData,
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Check the 'result' field and display the message with appropriate color
-        if (data.result === 'Success') {
-            showNotification(data.message, 'Success');
-
-            // Delay the reload slightly to allow the user to see the message
-            setTimeout(() => {
-                location.reload();
-            }, 1000);
-        } else if (data.result === 'Failure') {
-            showNotification(data.message, 'Failure');
-        }
-    })
-    .catch(error => console.error('Error:', error));
-
-    // Close the open modal
-    devModal.style.display = "none";
-    siteModal.style.display = "none";
-
-    // Reload the page to update the site list
-    // location.reload();
-});
-
-// Add event listener for submit button in 'add device' modal
-var deviceSubmitBtn = document.getElementById("deviceSubmit");
-deviceSubmitBtn.addEventListener("click", function(event) {
-    event.preventDefault();
-
-    const form = this.closest('form');
-    if (!form) {
-        console.error('Form not found for button:', buttonId);
-        return;
-    }
-
-    const formData = new FormData(form);
-
-    fetch('/add_device', {
-        method: 'POST',
-        body: formData,
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Check the 'result' field and display the message with appropriate color
-        if (data.result === 'Success') {
-            showNotification(data.message, 'Success');
+// Unified function to handle deletion of sites and devices
+function setupDeleteButton(selector, deleteUrl) {
+    document.querySelectorAll(selector).forEach(button => {
+        button.addEventListener('click', function(event) {
+            var entityId = event.currentTarget.getAttribute(`data-${selector.slice(1)}-id`);
             
-            // Delay the reload slightly to allow the user to see the message
-            setTimeout(() => {
-                location.reload();
-            }, 1000);
-        } else if (data.result === 'Failure') {
-            showNotification(data.message, 'Failure');
-        }
-    })
-    .catch(error => console.error('Error:', error));
+            fetch(deleteUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ entityId }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Check the 'result' field and display the message with appropriate color
+                if (data.result === 'Success') {
+                    showNotification(data.message, 'Success');
 
-    // Close the open modal
-    devModal.style.display = "none";
-    siteModal.style.display = "none";
-
-    // Reload the page to update the device list
-    location.reload();
-});
-
-// Button to delete sites
-document.querySelectorAll('.site-delete-button').forEach(button => {
-    button.addEventListener('click', function(event) {
-        // Directly use event.currentTarget to get the 'data-site-id'
-        var siteId = event.currentTarget.getAttribute('data-site-id');
-        
-        fetch('/delete_site', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ siteId }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            // Check the 'result' field and display the message with appropriate color
-            if (data.result === 'Success') {
-                showNotification(data.message, 'Success');
-
-                // Delay the reload slightly to allow the user to see the message
-                setTimeout(() => {
-                    location.reload();
-                }, 1000);
-            } else if (data.result === 'Failure') {
-                showNotification(data.message, 'Failure');
-            }
-        })
-        .catch(error => console.error('Error:', error));
+                    // Delay the reload slightly to allow the user to see the message
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else if (data.result === 'Failure') {
+                    showNotification(data.message, 'Failure');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
     });
-});
+}
 
-// Button to delete devices
-document.querySelectorAll('.device-delete-button').forEach(button => {
-    button.addEventListener('click', function(event) {
-        // Directly use event.currentTarget to get the 'data-device-id'
-        var deviceId = event.currentTarget.getAttribute('data-device-id');
+
+
+
+
+
+// // Button to delete sites
+// document.querySelectorAll('.site-delete-button').forEach(button => {
+//     button.addEventListener('click', function(event) {
+//         // Directly use event.currentTarget to get the 'data-site-id'
+//         var siteId = event.currentTarget.getAttribute('data-site-id');
         
-        fetch('/delete_device', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ deviceId }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            // Check the 'result' field and display the message with appropriate color
-            if (data.result === 'Success') {
-                showNotification(data.message, 'Success');
+//         fetch('/delete_site', {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//             },
+//             body: JSON.stringify({ siteId }),
+//         })
+//         .then(response => response.json())
+//         .then(data => {
+//             // Check the 'result' field and display the message with appropriate color
+//             if (data.result === 'Success') {
+//                 showNotification(data.message, 'Success');
 
-                // Delay the reload slightly to allow the user to see the message
-                setTimeout(() => {
-                    location.reload();
-                }, 1000);
-            } else if (data.result === 'Failure') {
-                showNotification(data.message, 'Failure');
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    });
-});
+//                 // Delay the reload slightly to allow the user to see the message
+//                 setTimeout(() => {
+//                     location.reload();
+//                 }, 1000);
+//             } else if (data.result === 'Failure') {
+//                 showNotification(data.message, 'Failure');
+//             }
+//         })
+//         .catch(error => console.error('Error:', error));
+//     });
+// });
+
+// // Button to delete devices
+// document.querySelectorAll('.device-delete-button').forEach(button => {
+//     button.addEventListener('click', function(event) {
+//         // Directly use event.currentTarget to get the 'data-device-id'
+//         var deviceId = event.currentTarget.getAttribute('data-device-id');
+        
+//         fetch('/delete_device', {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//             },
+//             body: JSON.stringify({ deviceId }),
+//         })
+//         .then(response => response.json())
+//         .then(data => {
+//             // Check the 'result' field and display the message with appropriate color
+//             if (data.result === 'Success') {
+//                 showNotification(data.message, 'Success');
+
+//                 // Delay the reload slightly to allow the user to see the message
+//                 setTimeout(() => {
+//                     location.reload();
+//                 }, 1000);
+//             } else if (data.result === 'Failure') {
+//                 showNotification(data.message, 'Failure');
+//             }
+//         })
+//         .catch(error => console.error('Error:', error));
+//     });
+// });
 
 // Button to edit sites - Pop up the modal
 document.querySelectorAll('.site-edit-button').forEach(button => {
@@ -271,6 +224,88 @@ siteSubmitBtn.addEventListener("click", function(event) {
     // Close the open modal
     devModal.style.display = "none";
     siteModal.style.display = "none";
+});
+
+// Add event listener for submit button in 'add site' modal
+var siteSubmitBtn = document.getElementById("siteSubmit");
+siteSubmitBtn.addEventListener("click", function(event) {
+    event.preventDefault();
+
+    const form = this.closest('form');
+    if (!form) {
+        console.error('Form not found for button:', buttonId);
+        return;
+    }
+
+    const formData = new FormData(form);
+
+    fetch('/add_site', {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Check the 'result' field and display the message with appropriate color
+        if (data.result === 'Success') {
+            showNotification(data.message, 'Success');
+
+            // Delay the reload slightly to allow the user to see the message
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else if (data.result === 'Failure') {
+            showNotification(data.message, 'Failure');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+
+    // Close the open modal
+    devModal.style.display = "none";
+    siteModal.style.display = "none";
+
+    // Reload the page to update the site list
+    // location.reload();
+});
+
+// Add event listener for submit button in 'add device' modal
+var deviceSubmitBtn = document.getElementById("deviceSubmit");
+deviceSubmitBtn.addEventListener("click", function(event) {
+    event.preventDefault();
+
+    const form = this.closest('form');
+    if (!form) {
+        console.error('Form not found for button:', buttonId);
+        return;
+    }
+
+    const formData = new FormData(form);
+
+    fetch('/add_device', {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Check the 'result' field and display the message with appropriate color
+        if (data.result === 'Success') {
+            showNotification(data.message, 'Success');
+            
+            // Delay the reload slightly to allow the user to see the message
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else if (data.result === 'Failure') {
+            showNotification(data.message, 'Failure');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+
+    // Close the open modal
+    devModal.style.display = "none";
+    siteModal.style.display = "none";
+
+    // Reload the page to update the device list
+    location.reload();
 });
 
 // Add event listener for submit button in 'edit device' modal

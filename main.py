@@ -496,6 +496,64 @@ def download_config():
     return response
 
 
+@app.route('/device_list')
+def get_devices():
+    # Get devices from the database
+    device_manager.get_devices()
+
+    # Create a list of device names
+    device_list = []
+    for device in device_manager.device_list:
+        device_info = {"device_id": device.id, "device_name": device.name}
+        device_list.append(device_info)
+
+    # Return the list of device names as JSON
+    return jsonify(device_list)
+
+
+@app.route('/get_tags')
+def get_tags():
+    # Get the tags from the device
+    device = request.args.get('id')
+    sql_server = config.sql_server
+    sql_database = config.sql_database
+    table = 'devices'
+
+    with SqlServer(
+        server=sql_server,
+        database=sql_database,
+        table=table,
+    ) as sql:
+        output = sql.read(
+            field='id',
+            value=device,
+        )
+
+    # Extract the details from the SQL output
+    hostname = output[0][1]
+    token = output[0][9]
+
+    # Create the device object
+    my_device = DeviceApi(
+        hostname=hostname,
+        rest_key=token,
+        version='v11.0'
+    )
+
+    raw_tags = my_device.get_tags()
+
+    tag_list = []
+    for tag in raw_tags:
+        entry = {}
+        entry["name"] = tag['@name']
+        entry["description"] = tag.get('comments', 'No description available')
+        entry["colour"] = tag.get('color', 'no colour')
+        tag_list.append(entry)
+
+    # Return the tags as JSON
+    return jsonify(tag_list)
+
+
 # Redirect unauthenticated requests to Azure AD sign-in page
 @app.errorhandler(401)
 def custom_401(error):
