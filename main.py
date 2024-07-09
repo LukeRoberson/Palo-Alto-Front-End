@@ -102,8 +102,8 @@ def devices():
     '''
 
     # Refresh the site and device list
-    site_manager.get_sites()
-    device_manager.get_devices()
+    # site_manager.get_sites()
+    # device_manager.get_devices()
 
     return render_template(
         'devices.html',
@@ -506,9 +506,6 @@ def download_config():
 
 @app.route('/device_list')
 def get_devices():
-    # Get devices from the database
-    device_manager.get_devices()
-
     # Create a list of device names
     device_list = []
     for device in device_manager.device_list:
@@ -517,6 +514,20 @@ def get_devices():
 
     # Return the list of device names as JSON
     return jsonify(device_list)
+
+
+@app.route('/refresh_dev_site')
+def refresh_dev_site():
+    # Refresh the site and device list
+    site_manager.get_sites()
+    device_manager.get_devices()
+
+    return jsonify(
+        {
+            "result": "Success",
+            "message": "Sites and devices refreshed"
+        }
+    )
 
 
 @app.route('/get_tags')
@@ -556,8 +567,10 @@ def get_tags():
         version='v11.0'
     )
 
+    # The tags from the device
     raw_tags = my_device.get_tags()
 
+    # A cl;eaned up list of tags
     tag_list = []
     for tag in raw_tags:
         entry = {}
@@ -565,6 +578,9 @@ def get_tags():
         entry["description"] = tag.get('comments', 'No description available')
         entry["colour"] = tag.get('color', 'no colour')
         tag_list.append(entry)
+
+    # Sort the tags by name
+    tag_list.sort(key=lambda x: x['name'])
 
     # Return the tags as JSON
     return jsonify(tag_list)
@@ -619,6 +635,9 @@ def callback():
 
 
 if __name__ == '__main__':
+    site_manager.get_sites()
+    device_manager.get_devices()
+
     app.run(
         debug=config.web_debug,
         ssl_context=(

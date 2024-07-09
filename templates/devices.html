@@ -149,6 +149,9 @@
     </div>
     {% endfor %}
     <button class="w3-button w3-block w3-green" id="add_device">Add Device</button>
+    <button class="w3-button w3-block w3-blue" id="refresh_device">Refresh Device List</button>
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner" style="display: none;"></div>
 </div>
 
 <!-- HA Pair List -->
@@ -238,6 +241,7 @@
         </div>
         {% endfor %} 
         <button class="w3-button w3-block w3-green" id="add_site">Add Site</button>
+        <button class="w3-button w3-block w3-blue" id="refresh_site">Refresh Site List</button>
     </div>
 </div>
 
@@ -350,5 +354,6 @@
         </div>
     </div>
 </div>
+
 
 {% endblock %}

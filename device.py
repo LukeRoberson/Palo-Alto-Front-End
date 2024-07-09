@@ -140,6 +140,7 @@ class Device:
         self.key = key
         self.username = username
         self.password = password
+        self.decrypted_pw = None
         self.salt = salt
 
         # HA Details
@@ -213,6 +214,7 @@ class Device:
             api_pass = base64.b64encode(
                 f'{username}:{real_pw}'.encode()
             ).decode()
+            self.decrypted_pw = real_pw
 
         # If the password was not decrypted, return
         else:

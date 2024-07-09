@@ -16,9 +16,42 @@ var siteEditModal = document.getElementById("siteEditModal");
 
 // Get the buttons that open the modals, and add event listeners
 var devBtn = document.getElementById("add_device");
+var devRefreshBtn = document.getElementById("refresh_device");
 var siteBtn = document.getElementById("add_site");
+var siteRefreshBtn = document.getElementById("refresh_site");
+
 devBtn.addEventListener('click', () => openModal(devModal));
 siteBtn.addEventListener('click', () => openModal(siteModal));
+
+// Refresh the device list and reload the page
+function refreshPageAndReload() {
+    // Show loading spinner
+    document.getElementById('loadingSpinner').style.display = 'block';
+
+    fetch('/refresh_dev_site')
+        .then(response => {
+            // Hide loading spinner
+            document.getElementById('loadingSpinner').style.display = 'none';
+
+            if (response.ok) {
+                console.log('Device list fetched successfully');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                console.error('Failed to fetch device list');
+            }
+        })
+        .catch(error => {
+            // Hide loading spinner
+            document.getElementById('loadingSpinner').style.display = 'none';
+            console.error('Error fetching device list:', error);
+        });
+}
+
+// Attach the event handler to both buttons
+devRefreshBtn.addEventListener('click', refreshPageAndReload);
+siteRefreshBtn.addEventListener('click', refreshPageAndReload);
 
 // Function to open a modal
 function openModal(modal) {
