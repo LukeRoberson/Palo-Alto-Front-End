@@ -28,6 +28,8 @@ Authentication:
 
 import requests
 from colorama import Fore, Style
+import xml.etree.ElementTree as ET
+from typing import Tuple
 
 
 class DeviceApi:
@@ -87,7 +89,7 @@ class DeviceApi:
                 XML format, but returned as a string
         '''
 
-        # Build th request
+        # Build the request
         url = f"{self.xml_base_url}/?type=config&action=show&xpath=/"
         headers = {
             "Authorization": f'Basic {self.xml_key}',
@@ -101,15 +103,72 @@ class DeviceApi:
 
         # Check the response code for errors
         if response.status_code != 200:
+            root = ET.fromstring(response.text)
+            msg_tag = root.find(".//msg")
+
             print(
                 Fore.RED,
-                response.status_code,
+                msg_tag.text,
                 Style.RESET_ALL
             )
-            return None
+
+            return response.status_code
 
         # Return the configuration (in XML) as a string
         return response.text
+
+    def get_device(
+        self,
+    ) -> Tuple[str, str, str, str] | int:
+        '''
+        Get the device basics
+            Serial number, model, PANOS version
+        This uses the XML API
+
+        Returns:
+            Tuple:
+                str: The model of the device
+                str: The serial number of the device
+                str: The software version
+            int: The response code if an error occurred
+        '''
+
+        # Build the request
+        url = (
+            f"{self.xml_base_url}/?type=op"
+            "&cmd=<show><system><info></info></system></show>"
+        )
+        headers = {
+            "Authorization": f'Basic {self.xml_key}',
+        }
+
+        # Send the request
+        response = requests.get(
+            url,
+            headers=headers
+        )
+
+        # Check the response code for errors
+        if response.status_code != 200:
+            root = ET.fromstring(response.text)
+            msg_tag = root.find(".//msg")
+
+            print(
+                Fore.RED,
+                msg_tag.text,
+                Style.RESET_ALL
+            )
+
+            return response.status_code
+
+        # Extract the model and serial number
+        root = ET.fromstring(response.text)
+        serial = root.find(".//serial")
+        model = root.find(".//model")
+        version = root.find(".//sw-version")
+
+        # Return as a tuple
+        return model.text, serial.text, version.text
 
     def get_tags(
         self
@@ -154,7 +213,8 @@ class DeviceApi:
                 response.status_code,
                 Style.RESET_ALL
             )
-            return None
+
+            return response.status_code
 
         # Return the tags as a list
         tags = response.json()
