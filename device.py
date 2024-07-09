@@ -539,6 +539,7 @@ class DeviceManager():
         update_device: Update a device in the database
         _new_uuid: Generate a new UUID for a device
         _site_assignment: Assign devices to sites
+        _ha_pairs: Find devices that are paired in an HA configuration
     '''
 
     def __init__(
@@ -565,6 +566,7 @@ class DeviceManager():
 
         # List of all devices
         self.device_list = []
+        self.ha_pairs = []
 
     def __len__(
         self
@@ -624,6 +626,9 @@ class DeviceManager():
 
         # Assign devices to sites
         self._site_assignment()
+
+        # Find HA pairs
+        self._ha_pairs()
 
     def add_device(
         self,
@@ -889,3 +894,29 @@ class DeviceManager():
                     # Track the site name in the device
                     device.site_name = site.name
                     break
+
+    def _ha_pairs(
+        self,
+    ) -> None:
+        '''
+        Find devices that are paired in an HA configuration
+
+        Loops devices to find active devices
+        When one is found, loop through devices to find the passive device
+        Store both in a dictionary, and append to a list
+        '''
+
+        # Loop through devices
+        for device in self.device_list:
+            # Find actice devices
+            if device.ha_peer_serial and device.ha_local_state == 'active':
+                # Loop through devices
+                for peer in self.device_list:
+                    # Find matching passive devices
+                    if device.ha_peer_serial == peer.serial:
+                        # Save the pair
+                        self.ha_pairs.append({
+                            'active': device,
+                            'passive': peer
+                        })
+                        break

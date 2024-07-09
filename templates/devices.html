@@ -143,6 +143,7 @@
     </header>
 
     <!-- Create cards for HA pairs -->
+    {% for pair in ha_list %}
     <div class="w3-third">
         <div class="w3-container w3-padding-16 device-card">
             <div class="w3-card-4">
@@ -154,11 +155,11 @@
                     <table class="w3-table">
                         <tr>
                             <td><b>Active Member</b></td>
-                            <td>Device-1</td>
+                            <td>{{ pair.active }}</td>
                         </tr>
                         <tr>
                             <td><b>Standby Member</b></td>
-                            <td>Device-2</td>
+                            <td>{{ pair.passive }}</td>
                         </tr>
                     </table>
                     <br>
@@ -166,6 +167,7 @@
             </div>
         </div>
     </div>
+    {% endfor %}
 </div>
 
 <!-- Site List -->

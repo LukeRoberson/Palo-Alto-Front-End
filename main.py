@@ -108,6 +108,7 @@ def devices():
     return render_template(
         'devices.html',
         device_list=device_manager.device_list,
+        ha_list=device_manager.ha_pairs,
         site_list=site_manager.site_list,
         device_count=len(device_manager),
         site_count=len(site_manager),
