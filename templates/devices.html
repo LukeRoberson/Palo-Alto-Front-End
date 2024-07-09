@@ -131,6 +131,14 @@
             </div>
         </div>
     </div>
+    {% else %}
+    <div class="w3-container w3-padding-16 device-card">
+        <div class="w3-card-4">
+            <header class="w3-container w3-light-grey">
+                <h3>No Devices Found</h3>
+            </header>
+        </div>
+    </div>
     {% endfor %}
     <button class="w3-button w3-block w3-green" id="add_device">Add Device</button>
 </div>
@@ -165,6 +173,14 @@
                     <br>
                 </div>
             </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="w3-container w3-padding-16 device-card">
+        <div class="w3-card-4">
+            <header class="w3-container w3-light-grey">
+                <h3>No HA Pairs Found</h3>
+            </header>
         </div>
     </div>
     {% endfor %}
@@ -204,8 +220,15 @@
                 </div>
             </div>
         </div>
+        {% else %}
+        <div class="w3-container w3-padding-16 device-card">
+            <div class="w3-card-4">
+                <header class="w3-container w3-light-grey">
+                    <h3>No Devices Found</h3>
+                </header>
+            </div>
+        </div>
         {% endfor %} 
-
         <button class="w3-button w3-block w3-green" id="add_site">Add Site</button>
     </div>
 </div>

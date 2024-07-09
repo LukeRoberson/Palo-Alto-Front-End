@@ -4,6 +4,7 @@ Creates and reads entries in an SQL database
 
 import pymssql
 import traceback as tb
+from colorama import Fore, Style
 
 
 class SqlServer:
@@ -143,7 +144,17 @@ class SqlServer:
 
         # Handle errors
         except pymssql.OperationalError as e:
-            print(f"Operational error: {e}\n")
+            error_code, error_message = e.args[0]
+            if error_code == 20009:
+                print(
+                    Fore.RED,
+                    "Unable to connect to the database server.\n",
+                    Style.RESET_ALL,
+                    "The server may be unavailable or the server"
+                    " address might be incorrect."
+                )
+            else:
+                print(f"Operational error: {error_code}: {error_message}\n")
             return False
 
         except pymssql.DataError as e:

@@ -451,6 +451,14 @@ def download_config():
             value=device_id,
         )
 
+    if not output:
+        return jsonify(
+            {
+                "result": "Failure",
+                "message": "Problems reading from the database"
+            }
+        ), 500
+
     # Parse the device details
     hostname = output[0][1]
     username = output[0][6]
@@ -528,6 +536,14 @@ def get_tags():
             field='id',
             value=device,
         )
+
+    if not output:
+        return jsonify(
+            {
+                "result": "Failure",
+                "message": "Problems reading from the database"
+            }
+        ), 500
 
     # Extract the details from the SQL output
     hostname = output[0][1]

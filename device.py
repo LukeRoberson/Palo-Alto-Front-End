@@ -185,6 +185,14 @@ class Device:
                 value=self.id,
             )
 
+        if not output:
+            print(
+                Fore.RED,
+                f"Could not read device details for device '{self.hostname}'.",
+                Style.RESET_ALL
+            )
+            return
+
         # Extract the details from the SQL output
         hostname = output[0][1]
         username = output[0][6]
@@ -261,7 +269,7 @@ class Device:
             database=settings.sql_database,
             table=table,
         ) as sql:
-            sql.update(
+            result = sql.update(
                 field='id',
                 value=self.id,
                 body={
@@ -270,6 +278,13 @@ class Device:
                     'serial': self.serial,
                     'ha_partner': self.ha_peer_serial,
                 }
+            )
+
+        if not result:
+            print(
+                Fore.RED,
+                f"Could not update device details for '{self.hostname}'",
+                Style.RESET_ALL
             )
 
 
@@ -335,6 +350,8 @@ class SiteManager():
             list: A list of Site objects
         '''
 
+        self.site_list = []
+
         # Read all sites from the database
         with SqlServer(
             server=self.sql_server,
@@ -346,8 +363,11 @@ class SiteManager():
                 value='',
             )
 
+        if not output:
+            print("Could not read from the database.")
+            return
+
         # Reset site list and add all sites
-        self.site_list = []
         for site in output:
             self.site_list.append(
                 Site(
@@ -419,6 +439,7 @@ class SiteManager():
             return new_site
 
         else:
+            print("Could not add site to the database.")
             return False
 
     def delete_site(
@@ -455,6 +476,7 @@ class SiteManager():
             return True
 
         else:
+            print("Could not delete site from the database.")
             return False
 
     def update_site(
@@ -496,6 +518,7 @@ class SiteManager():
             return True
 
         else:
+            print("Could not update site in the database.")
             return False
 
     def _new_uuid(
@@ -602,6 +625,10 @@ class DeviceManager():
                 field='vendor',
                 value='paloalto',
             )
+
+        if not output:
+            print("Could not read from the database.")
+            return
 
         # Create a list of Device objects
         #   Iterate through the device list in SQL output
@@ -745,6 +772,7 @@ class DeviceManager():
             return new_device
 
         else:
+            print("Could not add device to the database.")
             return False
 
     def delete_device(
@@ -781,6 +809,7 @@ class DeviceManager():
             return True
 
         else:
+            print("Could not delete device from the database.")
             return False
 
     def update_device(
@@ -840,6 +869,7 @@ class DeviceManager():
             return True
 
         else:
+            print("Could not update device in the database.")
             return False
 
     def _new_uuid(
