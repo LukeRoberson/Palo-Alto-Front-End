@@ -939,6 +939,7 @@ class DeviceManager():
         '''
 
         # Loop through devices
+        self.ha_pairs = []
         for device in self.device_list:
             # Find actice devices
             if device.ha_peer_serial and device.ha_local_state == 'active':

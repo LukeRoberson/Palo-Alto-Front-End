@@ -107,6 +107,29 @@ function setupDeleteButton(selector, deleteUrl) {
 }
 
 
+document.addEventListener('DOMContentLoaded', function() {
+    // Select all collapsible headers
+    var collapsibleHeaders = document.querySelectorAll('.collapsible-header');
+
+    collapsibleHeaders.forEach(function(header) {
+        header.addEventListener('click', function() {
+            // Determine the type of cards to toggle based on the header clicked
+            var cardType = this.getAttribute('data-card-type'); // Assuming you add a data attribute to headers
+            var cardsToToggle = document.querySelectorAll('.' + cardType);
+
+            // Toggle the visibility of the corresponding cards
+            cardsToToggle.forEach(function(card) {
+                card.classList.toggle('collapsible-content');
+            });
+
+            // Toggle the rotation of the icon within the clicked header
+            var collapseIcon = this.querySelector('.collapse-icon'); // Assuming your icons have a common class
+            if (collapseIcon) {
+                collapseIcon.classList.toggle('rotate-icon');
+            }
+        });
+    });
+});
 
 
 

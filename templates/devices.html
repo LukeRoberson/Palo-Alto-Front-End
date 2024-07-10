@@ -79,8 +79,8 @@
 <!-- Device List -->
 <br><hr>
 <div class="w3-row-padding w3-margin-bottom">
-    <header class="w3-container" id="devicesSection">
-        <h2>Devices</h2>
+    <header class="w3-container collapsible-header" id="devicesSection" data-card-type="device-card">
+        <h2>Devices <i class="fas fa-chevron-down collapse-icon" style="font-size: 0.75em;"></i></h2>
     </header>
     
     <!-- Populate device cards from the list -->
@@ -157,14 +157,14 @@
 <!-- HA Pair List -->
 <br><hr>
 <div class="w3-row-padding w3-margin-bottom">
-    <header class="w3-container" id="haSection">
-        <h2>HA Pairs</h2>
+    <header class="w3-container collapsible-header" id="haSection" data-card-type="ha-card">
+        <h2>HA Pairs <i class="fas fa-chevron-down collapse-icon" style="font-size: 0.75em;"></i></h2>
     </header>
 
     <!-- Create cards for HA pairs -->
     {% for pair in ha_list %}
     <div class="w3-third">
-        <div class="w3-container w3-padding-16 device-card">
+        <div class="w3-container w3-padding-16 ha-card"> <!-- Changed class to ha-card to match data-card-type -->
             <div class="w3-card-4">
                 <header class="w3-container w3-light-grey">
                     <h3>HA Pair</h3>
@@ -187,7 +187,7 @@
         </div>
     </div>
     {% else %}
-    <div class="w3-container w3-padding-16 device-card">
+    <div class="w3-container w3-padding-16 ha-card"> <!-- Changed class to ha-card for consistency -->
         <div class="w3-card-4">
             <header class="w3-container w3-light-grey">
                 <h3>No HA Pairs Found</h3>
@@ -201,8 +201,8 @@
 <br><hr>
 <div class="w3-row-padding w3-margin-bottom">
     <div class="w3-container">
-        <header class="w3-container" id="sitesSection">
-            <h2>Sites</h2>
+        <header class="w3-container collapsible-header" id="sitesSection" data-card-type="site-card">
+            <h2>Sites <i class="fas fa-chevron-down collapse-icon" style="font-size: 0.75em;"></i></h2>
         </header>
 
         <!-- Site Cards -->
