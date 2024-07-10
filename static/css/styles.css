@@ -24,10 +24,19 @@ body {
     transition: padding-left 0.5s ease;
 }
 
-.highlight {
+/* When comparing items, and one is different */
+.highlight-different {
     background-color: yellow;
 }
 
+/* When comparing items, and one is missing */
+.highlight-missing {
+    background-color: red;
+    font-style: italic;
+    color: white;
+}
+
+/* A spinner to show when loading data */
 .loading-spinner {
     position: fixed;
     top: 50%;

@@ -101,10 +101,6 @@ def devices():
     Used when populating the devices.html template
     '''
 
-    # Refresh the site and device list
-    # site_manager.get_sites()
-    # device_manager.get_devices()
-
     return render_template(
         'devices.html',
         device_list=device_manager.device_list,
