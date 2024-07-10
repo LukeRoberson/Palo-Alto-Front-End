@@ -1,5 +1,8 @@
 /*
     Compare lists and highlight differences
+
+    Missing entries are added to the respective table, and highlighted in red
+    Entries that are in both tables, but are different, are highlighted in yellow
 */
 
 // Event listener for the compare button
@@ -11,14 +14,12 @@ document.getElementById('tag_compare').addEventListener('click', function() {
 });
 
 /**
- * Compares two tables and prints the missing items in each table to the console.
+ * Compares two tables and adds missing items to the respective table
  */
 function compareTables() {
-    // Get the tables as variables
+    // Get the tables and their values, get ready to look for missing items
     var firstTable = document.getElementById('firstTable');
     var secondTable = document.getElementById('secondTable');
-
-    // Get the items in the tables by calling the getTableItems function
     var firstTableItems = getTableItems(firstTable);
     var secondTableItems = getTableItems(secondTable);
 
@@ -27,10 +28,30 @@ function compareTables() {
     var missingItemsInFirstTable = getMissingItems(firstTableItems, secondTableItems);
     var missingItemsInSecondTable = getMissingItems(secondTableItems, firstTableItems);
 
-    // Call the printMissingItems function to print the missing items to console
+    // Update tables with missing items (highlighted)
     // Include the table to update
     appendMissingItemsToTable(missingItemsInFirstTable, 'secondTable');
     appendMissingItemsToTable(missingItemsInSecondTable, 'firstTable');
+    sortTable(firstTable);
+    sortTable(secondTable);
+
+    // Refresh the table items, get ready to look for differences
+    var firstTable = document.getElementById('firstTable');
+    var secondTable = document.getElementById('secondTable');
+    var firstTableItems = getTableItems(firstTable);
+    var secondTableItems = getTableItems(secondTable);
+
+    // Determine the shorter length to avoid index out of range errors
+    var minLength = Math.min(firstTableItems.length, secondTableItems.length);
+
+    // Compare the items in the tables and highlight differences
+    for (var i = 0; i < minLength; i++) {
+        if (!arraysEqual(firstTableItems[i], secondTableItems[i])) {
+            // Assuming each item is a row in the table, highlight the row
+            highlightRow(firstTable.rows[i]);
+            highlightRow(secondTable.rows[i]);
+        }
+    }
 }
 
 /**
@@ -172,4 +193,41 @@ function appendMissingItemsToTable(missingItems, tableName) {
             table.appendChild(row);
         });
     }
+}
+
+/**
+ * Sorts a table alphabetically.
+ * @param {HTMLTableElement} table - The table to sort.
+ */
+function sortTable(table) {
+    var rows = table.rows;
+    var sortedRows = Array.from(rows).slice(1).sort((a, b) => {
+        var textA = a.innerText.toLowerCase();
+        var textB = b.innerText.toLowerCase();
+        if (textA < textB) {
+            return -1;
+        }
+        if (textA > textB) {
+            return 1;
+        }
+        return 0;
+    });
+
+    // Remove existing rows from the table
+    while (table.rows.length > 1) {
+        table.deleteRow(1);
+    }
+
+    // Append the sorted rows back to the table
+    sortedRows.forEach(row => {
+        table.appendChild(row);
+    });
+}
+
+/**
+ * Highlights a row in a table.
+ * @param {HTMLTableRowElement} row - The row to highlight.
+ */
+function highlightRow(row) {
+    row.classList.add('highlight-different');
 }
