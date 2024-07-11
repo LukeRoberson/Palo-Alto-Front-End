@@ -15,49 +15,66 @@
 */
 
 // Get modals as variables
-var devModal = document.getElementById("deviceModal");                  // Add device modal
-var siteModal = document.getElementById("siteModal");                   // Add site modal
-var devEditModal = document.getElementById("deviceEditModal");          // Edit device modal
-var siteEditModal = document.getElementById("siteEditModal");           // Edit site modal
+var devModal = document.getElementById("deviceModal");                      // Add device modal
+var siteModal = document.getElementById("siteModal");                       // Add site modal
+var devEditModal = document.getElementById("deviceEditModal");              // Edit device modal
+var siteEditModal = document.getElementById("siteEditModal");               // Edit site modal
 
 // Get all buttons as variables
-var siteBtn = document.getElementById("add_site");                      // Add site button
-var devBtn = document.getElementById("add_device");                     // Add device button
-var siteRefreshBtn = document.getElementById("refresh_site");           // Refresh site list button
-var devRefreshBtn = document.getElementById("refresh_device");          // Refresh device list button
-var closeButtons = document.getElementsByClassName("close");            // Regular close buttons
-var siteSubmitBtn = document.getElementById("siteSubmit");              // Submit button in 'add site' modal
-var siteEditSubmitBtn = document.getElementById("siteEditSubmit");      // Submit button in 'edit site' modal
-var deviceSubmitBtn = document.getElementById("deviceSubmit");          // Submit button in 'add device' modal
-var deviceEditSubmitBtn = document.getElementById("deviceEditSubmit");  // Submit button in 'edit device' modal
+var siteBtn = document.getElementById("add_site");                          // Add site button
+var devBtn = document.getElementById("add_device");                         // Add device button
+var siteRefreshBtn = document.getElementById("refresh_site");               // Refresh site list button
+var devRefreshBtn = document.getElementById("refresh_device");              // Refresh device list button
+var closeButtons = document.getElementsByClassName("close");                // Regular close buttons
+var siteSubmitBtn = document.getElementById("siteSubmit");                  // Submit button in 'add site' modal
+var siteEditSubmitBtn = document.getElementById("siteEditSubmit");          // Submit button in 'edit site' modal
+var deviceSubmitBtn = document.getElementById("deviceSubmit");              // Submit button in 'add device' modal
+var deviceEditSubmitBtn = document.getElementById("deviceEditSubmit");      // Submit button in 'edit device' modal
 
 // Event listeners
-devBtn.addEventListener('click', () => openModal(devModal));            // Add device button
-siteBtn.addEventListener('click', () => openModal(siteModal));          // Add site button
-devRefreshBtn.addEventListener('click', refreshPageAndReload);          // Refresh device list button
-siteRefreshBtn.addEventListener('click', refreshPageAndReload);         // Refresh site list button
+devBtn.addEventListener('click', () => openModal(devModal));                // Add device button
+siteBtn.addEventListener('click', () => openModal(siteModal));              // Add site button
+devRefreshBtn.addEventListener('click', refreshPageAndReload);              // Refresh device list button
+siteRefreshBtn.addEventListener('click', refreshPageAndReload);             // Refresh site list button
 
-for (var i = 0; i < closeButtons.length; i++) {                         // 'x' close buttons
+for (var i = 0; i < closeButtons.length; i++) {                             // 'x' close buttons
     closeButtons[i].onclick = closeModal;
 }
 
-setupDeleteButton('.site-delete-button', '/delete_site');               // Delete site buttons
-setupDeleteButton('.device-delete-button', '/delete_device');           // Delete device buttons
+setupDeleteButton('.site-delete-button', '/delete_site');                   // Delete site buttons
+setupDeleteButton('.device-delete-button', '/delete_device');               // Delete device buttons
 
-siteSubmitBtn.addEventListener(                                         // Add site submit button
+siteSubmitBtn.addEventListener(                                             // Add site submit button
     'click', (event) => handleSubmitButtonClick(event, '/add_site', siteSubmitBtn)
 );
-siteEditSubmitBtn.addEventListener(                                     // Edit site submit button
+siteEditSubmitBtn.addEventListener(                                         // Edit site submit button
     'click', (event) => handleSubmitButtonClick(event, '/update_site', siteEditSubmitBtn)
 );
-deviceSubmitBtn.addEventListener(                                       // Add device submit button
+deviceSubmitBtn.addEventListener(                                           // Add device submit button
     'click', (event) => handleSubmitButtonClick(event, '/add_device', deviceSubmitBtn)
 );
-deviceEditSubmitBtn.addEventListener(                                   // Edit device submit button
+deviceEditSubmitBtn.addEventListener(                                       // Edit device submit button
     'click', (event) => handleSubmitButtonClick(event, '/update_device', deviceEditSubmitBtn)
 );
 
+document.querySelectorAll('.site-edit-button').forEach(button => {          // Site edit button (open modal)
+    button.addEventListener('click', openSiteEditModal);
+});
+document.querySelectorAll('.device-edit-button').forEach(button => {        // Device edit button (open modal)
+    button.addEventListener('click', openDeviceEditModal);
+});
 
+
+document.querySelectorAll('.device-download-button').forEach(button => {    // Attach event listener to each device download button
+    button.addEventListener('click', downloadDeviceConfig);
+});
+
+document.addEventListener('DOMContentLoaded', function() {                  // Attach event listener to each collapsible header
+    var collapsibleHeaders = document.querySelectorAll('.collapsible-header');
+    collapsibleHeaders.forEach(function(header) {
+        header.addEventListener('click', toggleCollapsibleContent);
+    });
+});
 
 
 /**
@@ -209,123 +226,130 @@ function setupDeleteButton(selector, deleteUrl) {
 }
 
 
+/**
+ * Open the site edit modal and populate the input fields with the site data
+ * @param {*} event 
+ */
+function openSiteEditModal(event) {
+    // Directly use event.currentTarget to get the 'data-site-id' and 'data-site-name'
+    var siteId = event.currentTarget.getAttribute('data-id');
+    var siteName = event.currentTarget.getAttribute('data-site-name');
+
+    // Select the input fields by their name attribute
+    const siteEditIdInput = document.querySelector('input[name="siteEditId"]');
+    const siteEditNameInput = document.querySelector('input[name="siteEditName"]');
+    
+    // Populate the input fields with siteId and siteName
+    siteEditIdInput.value = siteId;
+    siteEditNameInput.value = siteName;
+    console.log(siteEditIdInput.value, siteEditNameInput.value);
+
+    // Display the modal
+    siteEditModal.style.display = "block";
+}
 
 
+/**
+ * Open the device edit modal and populate the input fields with the device data
+ * @param {*} event 
+ */
+function openDeviceEditModal(event) {
+    // Directly use event.currentTarget to get the device attributes
+    var deviceId = event.currentTarget.getAttribute('data-id');
+    var deviceName = event.currentTarget.getAttribute('data-device-name');
+    var deviceHostname = event.currentTarget.getAttribute('data-device-hostname');
+    var deviceSite = event.currentTarget.getAttribute('data-device-site');
+    var deviceKey = event.currentTarget.getAttribute('data-device-key');
+
+    // Select the input fields
+    const deviceEditIdInput = document.querySelector('input[name="deviceEditId"]');
+    const deviceEditNameInput = document.querySelector('input[name="deviceEditName"]');
+    const deviceHostNameInput = document.querySelector('input[name="hostNameEdit"]');
+    const deviceSiteInput = document.querySelector('input[name="siteMemberEdit"]');
+    const deviceKeyNameInput = document.querySelector('input[name="apiKeyEdit"]');
+    
+    // Populate the input fields
+    deviceEditIdInput.value = deviceId;
+    deviceEditNameInput.value = deviceName;
+    deviceHostNameInput.value = deviceHostname;
+    deviceSiteInput.value = deviceSite;
+    deviceKeyNameInput.value = deviceKey;
+    
+    // Display the modal
+    devEditModal.style.display = "block";
+}
 
 
+/** 
+ * Download configuration files for devices
+ * Calls the /download_config endpoint to get the configuration file
+ * @param {*} event
+ */
+function downloadDeviceConfig(event) {
+    // Get the device ID from the button's data-id attribute
+    var deviceId = event.currentTarget.getAttribute('data-id');
+    
+    // POST to the download_config endpoint with the deviceId
+    fetch('/download_config', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ deviceId }),
+    })
+
+    // Extract the filename from the custom header and trigger the download
+    .then(response => {
+        const filename = response.headers.get('X-Filename') || 'default_filename.xml';
+        return response.blob().then(blob => ({ blob, filename }));
+    })
+
+    // Create a URL for the blob and trigger the download
+    .then(({ blob, filename }) => {
+        // Create a new URL for the blob
+        const url = window.URL.createObjectURL(blob);
+
+        // Create a temporary anchor element
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+
+        // Use the filename from the header
+        a.download = filename;
+
+        // Append the anchor to the document
+        document.body.appendChild(a);
+
+        // Trigger the download by simulating a click on the anchor
+        a.click();
+
+        // Clean up by revoking the object URL and removing the anchor
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    })
+
+    // Log any errors to the console
+    .catch(error => console.error('Error:', error));
+}
 
 
+/**
+ * Collapse and expand the content of the collapsible cards
+ * @param {*} event 
+ */
+function toggleCollapsibleContent(event) {
+    // Determine the type of cards to toggle based on the header clicked
+    var cardType = this.getAttribute('data-card-type');
+    var cardsToToggle = document.querySelectorAll('.' + cardType);
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Select all collapsible headers
-    var collapsibleHeaders = document.querySelectorAll('.collapsible-header');
-
-    collapsibleHeaders.forEach(function(header) {
-        header.addEventListener('click', function() {
-            // Determine the type of cards to toggle based on the header clicked
-            var cardType = this.getAttribute('data-card-type'); // Assuming you add a data attribute to headers
-            var cardsToToggle = document.querySelectorAll('.' + cardType);
-
-            // Toggle the visibility of the corresponding cards
-            cardsToToggle.forEach(function(card) {
-                card.classList.toggle('collapsible-content');
-            });
-
-            // Toggle the rotation of the icon within the clicked header
-            var collapseIcon = this.querySelector('.collapse-icon'); // Assuming your icons have a common class
-            if (collapseIcon) {
-                collapseIcon.classList.toggle('rotate-icon');
-            }
-        });
+    // Toggle the visibility of the corresponding cards
+    cardsToToggle.forEach(function(card) {
+        card.classList.toggle('collapsible-content');
     });
-});
 
-
-
-
-// Button to edit sites - Pop up the modal
-document.querySelectorAll('.site-edit-button').forEach(button => {
-    button.addEventListener('click', function(event) {
-        // Directly use event.currentTarget to get the 'data-site-id' and 'data-site-name'
-        var siteId = event.currentTarget.getAttribute('data-id');
-        var siteName = event.currentTarget.getAttribute('data-site-name');
-
-        // Select the input fields by their name attribute
-        const siteEditIdInput = document.querySelector('input[name="siteEditId"]');
-        const siteEditNameInput = document.querySelector('input[name="siteEditName"]');
-        
-        // Populate the input fields with siteId and siteName
-        siteEditIdInput.value = siteId;
-        siteEditNameInput.value = siteName;
-        console.log(siteEditIdInput.value, siteEditNameInput.value);
-
-        // Display the modal
-        siteEditModal.style.display = "block";
-    });
-});
-
-// Button to edit devices - Pop up the modal
-document.querySelectorAll('.device-edit-button').forEach(button => {
-    button.addEventListener('click', function(event) {
-        // Directly use event.currentTarget to get the 'data-device-id'
-        var deviceId = event.currentTarget.getAttribute('data-id');
-        var deviceName = event.currentTarget.getAttribute('data-device-name');
-        var deviceHostname = event.currentTarget.getAttribute('data-device-hostname');
-        var deviceSite = event.currentTarget.getAttribute('data-device-site');
-        var deviceKey = event.currentTarget.getAttribute('data-device-key');
-
-        // Select the input fields
-        const deviceEditIdInput = document.querySelector('input[name="deviceEditId"]');
-        const deviceEditNameInput = document.querySelector('input[name="deviceEditName"]');
-        const deviceHostNameInput = document.querySelector('input[name="hostNameEdit"]');
-        const deviceSiteInput = document.querySelector('input[name="siteMemberEdit"]');
-        const deviceKeyNameInput = document.querySelector('input[name="apiKeyEdit"]');
-        
-        // Populate the input fields
-        deviceEditIdInput.value = deviceId;
-        deviceEditNameInput.value = deviceName;
-        deviceHostNameInput.value = deviceHostname;
-        deviceSiteInput.value = deviceSite;
-        deviceKeyNameInput.value = deviceKey;
-        
-        devEditModal.style.display = "block";
-    });
-});
-
-// Button to download configuration file
-document.querySelectorAll('.device-download-button').forEach(button => {
-    button.addEventListener('click', function(event) {
-        var deviceId = event.currentTarget.getAttribute('data-id');
-        
-        fetch('/download_config', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ deviceId }),
-        })
-        .then(response => {
-            // Extract filename from the custom header
-            const filename = response.headers.get('X-Filename') || 'default_filename.xml';
-            return response.blob().then(blob => ({ blob, filename }));
-        })
-        .then(({ blob, filename }) => {
-            // Create a new URL for the blob
-            const url = window.URL.createObjectURL(blob);
-            // Create a temporary anchor element
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            // Use the filename from the header
-            a.download = filename;
-            // Append the anchor to the document
-            document.body.appendChild(a);
-            // Trigger the download by simulating a click on the anchor
-            a.click();
-            // Clean up by revoking the object URL and removing the anchor
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-        })
-        .catch(error => console.error('Error:', error));
-    });
-});
+    // Toggle the rotation of the icon within the clicked header
+    var collapseIcon = this.querySelector('.collapse-icon');
+    if (collapseIcon) {
+        collapseIcon.classList.toggle('rotate-icon');
+    }
+}
