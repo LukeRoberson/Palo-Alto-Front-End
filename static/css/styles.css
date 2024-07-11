@@ -39,6 +39,7 @@ body {
 /* A spinner to show when loading data */
 .loading-spinner {
     position: fixed;
+    z-index: 1000;
     top: 50%;
     left: calc(50% + 105px);
     transform: translate(-50%, -50%); /* Center the spinner */

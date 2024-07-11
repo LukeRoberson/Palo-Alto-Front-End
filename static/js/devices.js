@@ -88,6 +88,9 @@ function handleSubmitButtonClick(event, url, buttonElement) {
     // Prevent the default form submission
     event.preventDefault();
 
+    // Show loading spinner
+    document.getElementById('loadingSpinner').style.display = 'block';
+
     // Get the form element from the button
     const form = buttonElement.closest('form');
     if (!form) {
@@ -105,6 +108,9 @@ function handleSubmitButtonClick(event, url, buttonElement) {
     })
     .then(response => response.json())
     .then(data => {
+        // Hide loading spinner when the response is received
+        document.getElementById('loadingSpinner').style.display = 'none';
+
         // Check the 'result' field and display the message with appropriate color
         if (data.result === 'Success') {
             showNotification(data.message, 'Success');
@@ -117,7 +123,11 @@ function handleSubmitButtonClick(event, url, buttonElement) {
             showNotification(data.message, 'Failure');
         }
     })
-    .catch(error => console.error('Error:', error));
+    .catch(error => {
+        // Hide loading spinner when the response is received
+        document.getElementById('loadingSpinner').style.display = 'none';
+        console.error('Error:', error)
+    });
 
     // Close the open modal
     devModal.style.display = "none";
@@ -193,6 +203,9 @@ function setupDeleteButton(selector, deleteUrl) {
         button.addEventListener('click', function(event) {
             // Devices and sites have 'data-id' attributes
             var objectId = event.currentTarget.getAttribute(`data-id`);
+
+            // Show loading spinner
+            document.getElementById('loadingSpinner').style.display = 'block';
             
             // POST to the delete URL with the objectId
             fetch(deleteUrl, {
@@ -206,6 +219,9 @@ function setupDeleteButton(selector, deleteUrl) {
             // Parse the response and display a notification
             .then(response => response.json())
             .then(data => {
+                // Hide loading spinner when the response is received
+                document.getElementById('loadingSpinner').style.display = 'none';
+
                 // Check the 'result' field and display the message with appropriate color
                 if (data.result === 'Success') {
                     // Display a success message
@@ -220,7 +236,11 @@ function setupDeleteButton(selector, deleteUrl) {
                     showNotification(data.message, 'Failure');
                 }
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                // Hide loading spinner when the response is received
+                document.getElementById('loadingSpinner').style.display = 'none';
+                console.error('Error:', error)
+            });
         });
     });
 }

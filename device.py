@@ -261,6 +261,7 @@ class Device:
                 f"Error decrypting password for device '{hostname}'.",
                 Style.RESET_ALL
             )
+            details = None
 
         # Update the DB
         if type(details) is not int or type(ha) is not int:
