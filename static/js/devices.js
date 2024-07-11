@@ -14,31 +14,115 @@
     - Edit Site modal
 */
 
-// Get modals as global variables
-var devModal = document.getElementById("deviceModal");
-var siteModal = document.getElementById("siteModal");
-var devEditModal = document.getElementById("deviceEditModal");
-var siteEditModal = document.getElementById("siteEditModal");
+// Get modals as variables
+var devModal = document.getElementById("deviceModal");                  // Add device modal
+var siteModal = document.getElementById("siteModal");                   // Add site modal
+var devEditModal = document.getElementById("deviceEditModal");          // Edit device modal
+var siteEditModal = document.getElementById("siteEditModal");           // Edit site modal
 
-// Get the buttons that open the modals, and add event listeners
-var devBtn = document.getElementById("add_device");
-var devRefreshBtn = document.getElementById("refresh_device");
-var siteBtn = document.getElementById("add_site");
-var siteRefreshBtn = document.getElementById("refresh_site");
+// Get all buttons as variables
+var siteBtn = document.getElementById("add_site");                      // Add site button
+var devBtn = document.getElementById("add_device");                     // Add device button
+var siteRefreshBtn = document.getElementById("refresh_site");           // Refresh site list button
+var devRefreshBtn = document.getElementById("refresh_device");          // Refresh device list button
+var closeButtons = document.getElementsByClassName("close");            // Regular close buttons
+var siteSubmitBtn = document.getElementById("siteSubmit");              // Submit button in 'add site' modal
+var siteEditSubmitBtn = document.getElementById("siteEditSubmit");      // Submit button in 'edit site' modal
+var deviceSubmitBtn = document.getElementById("deviceSubmit");          // Submit button in 'add device' modal
+var deviceEditSubmitBtn = document.getElementById("deviceEditSubmit");  // Submit button in 'edit device' modal
 
-devBtn.addEventListener('click', () => openModal(devModal));
-siteBtn.addEventListener('click', () => openModal(siteModal));
+// Event listeners
+devBtn.addEventListener('click', () => openModal(devModal));            // Add device button
+siteBtn.addEventListener('click', () => openModal(siteModal));          // Add site button
+devRefreshBtn.addEventListener('click', refreshPageAndReload);          // Refresh device list button
+siteRefreshBtn.addEventListener('click', refreshPageAndReload);         // Refresh site list button
 
-// Refresh the device list and reload the page
+for (var i = 0; i < closeButtons.length; i++) {                         // 'x' close buttons
+    closeButtons[i].onclick = closeModal;
+}
+
+setupDeleteButton('.site-delete-button', '/delete_site');               // Delete site buttons
+setupDeleteButton('.device-delete-button', '/delete_device');           // Delete device buttons
+
+siteSubmitBtn.addEventListener(                                         // Add site submit button
+    'click', (event) => handleSubmitButtonClick(event, '/add_site', siteSubmitBtn)
+);
+siteEditSubmitBtn.addEventListener(                                     // Edit site submit button
+    'click', (event) => handleSubmitButtonClick(event, '/update_site', siteEditSubmitBtn)
+);
+deviceSubmitBtn.addEventListener(                                       // Add device submit button
+    'click', (event) => handleSubmitButtonClick(event, '/add_device', deviceSubmitBtn)
+);
+deviceEditSubmitBtn.addEventListener(                                   // Edit device submit button
+    'click', (event) => handleSubmitButtonClick(event, '/update_device', deviceEditSubmitBtn)
+);
+
+
+
+
+/**
+ * Handle the submit button click event for various forms
+ * @param {*} event
+ * @param {*} url 
+ * @param {*} buttonElement 
+ * @returns 
+ */
+function handleSubmitButtonClick(event, url, buttonElement) {
+    // Prevent the default form submission
+    event.preventDefault();
+
+    // Get the form element from the button
+    const form = buttonElement.closest('form');
+    if (!form) {
+        console.error('Form not found for button:', buttonElement.id);
+        return;
+    }
+
+    // Collect data from the form
+    const formData = new FormData(form);
+
+    // POST the form data to the specified URL
+    fetch(url, {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Check the 'result' field and display the message with appropriate color
+        if (data.result === 'Success') {
+            showNotification(data.message, 'Success');
+
+            // Delay a little, then reload the page
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else if (data.result === 'Failure') {
+            showNotification(data.message, 'Failure');
+        }
+    })
+    .catch(error => console.error('Error:', error));
+
+    // Close the open modal
+    devModal.style.display = "none";
+    siteModal.style.display = "none";
+}
+
+
+/**
+ * Function to refresh the page and reload the device list
+ * Shows a loading spinner while the request is in progress
+ */
 function refreshPageAndReload() {
     // Show loading spinner
     document.getElementById('loadingSpinner').style.display = 'block';
 
+    // Call the refresh_dev_site endpoint to refresh the device list
     fetch('/refresh_dev_site')
         .then(response => {
-            // Hide loading spinner
+            // Hide loading spinner when the response is received
             document.getElementById('loadingSpinner').style.display = 'none';
 
+            // Check if the response is OK and reload the page
             if (response.ok) {
                 console.log('Device list fetched successfully');
                 setTimeout(() => {
@@ -49,36 +133,32 @@ function refreshPageAndReload() {
             }
         })
         .catch(error => {
-            // Hide loading spinner
+            // Hide loading spinner if there is an error
             document.getElementById('loadingSpinner').style.display = 'none';
             console.error('Error fetching device list:', error);
         });
 }
 
-// Attach the event handler to both buttons
-devRefreshBtn.addEventListener('click', refreshPageAndReload);
-siteRefreshBtn.addEventListener('click', refreshPageAndReload);
 
-// Function to open a modal
+/**
+ * Open a modal by setting its display style to 'block'
+ * @param {*} modal 
+ */
 function openModal(modal) {
+    // Display the modal by changing the style from 'none' to 'block'
     modal.style.display = "block";
 }
 
-// Get all <span> elements (close 'x') that closes modals, and add event listeners
-var closeButtons = document.getElementsByClassName("close");
-for (var i = 0; i < closeButtons.length; i++) {
-    closeButtons[i].onclick = closeModal;
-}
 
-// Function to close the modal
+/**
+ * Close a modal by setting its display style to 'none'
+ * @param {*} modal 
+ */
 function closeModal() {
+    // Get the parent element of the close button and hide it
     var modal = this.parentElement.parentElement;
     modal.style.display = "none";
 }
-
-// Setup delete buttons for sites and devices
-setupDeleteButton('.site-delete-button', '/delete_site');
-setupDeleteButton('.device-delete-button', '/delete_device');
 
 
 /**
@@ -90,7 +170,9 @@ setupDeleteButton('.device-delete-button', '/delete_device');
  * @returns {void}
  */
 function setupDeleteButton(selector, deleteUrl) {
+    // Select all buttons with the given CSS selector, and loop through them
     document.querySelectorAll(selector).forEach(button => {
+        // Add an event listener to each button
         button.addEventListener('click', function(event) {
             // Devices and sites have 'data-id' attributes
             var objectId = event.currentTarget.getAttribute(`data-id`);
@@ -125,6 +207,13 @@ function setupDeleteButton(selector, deleteUrl) {
         });
     });
 }
+
+
+
+
+
+
+
 
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -201,164 +290,6 @@ document.querySelectorAll('.device-edit-button').forEach(button => {
         
         devEditModal.style.display = "block";
     });
-});
-
-// Add event listener for submit button in 'edit site' modal
-var siteSubmitBtn = document.getElementById("siteEditSubmit");
-siteSubmitBtn.addEventListener("click", function(event) {
-    event.preventDefault();
-
-    const form = this.closest('form');
-    if (!form) {
-        console.error('Form not found for button:', buttonId);
-        return;
-    }
-
-    const formData = new FormData(form);
-
-    fetch('/update_site', {
-        method: 'POST',
-        body: formData,
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Check the 'result' field and display the message with appropriate color
-        if (data.result === 'Success') {
-            showNotification(data.message, 'Success');
-
-            // Delay the reload slightly to allow the user to see the message
-            setTimeout(() => {
-                location.reload();
-            }, 1000);
-        } else if (data.result === 'Failure') {
-            showNotification(data.message, 'Failure');
-        }
-    })
-    .catch(error => console.error('Error:', error));
-
-    // Close the open modal
-    devModal.style.display = "none";
-    siteModal.style.display = "none";
-});
-
-// Add event listener for submit button in 'add site' modal
-var siteSubmitBtn = document.getElementById("siteSubmit");
-siteSubmitBtn.addEventListener("click", function(event) {
-    event.preventDefault();
-
-    const form = this.closest('form');
-    if (!form) {
-        console.error('Form not found for button:', buttonId);
-        return;
-    }
-
-    const formData = new FormData(form);
-
-    fetch('/add_site', {
-        method: 'POST',
-        body: formData,
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Check the 'result' field and display the message with appropriate color
-        if (data.result === 'Success') {
-            showNotification(data.message, 'Success');
-
-            // Delay the reload slightly to allow the user to see the message
-            setTimeout(() => {
-                location.reload();
-            }, 1000);
-        } else if (data.result === 'Failure') {
-            showNotification(data.message, 'Failure');
-        }
-    })
-    .catch(error => console.error('Error:', error));
-
-    // Close the open modal
-    devModal.style.display = "none";
-    siteModal.style.display = "none";
-
-    // Reload the page to update the site list
-    // location.reload();
-});
-
-// Add event listener for submit button in 'add device' modal
-var deviceSubmitBtn = document.getElementById("deviceSubmit");
-deviceSubmitBtn.addEventListener("click", function(event) {
-    event.preventDefault();
-
-    const form = this.closest('form');
-    if (!form) {
-        console.error('Form not found for button:', buttonId);
-        return;
-    }
-
-    const formData = new FormData(form);
-
-    fetch('/add_device', {
-        method: 'POST',
-        body: formData,
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Check the 'result' field and display the message with appropriate color
-        if (data.result === 'Success') {
-            showNotification(data.message, 'Success');
-            
-            // Delay the reload slightly to allow the user to see the message
-            setTimeout(() => {
-                location.reload();
-            }, 1000);
-        } else if (data.result === 'Failure') {
-            showNotification(data.message, 'Failure');
-        }
-    })
-    .catch(error => console.error('Error:', error));
-
-    // Close the open modal
-    devModal.style.display = "none";
-    siteModal.style.display = "none";
-
-    // Reload the page to update the device list
-    location.reload();
-});
-
-// Add event listener for submit button in 'edit device' modal
-var siteSubmitBtn = document.getElementById("deviceEditSubmit");
-siteSubmitBtn.addEventListener("click", function(event) {
-    event.preventDefault();
-
-    const form = this.closest('form');
-    if (!form) {
-        console.error('Form not found for button:', buttonId);
-        return;
-    }
-
-    const formData = new FormData(form);
-
-    fetch('/update_device', {
-        method: 'POST',
-        body: formData,
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Check the 'result' field and display the message with appropriate color
-        if (data.result === 'Success') {
-            showNotification(data.message, 'Success');
-
-            // Delay the reload slightly to allow the user to see the message
-            setTimeout(() => {
-                location.reload();
-            }, 1000);
-        } else if (data.result === 'Failure') {
-            showNotification(data.message, 'Failure');
-        }
-    })
-    .catch(error => console.error('Error:', error));
-
-    // Close the open modal
-    devModal.style.display = "none";
-    siteModal.style.display = "none";
 });
 
 // Button to download configuration file
