@@ -1,8 +1,37 @@
-<!-- index.html -->
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Your page-specific content goes here -->
-<p>Policies Page</p>
+
+<!-- Navigation bar -->
+<div class="w3-bar w3-border w3-card-4">
+    <a href="#" class="w3-bar-item w3-button" id="nav-nat">NAT</a>
+    <a href="#" class="w3-bar-item w3-button" id="nav-security">Security</a>
+    <a href="#" class="w3-bar-item w3-button" id="nav-qos">QoS</a>
+</div>
+
+<!-- Dynamic content goes in here -->
+<div id="content-container">
+    <div id="nat-content">{% include "nat.html" %}</div>
+    <div id="security-content" style="display: none;">{% include "security.html" %}</div>
+    <div id="qos-content" style="display: none;">{% include "qos.html" %}</div>
+</div>
+
+<!-- Javascript function to show and hide the dynamic content -->
+<script>
+    function showContent(contentId) {
+        // Hide all content
+        document.querySelectorAll('#content-container > div').forEach(div => {
+            div.style.display = 'none';
+        });
+        
+        // Show the requested content
+        document.getElementById(contentId).style.display = 'block';
+    }
+    
+    // Event listeners for navigation items
+    document.getElementById('nav-nat').addEventListener('click', () => showContent('nat-content'));
+    document.getElementById('nav-security').addEventListener('click', () => showContent('security-content'));
+    document.getElementById('nav-qos').addEventListener('click', () => showContent('qos-content'));
+</script>
 
 {% endblock %}

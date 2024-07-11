@@ -1,70 +1,40 @@
-<!-- index.html -->
 {% extends "base.html" %}
 
 {% block content %}
 
-<div class="w3-container">
-    <header class="w3-container">
-        <h2>Tags</h2>
-    </header>
-    
-    <!-- Tag List #1 -->
-    <div class="w3-container w3-half">
-        <div class="w3-card-4">
-            <header class="w3-container w3-blue">
-                <div class="w3-dropdown-hover w3-blue">
-                    <button class="w3-button w3-hover-blue w3-blue"><h3>Select Device #1</h3></button>
-                    <div class="w3-dropdown-content w3-bar-block w3-card-4 deviceDropdown" id="firstDropdown">
-                        <!-- Devices dynamically populate here-->
-                    </div>
-                </div>
-            </header>
-            <div class="w3-container w3-margin">
-                <table id="firstTable" class="w3-table w3-bordered w3-border w3-hoverable">
-                    <tr>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Colour</th>
-                    </tr>
-                    <!-- Entries are dynamically added here -->
-                </table>
-            </div>
-            <footer class="w3-container w3-blue">
-                <h5>Footer</h5>
-            </footer>
-        </div>
-    </div>
-
-    <!-- Tag List #2 -->
-    <div class="w3-container w3-half">
-        <div class="w3-card-4">
-            <header class="w3-container w3-green">
-                <div class="w3-dropdown-hover w3-green">
-                    <button class="w3-button w3-hover-green w3-green"><h3>Select Device #2</h3></button>
-                    <div class="w3-dropdown-content w3-bar-block w3-card-4 deviceDropdown" id="secondDropdown">
-                        <!-- Devices dynamically populate here-->
-                    </div>
-                </div>
-            </header>
-            <div class="w3-container w3-margin">
-                <table id="secondTable" class="w3-table w3-bordered w3-border w3-hoverable">
-                    <tr>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Colour</th>
-                    </tr>
-                    <!-- Entries are dynamically added here -->
-                </table>
-            </div>
-            <footer class="w3-container w3-green">
-                <h5>Footer</h5>
-            </footer>
-        </div>
-    </div>
-    <div class="w3-container w3-padding-16">
-        <div class="w3-container w3-center w3-margin">
-            <button class="w3-button w3-block w3-yellow" id="tag_compare">Compare</button>
-        </div>
-    </div>
+<!-- Navigation bar -->
+<div class="w3-bar w3-border w3-card-4">
+    <a href="#" class="w3-bar-item w3-button" id="nav-tags">Tags</a>
+    <a href="#" class="w3-bar-item w3-button" id="nav-addresses">Addresses</a>
+    <a href="#" class="w3-bar-item w3-button" id="nav-applications">Applications</a>
+    <a href="#" class="w3-bar-item w3-button" id="nav-services">Services</a>
 </div>
+
+<!-- Dynamic content goes in here -->
+<div id="content-container">
+    <div id="tags-content">{% include "tags.html" %}</div>
+    <div id="addresses-content" style="display: none;">{% include "addresses.html" %}</div>
+    <div id="applications-content" style="display: none;">{% include "applications.html" %}</div>
+    <div id="services-content" style="display: none;">{% include "services.html" %}</div>
+</div>
+
+<!-- Javascript function to show and hide the dynamic content -->
+<script>
+    function showContent(contentId) {
+        // Hide all content
+        document.querySelectorAll('#content-container > div').forEach(div => {
+            div.style.display = 'none';
+        });
+        
+        // Show the requested content
+        document.getElementById(contentId).style.display = 'block';
+    }
+    
+    // Event listeners for navigation items
+    document.getElementById('nav-tags').addEventListener('click', () => showContent('tags-content'));
+    document.getElementById('nav-addresses').addEventListener('click', () => showContent('addresses-content'));
+    document.getElementById('nav-applications').addEventListener('click', () => showContent('applications-content'));
+    document.getElementById('nav-services').addEventListener('click', () => showContent('services-content'));
+</script>
+
 {% endblock %}
