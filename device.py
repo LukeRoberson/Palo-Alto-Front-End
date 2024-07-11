@@ -186,7 +186,14 @@ class Device:
                 value=self.id,
             )
 
-        if not output:
+        if output:
+            # Extract the details from the SQL output
+            hostname = output[0][1]
+            username = output[0][6]
+            password = output[0][7]
+            salt = output[0][8]
+
+        else:
             print(
                 Fore.RED,
                 f"Could not read device details for device '{self.hostname}'.",
@@ -194,27 +201,58 @@ class Device:
             )
             return
 
-        # Extract the details from the SQL output
-        hostname = output[0][1]
-        username = output[0][6]
-        password = output[0][7]
-        salt = output[0][8]
-
         # Decrypt the password
-        with CryptoSecret() as decryptor:
-            print(f"Decrypting password for device '{hostname}'.")
-            # Decrypt the password
-            real_pw = decryptor.decrypt(
-                secret=password,
-                salt=base64.urlsafe_b64decode(salt.encode())
-            )
+        try:
+            with CryptoSecret() as decryptor:
+                print(f"Decrypting password for device '{hostname}'.")
+                # Decrypt the password
+                real_pw = decryptor.decrypt(
+                    secret=password,
+                    salt=base64.urlsafe_b64decode(salt.encode())
+                )
 
-        # Encode the username and password for the API
+        except Exception as e:
+            print(
+                Fore.RED,
+                f"Could not decrypt password for device '{hostname}'.",
+                Style.RESET_ALL
+            )
+            print(e)
+            real_pw = None
+
+        # If the password was decrypted, continue getting info
         if real_pw:
+            # Encode the username and password for the API
             api_pass = base64.b64encode(
                 f'{username}:{real_pw}'.encode()
             ).decode()
             self.decrypted_pw = real_pw
+
+            # Create the device API object
+            dev_api = DeviceApi(
+                hostname=hostname,
+                xml_key=api_pass,
+            )
+
+            # Get device details
+            details = dev_api.get_device()
+            ha = dev_api.get_ha()
+
+            # Update the device object
+            #   Integers are returned if the API call fails
+            if type(details) is not int:
+                self.model = details[0]
+                self.serial = details[1]
+                self.version = details[2]
+
+            # Update the HA details
+            if type(ha) is not int:
+                self.ha_enabled = ha[0]
+
+                if self.ha_enabled:
+                    self.ha_local_state = ha[1]
+                    self.ha_peer_state = ha[2]
+                    self.ha_peer_serial = ha[3]
 
         # If the password was not decrypted, return
         else:
@@ -223,33 +261,6 @@ class Device:
                 f"Error decrypting password for device '{hostname}'.",
                 Style.RESET_ALL
             )
-            return
-
-        # Create the device API object
-        dev_api = DeviceApi(
-            hostname=hostname,
-            xml_key=api_pass,
-        )
-
-        # Get device details
-        details = dev_api.get_device()
-        ha = dev_api.get_ha()
-
-        # Update the device object
-        #   Integers are returned if the API call fails
-        if type(details) is not int:
-            self.model = details[0]
-            self.serial = details[1]
-            self.version = details[2]
-
-        # Update the HA details
-        if type(ha) is not int:
-            self.ha_enabled = ha[0]
-
-            if self.ha_enabled:
-                self.ha_local_state = ha[1]
-                self.ha_peer_state = ha[2]
-                self.ha_peer_serial = ha[3]
 
         # Update the DB
         if type(details) is not int or type(ha) is not int:
@@ -497,8 +508,14 @@ class SiteManager():
             bool: True if successful, otherwise False
         '''
 
-        # Refresh the site list from the database
-        self.get_sites()
+        # Some basic checks
+        if id is None or id == '':
+            print("Site ID is not provided.")
+            return False
+
+        if name is None or name == '':
+            print("Site name is not provided.")
+            return False
 
         # Update the site in the database, based on the ID
         with SqlServer(
@@ -506,13 +523,23 @@ class SiteManager():
             database=self.sql_database,
             table=self.table,
         ) as sql:
-            result = sql.update(
-                field='id',
-                value=id,
-                body={
-                    'name': name,
-                }
-            )
+            try:
+                result = sql.update(
+                    field='id',
+                    value=id,
+                    body={
+                        'name': name,
+                    }
+                )
+
+            except Exception as e:
+                print(
+                    Fore.RED,
+                    "Could not update site in the database.",
+                    Style.RESET_ALL,
+                    e,
+                )
+                result = False
 
         if result:
             # Refresh the site list
@@ -656,7 +683,7 @@ class DeviceManager():
         # Assign devices to sites
         self._site_assignment()
 
-        # Find HA pairs
+        # Find A pairs
         self._ha_pairs()
 
     def add_device(
@@ -709,9 +736,6 @@ class DeviceManager():
             )
             return None
 
-        # Refresh the device list from the database
-        self.get_devices()
-
         # Create a new unique ID for the device
         id = self._new_uuid()
 
@@ -726,9 +750,11 @@ class DeviceManager():
                 )
                 return None
 
-        # 'salt' and 'password' are bytes objects
-        salt_encoded = base64.b64encode(salt).decode('utf-8')
-        password_encoded = base64.b64encode(password).decode('utf-8')
+        with CryptoSecret() as encryptor:
+            # Encrypt the password
+            encrypted = encryptor.encrypt(password)
+            password_encoded = encrypted[0].decode()
+            salt_encoded = base64.b64encode(encrypted[1]).decode()
 
         # Create a new Device object
         print(
@@ -756,7 +782,8 @@ class DeviceManager():
             result = sql.add(
                 fields={
                     'id': new_device.id,
-                    'name': new_device.name,
+                    'name': new_device.hostname,
+                    'friendly_name': new_device.name,
                     'site': new_device.site,
                     'vendor': 'paloalto',
                     'type': 'firewall',
@@ -770,7 +797,7 @@ class DeviceManager():
 
         if result:
             # Refresh the device list
-            self.get_devices()
+            # self.get_devices()
             return new_device
 
         else:
@@ -791,9 +818,6 @@ class DeviceManager():
             bool: True if successful, otherwise False
         '''
 
-        # Refresh the device list from the database
-        self.get_devices()
-
         # Delete the device from the database, based on the ID
         with SqlServer(
             server=self.sql_server,
@@ -807,7 +831,7 @@ class DeviceManager():
 
         if result:
             # Refresh the site list
-            self.get_devices()
+            # self.get_devices()
             return True
 
         else:
@@ -843,6 +867,11 @@ class DeviceManager():
         '''
 
         # Refresh the device list from the database
+        print(
+            Fore.CYAN,
+            "Refreshing device list before update.",
+            Style.RESET_ALL
+        )
         self.get_devices()
 
         # Update the device in the database, based on the ID
@@ -851,19 +880,29 @@ class DeviceManager():
             database=self.sql_database,
             table=self.table,
         ) as sql:
-            result = sql.update(
-                field='id',
-                value=id,
-                body={
-                    'name': hostname,
-                    'site': site,
-                    'token': key,
-                    'username': username,
-                    'secret': password,
-                    'salt': salt,
-                    'friendly_name': name,
-                }
-            )
+            try:
+                result = sql.update(
+                    field='id',
+                    value=id,
+                    body={
+                        'friendly_name': name,
+                        'name': hostname,
+                        'site': site,
+                        'token': key,
+                        'username': username,
+                        'secret': password,
+                        'salt': salt,
+                    }
+                )
+
+            except Exception as e:
+                print(
+                    Fore.RED,
+                    "Could not update device in the database.",
+                    Style.RESET_ALL,
+                    e,
+                )
+                result = False
 
         if result:
             # Refresh the device list

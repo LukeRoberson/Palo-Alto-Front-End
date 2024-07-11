@@ -1,5 +1,11 @@
 /*
-    Manage all modals (pop-up windows) and their associated buttons
+    Manage functionality on the devices page:
+    - Open and close modals
+    - Refresh the device list
+    - Delete sites and devices
+    - Edit sites and devices
+    - Download configuration files
+    - Add sites and devices
 
     Modal list:
     - Add Device modal
@@ -74,30 +80,44 @@ function closeModal() {
 setupDeleteButton('.site-delete-button', '/delete_site');
 setupDeleteButton('.device-delete-button', '/delete_device');
 
-// Unified function to handle deletion of sites and devices
+
+/**
+ * Unified function for delete buttons (for sites and devices)
+ * This is called for each button to set up the event listener
+ *  
+ * @param {string} selector - The CSS selector (targets the buttons based on CSS class)
+ * @param {string} deleteUrl - The URL to send the delete request to
+ * @returns {void}
+ */
 function setupDeleteButton(selector, deleteUrl) {
     document.querySelectorAll(selector).forEach(button => {
         button.addEventListener('click', function(event) {
-            var entityId = event.currentTarget.getAttribute(`data-${selector.slice(1)}-id`);
+            // Devices and sites have 'data-id' attributes
+            var objectId = event.currentTarget.getAttribute(`data-id`);
             
+            // POST to the delete URL with the objectId
             fetch(deleteUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ entityId }),
+                body: JSON.stringify({ objectId }),
             })
+
+            // Parse the response and display a notification
             .then(response => response.json())
             .then(data => {
                 // Check the 'result' field and display the message with appropriate color
                 if (data.result === 'Success') {
+                    // Display a success message
                     showNotification(data.message, 'Success');
 
-                    // Delay the reload slightly to allow the user to see the message
+                    // Delay a little, then reload the page
                     setTimeout(() => {
                         location.reload();
                     }, 1000);
                 } else if (data.result === 'Failure') {
+                    // Failure message if needed
                     showNotification(data.message, 'Failure');
                 }
             })
@@ -134,73 +154,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-// // Button to delete sites
-// document.querySelectorAll('.site-delete-button').forEach(button => {
-//     button.addEventListener('click', function(event) {
-//         // Directly use event.currentTarget to get the 'data-site-id'
-//         var siteId = event.currentTarget.getAttribute('data-site-id');
-        
-//         fetch('/delete_site', {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//             },
-//             body: JSON.stringify({ siteId }),
-//         })
-//         .then(response => response.json())
-//         .then(data => {
-//             // Check the 'result' field and display the message with appropriate color
-//             if (data.result === 'Success') {
-//                 showNotification(data.message, 'Success');
-
-//                 // Delay the reload slightly to allow the user to see the message
-//                 setTimeout(() => {
-//                     location.reload();
-//                 }, 1000);
-//             } else if (data.result === 'Failure') {
-//                 showNotification(data.message, 'Failure');
-//             }
-//         })
-//         .catch(error => console.error('Error:', error));
-//     });
-// });
-
-// // Button to delete devices
-// document.querySelectorAll('.device-delete-button').forEach(button => {
-//     button.addEventListener('click', function(event) {
-//         // Directly use event.currentTarget to get the 'data-device-id'
-//         var deviceId = event.currentTarget.getAttribute('data-device-id');
-        
-//         fetch('/delete_device', {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//             },
-//             body: JSON.stringify({ deviceId }),
-//         })
-//         .then(response => response.json())
-//         .then(data => {
-//             // Check the 'result' field and display the message with appropriate color
-//             if (data.result === 'Success') {
-//                 showNotification(data.message, 'Success');
-
-//                 // Delay the reload slightly to allow the user to see the message
-//                 setTimeout(() => {
-//                     location.reload();
-//                 }, 1000);
-//             } else if (data.result === 'Failure') {
-//                 showNotification(data.message, 'Failure');
-//             }
-//         })
-//         .catch(error => console.error('Error:', error));
-//     });
-// });
-
 // Button to edit sites - Pop up the modal
 document.querySelectorAll('.site-edit-button').forEach(button => {
     button.addEventListener('click', function(event) {
         // Directly use event.currentTarget to get the 'data-site-id' and 'data-site-name'
-        var siteId = event.currentTarget.getAttribute('data-site-id');
+        var siteId = event.currentTarget.getAttribute('data-id');
         var siteName = event.currentTarget.getAttribute('data-site-name');
 
         // Select the input fields by their name attribute
@@ -210,6 +168,7 @@ document.querySelectorAll('.site-edit-button').forEach(button => {
         // Populate the input fields with siteId and siteName
         siteEditIdInput.value = siteId;
         siteEditNameInput.value = siteName;
+        console.log(siteEditIdInput.value, siteEditNameInput.value);
 
         // Display the modal
         siteEditModal.style.display = "block";
@@ -220,7 +179,7 @@ document.querySelectorAll('.site-edit-button').forEach(button => {
 document.querySelectorAll('.device-edit-button').forEach(button => {
     button.addEventListener('click', function(event) {
         // Directly use event.currentTarget to get the 'data-device-id'
-        var deviceId = event.currentTarget.getAttribute('data-device-id');
+        var deviceId = event.currentTarget.getAttribute('data-id');
         var deviceName = event.currentTarget.getAttribute('data-device-name');
         var deviceHostname = event.currentTarget.getAttribute('data-device-hostname');
         var deviceSite = event.currentTarget.getAttribute('data-device-site');
@@ -405,7 +364,7 @@ siteSubmitBtn.addEventListener("click", function(event) {
 // Button to download configuration file
 document.querySelectorAll('.device-download-button').forEach(button => {
     button.addEventListener('click', function(event) {
-        var deviceId = event.currentTarget.getAttribute('data-device-id');
+        var deviceId = event.currentTarget.getAttribute('data-id');
         
         fetch('/download_config', {
             method: 'POST',

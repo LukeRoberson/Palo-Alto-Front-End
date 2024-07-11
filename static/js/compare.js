@@ -1,8 +1,12 @@
 /*
     Compare lists and highlight differences
 
-    Missing entries are added to the respective table, and highlighted in red
-    Entries that are in both tables, but are different, are highlighted in yellow
+    Starts by comparing the tables and adding missing entries
+        Missing entries are added to the respective table, and highlighted in red
+        Tables are then sorted alphabetically, so the entries line up
+    
+    Then, the tables are compared again, and entries that are different are highlighted in yellow
+        Entries that are in both tables, but are different, are highlighted in yellow
 */
 
 // Event listener for the compare button

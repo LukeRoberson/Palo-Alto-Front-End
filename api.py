@@ -27,8 +27,12 @@ Authentication:
 
 
 import requests
+from requests.exceptions import ConnectionError
+from urllib3.exceptions import MaxRetryError, NewConnectionError
+
 from colorama import Fore, Style
 import xml.etree.ElementTree as ET
+
 from typing import Tuple
 
 
@@ -143,10 +147,29 @@ class DeviceApi:
         }
 
         # Send the request
-        response = requests.get(
-            url,
-            headers=headers
-        )
+        try:
+            response = requests.get(
+                url,
+                headers=headers
+            )
+
+        except (ConnectionError, MaxRetryError, NewConnectionError) as e:
+            print(
+                Fore.RED,
+                "DNS resolution or connection issue\n",
+                Fore.YELLOW,
+                e,
+                Style.RESET_ALL
+            )
+            return 500
+
+        except Exception as e:
+            print(
+                Fore.RED,
+                f"General error connecting to device: {e}",
+                Style.RESET_ALL
+            )
+            return 500
 
         # Check the response code for errors
         if response.status_code != 200:
@@ -199,10 +222,29 @@ class DeviceApi:
         }
 
         # Send the request
-        response = requests.get(
-            url,
-            headers=headers
-        )
+        try:
+            response = requests.get(
+                url,
+                headers=headers
+            )
+
+        except (ConnectionError, MaxRetryError, NewConnectionError) as e:
+            print(
+                Fore.RED,
+                "DNS resolution or connection issue\n",
+                Fore.YELLOW,
+                e,
+                Style.RESET_ALL
+            )
+            return 500
+
+        except Exception as e:
+            print(
+                Fore.RED,
+                f"General error connecting to device: {e}",
+                Style.RESET_ALL
+            )
+            return 500
 
         # Check the response code for errors
         if response.status_code != 200:

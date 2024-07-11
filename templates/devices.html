@@ -133,9 +133,9 @@
                     </table>
                 </div>
                 <br>
-                <button data-device-id="{{ device.id }}" class="w3-button w3-block w3-blue device-download-button">Download Config</button>
-                <button data-device-id="{{ device.id }}" data-device-name="{{ device.name }}" data-device-hostname="{{ device.hostname }}" data-device-site="{{ device.site }}" data-device-key="{{ device.key }}" class="w3-button w3-block w3-green device-edit-button">Edit</button>
-                <button data-device-id="{{ device.id }}" class="w3-button w3-block w3-red device-delete-button">Delete</button>
+                <button data-id="{{ device.id }}" class="w3-button w3-block w3-blue device-download-button">Download Config</button>
+                <button data-id="{{ device.id }}" data-device-name="{{ device.name }}" data-device-hostname="{{ device.hostname }}" data-device-site="{{ device.site }}" data-device-key="{{ device.key }}" class="w3-button w3-block w3-green device-edit-button">Edit</button>
+                <button data-id="{{ device.id }}" class="w3-button w3-block w3-red device-delete-button">Delete</button>
             </div>
         </div>
     </div>
@@ -226,8 +226,8 @@
                             </tr>
                         </table>
                     </div>
-                    <button data-site-id="{{ site.id }}" data-site-name="{{ site.name }}" class="w3-button w3-block w3-green site-edit-button">Edit</button>
-                    <button data-site-id="{{ site.id }}" class="w3-button w3-block w3-red site-delete-button">Delete</button>
+                    <button data-id="{{ site.id }}" data-site-name="{{ site.name }}" class="w3-button w3-block w3-green site-edit-button">Edit</button>
+                    <button data-id="{{ site.id }}" class="w3-button w3-block w3-red site-delete-button">Delete</button>
                 </div>
             </div>
         </div>
