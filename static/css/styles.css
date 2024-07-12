@@ -1,9 +1,16 @@
+/*
+    Global styles for the application
+*/
+
+/* Base reset for html and body */
 html, body {
     margin: 0;
     padding: 0;
     font-family: "Raleway", sans-serif;
+    overflow-x: hidden;                                 /* Prevent horizontal scroll */
 }
 
+/* Header styles */
 .header {
     position: fixed;
     top: 0;
@@ -13,36 +20,39 @@ html, body {
     justify-content: center;
 }
 
+/* Body offset to account for fixed header */
 body {
     margin-top: 70px;
-    transition: background-color 0.5s, color 0.5s;
+    transition: background-color 0.5s, color 0.5s;      /* Smooth transition for theme change */
 }
 
+/* Main content styling */
 #main-content {
     padding: 20px;
     margin-left: 20px;
-    transition: padding-left 0.5s ease;
+    transition: padding-left 0.5s ease;                 /* Smooth transition for sidebar toggle */
 }
 
-/* When comparing items, and one is different */
+/* Highlighting styles for comparison */
+/* Different items */
 .highlight-different {
     background-color: yellow;
 }
 
-/* When comparing items, and one is missing */
+/* Missing items */
 .highlight-missing {
     background-color: red;
     font-style: italic;
     color: white;
 }
 
-/* A spinner to show when loading data */
+/* Loading spinner animation */
 .loading-spinner {
     position: fixed;
     z-index: 1000;
     top: 50%;
-    left: calc(50% + 105px);
-    transform: translate(-50%, -50%); /* Center the spinner */
+    left: 50%;
+    transform: translate(-50%, -50%);                   /* Center the spinner */
     border: 4px solid rgba(0, 0, 0, 0.1);
     width: 40px;
     height: 40px;
@@ -51,6 +61,7 @@ body {
     animation: spin 1s infinite linear;
 }
 
+/* Spinner keyframes */
 @keyframes spin {
     0% {
         transform: rotate(0deg);
@@ -60,10 +71,12 @@ body {
     }
 }
 
+/* Collapsible content */
 .collapsible-content {
     display: none;
 }
 
+/* Icon rotation for collapsible triggers */
 .rotate-icon {
     transform: rotate(270deg);
     transition: transform 0.3s ease;
