@@ -6,12 +6,14 @@
     - Edit sites and devices
     - Download configuration files
     - Add sites and devices
+    - Show a confirmation modal before deleting
 
     Modal list:
     - Add Device modal
     - Add Site modal
     - Edit Device modal
     - Edit Site modal
+    - Confirm modal
 */
 
 // Get modals as variables
@@ -74,6 +76,18 @@ document.addEventListener('DOMContentLoaded', function() {                  // A
     collapsibleHeaders.forEach(function(header) {
         header.addEventListener('click', toggleCollapsibleContent);
     });
+});
+
+document.getElementById('confirmDelete').addEventListener('click', function() {     // Event listener for the 'Delete' button inside the confirm modal
+    const objectId = this.getAttribute('data-object-id');
+    const deleteUrl = this.getAttribute('data-delete-url');
+
+    handleDelete(deleteUrl, objectId);
+    closeConfirmModal();
+});
+
+document.getElementById('confirmCancel').addEventListener('click', function() {     // Event listener for the 'Cancel' button inside the confirm modal
+    closeConfirmModal();
 });
 
 
@@ -189,59 +203,89 @@ function closeModal() {
 
 
 /**
- * Unified function for delete buttons (for sites and devices)
- * This is called for each button to set up the event listener
- *  
- * @param {string} selector - The CSS selector (targets the buttons based on CSS class)
- * @param {string} deleteUrl - The URL to send the delete request to
- * @returns {void}
+ * Function to set up delete buttons with a confirmation modal
+ * @param {*} selector 
+ * @param {*} deleteUrl 
  */
 function setupDeleteButton(selector, deleteUrl) {
-    // Select all buttons with the given CSS selector, and loop through them
+    // Attach event listener to each delete button
     document.querySelectorAll(selector).forEach(button => {
-        // Add an event listener to each button
         button.addEventListener('click', function(event) {
-            // Devices and sites have 'data-id' attributes
+            // Get the objectId from the button's data-id attribute (the thing we want to delete)
             var objectId = event.currentTarget.getAttribute(`data-id`);
 
-            // Show loading spinner
-            document.getElementById('loadingSpinner').style.display = 'block';
-            
-            // POST to the delete URL with the objectId
-            fetch(deleteUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ objectId }),
-            })
-
-            // Parse the response and display a notification
-            .then(response => response.json())
-            .then(data => {
-                // Hide loading spinner when the response is received
-                document.getElementById('loadingSpinner').style.display = 'none';
-
-                // Check the 'result' field and display the message with appropriate color
-                if (data.result === 'Success') {
-                    // Display a success message
-                    showNotification(data.message, 'Success');
-
-                    // Delay a little, then reload the page
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1000);
-                } else if (data.result === 'Failure') {
-                    // Failure message if needed
-                    showNotification(data.message, 'Failure');
-                }
-            })
-            .catch(error => {
-                // Hide loading spinner when the response is received
-                document.getElementById('loadingSpinner').style.display = 'none';
-                console.error('Error:', error)
-            });
+            // Show the confirmation modal
+            showConfirmModal(objectId, deleteUrl);
         });
+    });
+}
+
+
+/**
+ * Show the confirmation modal for deleting a site or device
+ * @param {*} objectId 
+ * @param {*} deleteUrl 
+ */
+function showConfirmModal(objectId, deleteUrl) {
+    // Display the modal
+    document.getElementById('confirmModal').style.display = 'block';
+
+    // Set objectId and deleteUrl as attributes of the confirm delete button
+    // These are the details we need to delete the object
+    const confirmDeleteButton = document.getElementById('confirmDelete');
+    confirmDeleteButton.setAttribute('data-object-id', objectId);
+    confirmDeleteButton.setAttribute('data-delete-url', deleteUrl);
+}
+
+
+/**
+ * Close the modal when needed
+ */
+function closeConfirmModal() {
+    document.getElementById('confirmModal').style.display = 'none';
+}
+
+
+/**
+ * Function to handle the delete operation for sites and devices
+ * @param {*} deleteUrl
+ * @param {*} objectId
+ */
+function handleDelete(deleteUrl, objectId) {
+    // Show loading spinner
+    document.getElementById('loadingSpinner').style.display = 'block';
+
+    // POST to the delete URL with the objectId
+    fetch(deleteUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ objectId }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Hide loading spinner when the response is received
+        document.getElementById('loadingSpinner').style.display = 'none';
+
+        // Check the 'result' field and display the message with appropriate color
+        if (data.result === 'Success') {
+            // Display a success message
+            showNotification(data.message, 'Success');
+
+            // Delay a little, then reload the page
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else if (data.result === 'Failure') {
+            // Failure message if needed
+            showNotification(data.message, 'Failure');
+        }
+    })
+    .catch(error => {
+        // Hide loading spinner when the response is received
+        document.getElementById('loadingSpinner').style.display = 'none';
+        console.error('Error:', error);
     });
 }
 

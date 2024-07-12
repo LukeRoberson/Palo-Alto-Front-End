@@ -140,6 +140,28 @@ class PoliciesView(MethodView):
         return render_template('policies.html')
 
 
+class GlobalProtectView(MethodView):
+    '''
+    GlobalProtectView class to display the Global Protect
+        page of the web application.
+
+    Methods:
+        get: Get method to render the policies page of the web application.
+    '''
+
+    def get(
+        self
+    ) -> render_template:
+        '''
+        Get method to render the global protect page of the web application.
+
+        Returns:
+            render_template: The rendered policies page of the web application.
+        '''
+
+        return render_template('gp.html')
+
+
 class SettingsView(MethodView):
     '''
     SettingsView class to display the settings page of the web application.

@@ -16,6 +16,7 @@ from webroutes import (
     DevicesView,
     ObjectsView,
     PoliciesView,
+    GlobalProtectView,
     SettingsView,
     SaveAzureView,
     SaveSqlView,
@@ -116,6 +117,12 @@ app.add_url_rule(
 app.add_url_rule(
     '/policies',
     view_func=PoliciesView.as_view('policies')
+)
+
+# Global Protect page
+app.add_url_rule(
+    '/globalprotect',
+    view_func=GlobalProtectView.as_view('globalprotect')
 )
 
 # Settings page
