@@ -86,6 +86,12 @@ class DevicesView(MethodView):
 
         Returns:
             render_template: The rendered devices page of the web application.
+                device_list (list): The list of devices in the database.
+                ha_list (list): The list of HA pairs in the database.
+                site_list (list): The list of sites in the database.
+                device_count (int): The number of devices in the database.
+                site_count (int): The number of sites in the database.
+                ha_count (int): The number of HA pairs in the database.
         '''
 
         return render_template(
@@ -95,6 +101,7 @@ class DevicesView(MethodView):
             site_list=site_manager.site_list,
             device_count=len(device_manager),
             site_count=len(site_manager),
+            ha_count=len(device_manager.ha_pairs),
         )
 
 

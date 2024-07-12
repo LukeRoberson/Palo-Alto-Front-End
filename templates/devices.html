@@ -11,7 +11,7 @@
         </b></h2>
     </header>
 
-    <!-- Panel #1 -->
+    <!-- Panel #1 - Device Count -->
     <div class="w3-quarter">
         <a href="#devicesSection" style="text-decoration: none;">
             <div class="w3-container w3-red w3-padding-16">
@@ -27,7 +27,7 @@
         </a>
     </div>
 
-    <!-- Panel #2 -->
+    <!-- Panel #2 - Site Count -->
     <div class="w3-quarter">
         <a href="#sitesSection" style="text-decoration: none;">
             <div class="w3-container w3-blue w3-padding-16">
@@ -43,7 +43,7 @@
         </a>
     </div>
 
-    <!-- Panel #3 -->
+    <!-- Panel #3 - HA Count -->
     <div class="w3-quarter">
         <a href="#haSection" style="text-decoration: none;">
             <div class="w3-container w3-teal w3-padding-16">
@@ -51,7 +51,7 @@
                     <i class="fa fa-share-alt w3-xxxlarge"></i>
                 </div>
                 <div class="w3-right">
-                    <h2>0</h2>
+                    <h2>{{ ha_count }}</h2>
                 </div>
                 <div class="w3-clear"></div>
                 <h4>HA Pairs</h4>
@@ -59,7 +59,7 @@
         </a>
     </div>
 
-    <!-- Panel #4 -->
+    <!-- Panel #4 - Future Use -->
     <div class="w3-quarter">
         <a href="#devicesSection" style="text-decoration: none;">
             <div class="w3-container w3-orange w3-padding-16">
@@ -84,7 +84,7 @@
     </header>
     
     <!-- Populate device cards from the list -->
-    {% for device in device_list %}
+    {% for device in device_list|sort(attribute='name') %}
     <div class="w3-half">
         <div class="w3-container w3-padding-16 device-card">
             <div class="w3-card-4">
@@ -206,7 +206,7 @@
         </header>
 
         <!-- Site Cards -->
-        {% for site in site_list %}
+        {% for site in site_list|sort(attribute='name') %}
         <div class="w3-third">
             <div class="w3-container w3-padding-16 site-card">
                 <div class="w3-card-4">
