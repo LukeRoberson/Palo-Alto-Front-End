@@ -30,6 +30,7 @@ from webroutes import (
     UpdateDeviceView,
     DownloadConfigView,
     DeviceListView,
+    SiteListView,
     RefreshDevSiteView,
     GetTagsView,
 )
@@ -214,6 +215,13 @@ app.add_url_rule(
     '/device_list',
     view_func=DeviceListView.as_view('device_list'),
     defaults={'device_manager': device_manager}
+)
+
+# Get the list of sites
+app.add_url_rule(
+    '/site_list',
+    view_func=SiteListView.as_view('site_list'),
+    defaults={'site_manager': site_manager}
 )
 
 # Refresh the devices and sites

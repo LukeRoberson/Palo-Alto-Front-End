@@ -865,6 +865,38 @@ class DeviceListView(MethodView):
         return jsonify(device_list)
 
 
+class SiteListView(MethodView):
+    '''
+    SiteList class to list sites in the database.
+
+    Methods:
+        get: Get method to list sites in the database.
+    '''
+
+    def get(
+        self,
+        site_manager: SiteManager,
+    ) -> jsonify:
+        '''
+        Get method to list sites in the database.
+
+        Args:
+            site_manager (SiteManager): The site manager object.
+
+        Returns:
+            jsonify: The list of sites in the database.
+        '''
+
+        # Create a list of site names
+        site_list = []
+        for site in site_manager.site_list:
+            site_info = {"site_id": site.id, "site_name": site.name}
+            site_list.append(site_info)
+
+        # Return the list of site names as JSON
+        return jsonify(site_list)
+
+
 class RefreshDevSiteView(MethodView):
     '''
     RefreshDevSite class to refresh the device and site lists.

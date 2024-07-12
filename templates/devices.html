@@ -257,16 +257,25 @@
             <div class="w3-section">
                 <label><b>Device Name</b></label>
                 <input class="w3-input w3-border w3-margin-bottom" type="text" placeholder="Friendly Name" name="deviceName" required>
+                
                 <label><b>Hostname</b></label>
                 <input class="w3-input w3-border w3-margin-bottom" type="text" placeholder="Hostname of IP of the device" name="hostName" required>
+                
+                <!-- The site selection drop-down -->
                 <label><b>Site Membership</b></label>
-                <input class="w3-input w3-border w3-margin-bottom" type="text" placeholder="The site this belongs to" name="siteMember" required>
+                <select id="siteMember" class="w3-input w3-border w3-margin-bottom" type="text" placeholder="The device this belongs to" name="siteMember" required>
+                    <!-- Content dynamically added here -->
+                </select>
+
                 <label><b>API Key (REST API)</b></label>
                 <input class="w3-input w3-border w3-margin-bottom" type="text" placeholder="API key to access the device" name="apiKey" required>
+
                 <label><b>Username (XML API)</b></label>
                 <input class="w3-input w3-border w3-margin-bottom" type="text" placeholder="API key to access the device" name="apiUser" required>
+
                 <label><b>Password (XML API)</b></label>
                 <input class="w3-input w3-border w3-margin-bottom" type="text" placeholder="API key to access the device" name="apiPass" required>
+
                 <button id="deviceSubmit" class="w3-button w3-block w3-green w3-section w3-padding" type="submit">Submit</button>
             </div>
         </form>
@@ -289,17 +298,26 @@
             <div class="w3-section">
                 <label><b>Device Name</b></label>
                 <input class="w3-input w3-border w3-margin-bottom" type="text" name="deviceEditName" required>
+                
                 <label><b>Hostname</b></label>
                 <input class="w3-input w3-border w3-margin-bottom" type="text" name="hostNameEdit" required>
+                
+                <!-- The site selection drop-down -->
                 <label><b>Site Membership</b></label>
-                <input class="w3-input w3-border w3-margin-bottom" type="text" name="siteMemberEdit" required>
+                <select id="siteMemberEdit" class="w3-input w3-border w3-margin-bottom" type="text" name="siteMemberEdit" required>
+                    <!-- Content dynamically added here -->
+                </select>
+                
                 <label><b>API Key (REST API)</b></label>
                 <input class="w3-input w3-border w3-margin-bottom" type="text" name="apiKeyEdit" required>
+                
                 <label><b>Username (XML API)</b></label>
                 <input class="w3-input w3-border w3-margin-bottom" type="text" name="apiUserEdit">
+                
                 <label><b>Password (XML API)</b></label>
                 <input class="w3-input w3-border w3-margin-bottom" type="text" name="apiPassEdit">
                 <input type="hidden" name="deviceEditId" id="deviceEditId">
+                
                 <button id="deviceEditSubmit" class="w3-button w3-block w3-green w3-section w3-padding" type="submit">Submit</button>
             </div>
         </form>
@@ -370,5 +388,8 @@
         </div>
     </div>
 </div>
+
+<!-- This script is specific to this page -->
+<script src="{{ url_for('static', filename='js/devices.js') }}"></script>
 
 {% endblock %}

@@ -115,6 +115,11 @@ function handleSubmitButtonClick(event, url, buttonElement) {
     // Collect data from the form
     const formData = new FormData(form);
 
+    // Before submitting the form, log formData for debugging
+    for (let [key, value] of formData.entries()) {
+        console.log(key, value);
+    }
+
     // POST the form data to the specified URL
     fetch(url, {
         method: 'POST',
@@ -183,9 +188,27 @@ function refreshPageAndReload() {
 
 /**
  * Open a modal by setting its display style to 'block'
+ * If this is the Add Device modal, load up the site list in the dropdown
  * @param {*} modal 
  */
 function openModal(modal) {
+    // Get the site list, for use with adding devices
+    fetch('/site_list')
+        .then(response => response.json())
+        .then(data => {
+            // Get the dropdown item, and clear it first
+            const dropdown = document.getElementById('siteMember');
+            dropdown.innerHTML = '';
+            dropdown.add(new Option("Select a site", ""));
+            
+            // Populate dropdown with sites
+            data.forEach(site => {
+                const option = new Option(site['site_name'], site['site_id']);
+                dropdown.add(option);
+            });
+        })
+        .catch(error => console.error(error));
+
     // Display the modal by changing the style from 'none' to 'block'
     modal.style.display = "block";
 }
@@ -315,30 +338,62 @@ function openSiteEditModal(event) {
 
 /**
  * Open the device edit modal and populate the input fields with the device data
+ * Gets the site list and populates the dropdown
+ * Finds the matching site and pre-selects it in the dropdown
+ * 
  * @param {*} event 
  */
 function openDeviceEditModal(event) {
+    // Get the site list, for use with adding devices
+    fetch('/site_list')
+    .then(response => response.json())
+    .then(data => {
+        // Get the dropdown item, and clear it first
+        const dropdown = document.getElementById('siteMemberEdit');
+        dropdown.innerHTML = '';
+        dropdown.add(new Option("Select a site", ""));
+        
+        // Populate dropdown with sites
+        data.forEach(site => {
+            const option = new Option(site['site_name'], site['site_id']);
+            dropdown.add(option);
+        });
+    })
+    .catch(error => console.error(error));
+
     // Directly use event.currentTarget to get the device attributes
     var deviceId = event.currentTarget.getAttribute('data-id');
     var deviceName = event.currentTarget.getAttribute('data-device-name');
     var deviceHostname = event.currentTarget.getAttribute('data-device-hostname');
-    var deviceSite = event.currentTarget.getAttribute('data-device-site');
     var deviceKey = event.currentTarget.getAttribute('data-device-key');
+    var deviceSite = event.currentTarget.getAttribute('data-device-site');
 
     // Select the input fields
     const deviceEditIdInput = document.querySelector('input[name="deviceEditId"]');
     const deviceEditNameInput = document.querySelector('input[name="deviceEditName"]');
     const deviceHostNameInput = document.querySelector('input[name="hostNameEdit"]');
-    const deviceSiteInput = document.querySelector('input[name="siteMemberEdit"]');
     const deviceKeyNameInput = document.querySelector('input[name="apiKeyEdit"]');
+
+    // Select the dropdown element
+    const dropdown = document.getElementById('siteMemberEdit');
     
     // Populate the input fields
     deviceEditIdInput.value = deviceId;
     deviceEditNameInput.value = deviceName;
     deviceHostNameInput.value = deviceHostname;
-    deviceSiteInput.value = deviceSite;
     deviceKeyNameInput.value = deviceKey;
-    
+
+    // Convert dropdown.options to an array and then loop through each option
+    // A slight timeout is needed for asynchronous reasons
+    setTimeout(() => {
+        Array.from(dropdown.options).forEach(option => {
+            if (option.value === deviceSite) {
+                console.log('Found site:', option.value, option.text);
+                option.selected = true;
+            }
+        });
+    }, 500)
+
     // Display the modal
     devEditModal.style.display = "block";
 }
