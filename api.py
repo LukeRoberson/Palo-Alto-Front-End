@@ -54,6 +54,9 @@ class DeviceApi:
         get_device: Get the device basics
         get_ha: Get high availability details
         get_tags: Get the tags from the device
+        get_addresses: Get address object from the device
+        get_address_groups: Get address group objects from the device
+        get_application_groups: Get application group objects from the device
     '''
 
     def __init__(
@@ -375,6 +378,617 @@ class DeviceApi:
         # Return the tags as a list
         tags = response.json()
         return tags['result']['entry']
+
+    def get_addresses(
+        self
+    ) -> list:
+        '''
+        Get address object from the device
+            REST API, /Objects/Addresses
+
+        Returns:
+            list: The addresses
+                @name (str): The name of the address
+                @location (str): The location of the address
+                @vsys (str): The vsys of the address
+                ip-netmask (str): The IP address and netmask
+                description (str): The description of the address
+                tag (str): The tag of the address
+        '''
+
+        # Build the request
+        url = f"{self.rest_base_url}/Objects/Addresses"
+
+        headers = {
+            "X-PAN-KEY": self.rest_key,
+        }
+
+        params = {
+            "location": self.location,
+            "vsys": self.vsys,
+            "output-format": "json",
+        }
+
+        # Send the request
+        response = requests.get(
+            url,
+            headers=headers,
+            params=params
+        )
+
+        # Check the response code for errors
+        if response.status_code != 200:
+            print(
+                Fore.RED,
+                response.status_code,
+                Style.RESET_ALL
+            )
+
+            return response.status_code
+
+        # Return the tags as a list
+        addresses = response.json()
+        return addresses['result']['entry']
+
+    def get_address_groups(
+        self
+    ) -> list:
+        '''
+        Get address group objects from the device
+            REST API, /Objects/AddressGroups
+
+        Returns:
+            list: The address groups
+                @name (str): The name of the address
+                @location (str): The location of the address
+                @vsys (str): The vsys of the address
+                static (dict): The static members of the group
+                    member (list): The members of the group
+                tag (dict): The tag of the group
+                    member (list): The tags of the group
+                description (str): The description of the group
+        '''
+
+        # Build the request
+        url = f"{self.rest_base_url}/Objects/AddressGroups"
+
+        headers = {
+            "X-PAN-KEY": self.rest_key,
+        }
+
+        params = {
+            "location": self.location,
+            "vsys": self.vsys,
+            "output-format": "json",
+        }
+
+        # Send the request
+        response = requests.get(
+            url,
+            headers=headers,
+            params=params
+        )
+
+        # Check the response code for errors
+        if response.status_code != 200:
+            print(
+                Fore.RED,
+                response.status_code,
+                Style.RESET_ALL
+            )
+
+            return response.status_code
+
+        # Return the tags as a list
+        address_groups = response.json()
+        return address_groups['result']['entry']
+
+    def get_application_groups(
+        self
+    ) -> list:
+        '''
+        Get application group objects from the device
+            REST API, /Objects/ApplicationGroups
+
+        Returns:
+            list: The application groups
+                @name (str): The name of the address
+                @location (str): The location of the address
+                @vsys (str): The vsys of the address
+                members (dict): The members of the group
+                    member (list): The members of the group
+        '''
+
+        # Build the request
+        url = f"{self.rest_base_url}/Objects/ApplicationGroups"
+
+        headers = {
+            "X-PAN-KEY": self.rest_key,
+        }
+
+        params = {
+            "location": self.location,
+            "vsys": self.vsys,
+            "output-format": "json",
+        }
+
+        # Send the request
+        response = requests.get(
+            url,
+            headers=headers,
+            params=params
+        )
+
+        # Check the response code for errors
+        if response.status_code != 200:
+            print(
+                Fore.RED,
+                response.status_code,
+                Style.RESET_ALL
+            )
+
+            return response.status_code
+
+        # Return the tags as a list
+        application_groups = response.json()
+        return application_groups['result']['entry']
+
+    def get_services(
+        self
+    ) -> list:
+        '''
+        Get services objects from the device
+            REST API, /Objects/Services
+
+        Returns:
+            list: The services
+                @name (str): The name of the address
+                @location (str): The location of the address
+                @vsys (str): The vsys of the address
+                protocol (dict): The protocol of the service
+                    protocol (dict): The protocol of the service (eg, tcp)
+                        port (int): The port number
+                        override (str): The override of the service (yes or no)
+                tag (dict): The tag of the service
+                    member (list): The tags of the service
+                description (str): The description of the service
+        '''
+
+        # Build the request
+        url = f"{self.rest_base_url}/Objects/Services"
+
+        headers = {
+            "X-PAN-KEY": self.rest_key,
+        }
+
+        params = {
+            "location": self.location,
+            "vsys": self.vsys,
+            "output-format": "json",
+        }
+
+        # Send the request
+        response = requests.get(
+            url,
+            headers=headers,
+            params=params
+        )
+
+        # Check the response code for errors
+        if response.status_code != 200:
+            print(
+                Fore.RED,
+                response.status_code,
+                Style.RESET_ALL
+            )
+
+            return response.status_code
+
+        # Return the tags as a list
+        application_groups = response.json()
+        return application_groups['result']['entry']
+
+    def get_service_groups(
+        self
+    ) -> list:
+        '''
+        Get service group objects from the device
+            REST API, /Objects/ServiceGroups
+
+        Returns:
+            list: The service groups
+                @name (str): The name of the address
+                @location (str): The location of the address
+                @vsys (str): The vsys of the address
+                members (dict): The members of the group
+                    member (list): The members of the group
+                tag (dict): The tag of the group
+                    member (list): The tags of the group
+        '''
+
+        # Build the request
+        url = f"{self.rest_base_url}/Objects/ServiceGroups"
+
+        headers = {
+            "X-PAN-KEY": self.rest_key,
+        }
+
+        params = {
+            "location": self.location,
+            "vsys": self.vsys,
+            "output-format": "json",
+        }
+
+        # Send the request
+        response = requests.get(
+            url,
+            headers=headers,
+            params=params
+        )
+
+        # Check the response code for errors
+        if response.status_code != 200:
+            print(
+                Fore.RED,
+                response.status_code,
+                Style.RESET_ALL
+            )
+
+            return response.status_code
+
+        # Return the tags as a list
+        application_groups = response.json()
+        return application_groups['result']['entry']
+
+    def get_nat_policies(
+        self
+    ) -> list:
+        '''
+        Get NAT policies from the device
+            REST API, /Policies/NATRules
+
+        Returns (this can change based on the NAT rule type):
+            list: The NAT rules
+                @name (str): The name of the address
+                @uuid (str): The UUID of the address
+                @location (str): The location of the address
+                @vsys (str): The vsys of the address
+                source-translation (dict): The source translation of the NAT
+                    static-ip (dict): The static IP of the NAT
+                        bi-directional (str): The bi-directional of the NAT
+                            (yes or no)
+                        translated-address (str): The translated address
+                            of the NAT
+                to (dict): The 'to' of the NAT
+                    member (list): The members of the NAT
+                from (dict): The 'from' of the NAT
+                    member (list): The members of the NAT
+                source (dict): The source of the NAT
+                    member (list): The members of the NAT
+                destination (dict): The destination of the NAT
+                    member (list): The members of the NAT (may be 'any')
+                service (str): The service of the NAT
+                tag (dict): The tag of the NAT
+                    member (list): The tags of the NAT
+                group-tag (str): The group tag of the NAT
+                description (str): The description of the NAT
+        '''
+
+        # Build the request
+        url = f"{self.rest_base_url}/Policies/NATRules"
+
+        headers = {
+            "X-PAN-KEY": self.rest_key,
+        }
+
+        params = {
+            "location": self.location,
+            "vsys": self.vsys,
+            "output-format": "json",
+        }
+
+        # Send the request
+        response = requests.get(
+            url,
+            headers=headers,
+            params=params
+        )
+
+        # Check the response code for errors
+        if response.status_code != 200:
+            print(
+                Fore.RED,
+                response.status_code,
+                Style.RESET_ALL
+            )
+
+            return response.status_code
+
+        # Return the tags as a list
+        application_groups = response.json()
+        return application_groups['result']['entry']
+
+    def get_security_policies(
+        self
+    ) -> list:
+        '''
+        Get security policies from the device
+            REST API, /Policies/SecurityRules
+
+        Returns:
+            list: The security rules
+                @name (str): The name of the address
+                @uuid (str): The UUID of the address
+                @location (str): The location of the address
+                @vsys (str): The vsys of the address
+                to (dict): The 'to' of the security rule
+                    member (list): The members of the security rule
+                from (dict): The 'from' of the security rule
+                    member (list): The members of the security rule
+                source (dict): The source of the security rule
+                    member (list): The members of the security rule
+                destination (dict): The destination of the security rule
+                    member (list): The members of the security rule
+                source-user (dict): The source user of the security rule
+                    member (list): The members of the security rule
+                category (dict): The category of the security rule
+                    member (list): The members of the security rule
+                application (dict): The application of the security rule
+                    member (list): The members of the security rule
+                service (dict): The service of the security rule
+                    member (list): The members of the security rule
+                source-hip (dict): The source HIP of the security rule
+                    member (list): The members of the security rule
+                destination-hip (dict): The destination HIP of the rule
+                    member (list): The members of the security rule
+                tag (dict): The tag of the security rule
+                    member (list): The tags of the security rule
+                action (str): The action of the security rule
+                rule-type (str): The rule type of the security rule
+                description (str): The description of the security rule
+                group-tag (str): The group tag of the security rule
+                log-setting (str): The log setting of the security rule
+                disabled (str): The disabled of the security rule (yes or no)
+                log-start (str): The log start of the security rule (yes or no)
+                log-end (str): The log end of the security rule (yes or no)
+        '''
+
+        # Build the request
+        url = f"{self.rest_base_url}/Policies/SecurityRules"
+
+        headers = {
+            "X-PAN-KEY": self.rest_key,
+        }
+
+        params = {
+            "location": self.location,
+            "vsys": self.vsys,
+            "output-format": "json",
+        }
+
+        # Send the request
+        response = requests.get(
+            url,
+            headers=headers,
+            params=params
+        )
+
+        # Check the response code for errors
+        if response.status_code != 200:
+            print(
+                Fore.RED,
+                response.status_code,
+                Style.RESET_ALL
+            )
+
+            return response.status_code
+
+        # Return the tags as a list
+        application_groups = response.json()
+        return application_groups['result']['entry']
+
+    def get_qos_policies(
+        self
+    ) -> list:
+        '''
+        Get QoS policies from the device
+            REST API, /Policies/QoSRules
+
+        Returns:
+            list: The QoS rules
+                @name (str): The name of the address
+                @uuid (str): The UUID of the address
+                @location (str): The location of the address
+                @vsys (str): The vsys of the address
+                from (dict): The 'from' of the QoS rule
+                    member (list): The members of the QoS rule
+                to (dict): The 'to' of the QoS rule
+                    member (list): The members of the QoS rule
+                source (dict): The source of the QoS rule
+                    member (list): The members of the QoS rule
+                destination (dict): The destination of the QoS rule
+                    member (list): The members of the QoS rule (may be 'any')
+                source-user (dict): The source user of the QoS rule
+                    member (list): The members of the QoS rule
+                category (dict): The category of the QoS rule
+                    member (list): The members of the QoS rule
+                service (dict): The service of the QoS rule
+                    member (list): The members of the QoS rule
+                application (dict): The application of the QoS rule
+                    member (list): The members of the QoS rule
+                action (str): The action of the QoS rule
+                    class (str): The class of the QoS rule
+                dscp-tos (dict): The DSCP TOS of the QoS rule
+                    codepoints (dict): The codepoints of the QoS rule
+                        entry (list): The entries of the QoS rule
+                            @name (str): The name of the address
+                            name (dict): The name of the address
+                                codepoint (str): The codepoint of the address
+                description (str): The description of the address
+                source-hip (dict): The source HIP of the QoS rule
+                    member (list): The members of the QoS rule
+                destination-hip (dict): The destination HIP of the QoS rule
+                    member (list): The members of the QoS rule
+                tag (dict): The tag of the QoS rule
+                    member (list): The tags of the QoS rule
+                group-tag (str): The group tag of the QoS rule
+        '''
+
+        # Build the request
+        url = f"{self.rest_base_url}/Policies/QoSRules"
+
+        headers = {
+            "X-PAN-KEY": self.rest_key,
+        }
+
+        params = {
+            "location": self.location,
+            "vsys": self.vsys,
+            "output-format": "json",
+        }
+
+        # Send the request
+        response = requests.get(
+            url,
+            headers=headers,
+            params=params
+        )
+
+        # Check the response code for errors
+        if response.status_code != 200:
+            print(
+                Fore.RED,
+                response.status_code,
+                Style.RESET_ALL
+            )
+
+            return response.status_code
+
+        # Return the tags as a list
+        application_groups = response.json()
+        return application_groups['result']['entry']
+
+    def get_gp_sessions(
+        self,
+    ) -> list | int:
+        '''
+        Get active Global Protect sessions
+        This uses the XML API
+
+        Returns:
+            list of dicts: The active sessions
+                username (str): The username of the session (UPN format)
+                primary-username (str): The primary username of the session
+                source-region (str): The source country of the session
+                computer (str): The computer name
+                client (str): The client Operating System
+                vpn-type (str): The VPN type (eg, device-level)
+                host-id (str): The host ID
+                app-version (str): The GP app version
+                virtual-ip (str): The virtual IP address (internal address)
+                public-ip (str): The public IP address
+                tunnel-type (str): The tunnel type (eg, ESP)
+                login-time (str): The login time of the session
+        '''
+
+        # Build the request
+        url = (
+            f"{self.xml_base_url}/?type=op&cmd="
+            "<show><global-protect-gateway>"
+            "<current-user/>"
+            "</global-protect-gateway></show>"
+        )
+        headers = {
+            "Authorization": f'Basic {self.xml_key}',
+        }
+
+        # Send the request
+        try:
+            response = requests.get(
+                url,
+                headers=headers
+            )
+
+        except (ConnectionError, MaxRetryError, NewConnectionError) as e:
+            print(
+                Fore.RED,
+                "DNS resolution or connection issue\n",
+                Fore.YELLOW,
+                e,
+                Style.RESET_ALL
+            )
+            return 500
+
+        except Exception as e:
+            print(
+                Fore.RED,
+                f"General error connecting to device: {e}",
+                Style.RESET_ALL
+            )
+            return 500
+
+        # Check the response code for errors
+        if response.status_code != 200:
+            root = ET.fromstring(response.text)
+            msg_tag = root.find(".//msg")
+
+            print(
+                Fore.RED,
+                msg_tag.text,
+                Style.RESET_ALL
+            )
+
+            return response.status_code
+
+        # Parse the XML response
+        root = ET.fromstring(response.text)
+        results = root.find(".//result")
+
+        # Convert the XML to a list of dictionaries
+        session_list = []
+        for gp_session in results:
+            session = {}
+
+            username = gp_session.find(".//username")
+            session['username'] = username.text
+
+            primary_username = gp_session.find(".//primary-username")
+            session['primary-username'] = primary_username.text
+
+            source_region = gp_session.find(".//source-region")
+            session['source-region'] = source_region.text
+
+            computer = gp_session.find(".//computer")
+            session['computer'] = computer.text
+
+            client = gp_session.find(".//client")
+            session['client'] = client.text
+
+            vpn_type = gp_session.find(".//vpn-type")
+            session['vpn-type'] = vpn_type.text
+
+            host_id = gp_session.find(".//host-id")
+            session['host-id'] = host_id.text
+
+            app_version = gp_session.find(".//app-version")
+            session['app-version'] = app_version.text
+
+            virtual_ip = gp_session.find(".//virtual-ip")
+            session['virtual-ip'] = virtual_ip.text
+
+            public_ip = gp_session.find(".//public-ip")
+            session['public-ip'] = public_ip.text
+
+            tunnel_type = gp_session.find(".//tunnel-type")
+            session['tunnel-type'] = tunnel_type.text
+
+            login_time = gp_session.find(".//login-time")
+            session['login-time'] = login_time.text
+
+            session_list.append(session)
+
+        # Return the list of dictionaries
+        return session_list
 
 
 if __name__ == '__main__':
