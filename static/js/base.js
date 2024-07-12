@@ -3,6 +3,8 @@
 
     Dynamically adjust the body's margin-top to match the header's height
     Manage the navigation bar
+    Pop up notifications
+    Toggle between light and dark modes
 */
 
 // Adjust the margins of the header and nav bar when the page loads or is resized
@@ -10,6 +12,13 @@ document.addEventListener('DOMContentLoaded', adjustBodyMargin);
 document.addEventListener('DOMContentLoaded', adjustContentMargin);
 window.addEventListener('resize', adjustContentMargin);
 window.addEventListener('resize', adjustBodyMargin);
+
+// Apply the saved theme when the page loads (waiting for the DOM to load)
+document.addEventListener('DOMContentLoaded', applySavedTheme);
+
+// Event listener for the mode toggle slider
+const modeToggle = document.getElementById('mode-toggle');
+modeToggle.addEventListener('change', toggleDarkMode);
 
 
 /**
@@ -60,4 +69,92 @@ function toggleNav() {
 
     // Adjust the main content's left margin
     adjustContentMargin();
+}
+
+
+/**
+ * Show a notification message on the bottom right page
+ * Green for good messages, red for bad
+ * 
+ * @param {string} message - The message to display.
+ * @param {string} type - The type of message (Success or Failure).
+ */
+function showNotification(message, type) {
+    // Create a new div element for the notification
+    const notification = document.createElement('div');
+
+    // Set the notification's properties
+    notification.textContent = message;
+    notification.style.position = 'fixed';
+    notification.style.bottom = '20px';
+    notification.style.right = '20px';
+    notification.style.backgroundColor = 'green';
+    notification.style.color = 'white';
+    notification.style.padding = '10px';
+    notification.style.borderRadius = '5px';
+    notification.style.zIndex = '1000';
+    notification.style.opacity = '1';
+    notification.style.transition = 'opacity 0.5s ease';
+
+    // Set background color based on message type
+    if (type === 'Success') {
+        notification.style.backgroundColor = 'green';
+    } else if (type === 'Failure') {
+        notification.style.backgroundColor = 'red';
+    }
+
+    // Append the notification to the body
+    document.body.appendChild(notification);
+
+    // Start fade out after 2.5 seconds to complete before removal
+    setTimeout(() => {
+        notification.style.opacity = '0';
+    }, 2500);
+
+    // Remove the notification after 3 seconds
+    setTimeout(() => {
+        document.body.removeChild(notification);
+    }, 3000);
+}
+
+
+/**
+ * Apply the saved theme when the page loads
+ * This will depend on the theme saved in local storage (if there is one)
+ */
+function applySavedTheme() {
+    // Read the saved theme from storage and put in variable
+    const currentTheme = localStorage.getItem("theme");
+
+    // Apply the theme to the body, defaulting to light-mode if no theme is saved
+    if (currentTheme === "dark-mode") {
+        document.body.classList.add("dark-mode");
+        document.body.classList.remove("light-mode");
+        modeToggle.checked = true;
+    } else {
+        document.body.classList.add("light-mode");
+        document.body.classList.remove("dark-mode");
+        modeToggle.checked = false;
+    }
+}
+
+
+/**
+ * Toggle between light and dark mode when the mode toggle is clicked
+ * This is shown as a slider, but behind the scenes it's a checkbox
+ */
+function toggleDarkMode() {
+    // If the toggle is checked, add dark-mode class to body and remove light-mode
+    if (modeToggle.checked) {
+        document.body.classList.add("dark-mode");
+        document.body.classList.remove("light-mode");
+
+        // Save the theme to local storage
+        localStorage.setItem("theme", "dark-mode");
+    } else {
+        // Alternatively, add light-mode class to body and remove dark-mode
+        document.body.classList.add("light-mode");
+        document.body.classList.remove("dark-mode");
+        localStorage.setItem("theme", "light-mode");
+    }
 }

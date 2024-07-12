@@ -9,6 +9,7 @@
         Entries that are in both tables, but are different, are highlighted in yellow
 */
 
+
 // Event listener for the compare button
 document.getElementById('tag_compare').addEventListener('click', function() {
     console.log('Comparing tags');
@@ -16,6 +17,7 @@ document.getElementById('tag_compare').addEventListener('click', function() {
     // Call the compareTables function
     compareTables();
 });
+
 
 /**
  * Compares two tables and adds missing items to the respective table
@@ -58,6 +60,7 @@ function compareTables() {
     }
 }
 
+
 /**
  * Gets the items in a table.
  * @param {HTMLTableElement[]} table - The table from which to get items.
@@ -89,6 +92,7 @@ function getTableItems(table) {
     // Return the items array (a 2D array of items in the table)
     return items;
 }
+
 
 /**
  * Compares two arrays and returns the items that are in the source array but not in the target array.
@@ -123,6 +127,7 @@ function getMissingItems(sourceItems, targetItems) {
     return missingItems;
 }
 
+
 /**
  * Compares two items and returns whether they are equal.
  * @param {string[]} arr1 - The first item to compare.
@@ -146,6 +151,7 @@ function arraysEqual(arr1, arr2) {
     // If all elements are equal, return true
     return true;
 }
+
 
 /**
  * Adds missing items to the table and highlights them.
@@ -199,6 +205,7 @@ function appendMissingItemsToTable(missingItems, tableName) {
     }
 }
 
+
 /**
  * Sorts a table alphabetically.
  * @param {HTMLTableElement} table - The table to sort.
@@ -227,6 +234,7 @@ function sortTable(table) {
         table.appendChild(row);
     });
 }
+
 
 /**
  * Highlights a row in a table.
