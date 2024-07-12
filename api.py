@@ -29,6 +29,8 @@ Authentication:
 import requests
 from requests.exceptions import ConnectionError
 from urllib3.exceptions import MaxRetryError, NewConnectionError
+from types import TracebackType
+from typing import Optional, Type
 
 from colorama import Fore, Style
 import xml.etree.ElementTree as ET
@@ -43,6 +45,15 @@ class DeviceApi:
     This class is instantiated per location, such as 'vsys' or 'panorama'
         If there is more than one location (eg, multiple vsys), then
         instantiate a new class for each location
+
+    Methods:
+        __init__: Initialise the class
+        __enter__: Enter method for context manager
+        __exit__: Exit method for context manager
+        get_config: Get the running configuration of the device
+        get_device: Get the device basics
+        get_ha: Get high availability details
+        get_tags: Get the tags from the device
     '''
 
     def __init__(
@@ -80,6 +91,43 @@ class DeviceApi:
         self.rest_base_url = f'https://{self.hostname}/restapi/{version}'
         self.location = location
         self.vsys = vsys
+
+    def __enter__(
+        self,
+    ) -> 'DeviceApi':
+        '''
+        Enter method for context manager
+
+        Returns:
+            DeviceApi: The instance of the class
+        '''
+
+        return self
+
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_value: Optional[BaseException],
+        traceback: Optional[TracebackType],
+    ) -> Optional[bool]:
+        '''
+        Exit method for context manager
+
+        Args:
+            exc_type : Exception
+                The type of exception raised
+            exc_value : Exception
+                The value of the exception raised
+            traceback : Exception
+                The traceback of the exception raised
+        '''
+
+        # handle errors that were raised
+        if exc_type:
+            print(
+                f"Exception of type {exc_type.__name__} occurred: {exc_value}",
+                exc_info=(exc_type, exc_value, traceback)
+            )
 
     def get_config(
         self

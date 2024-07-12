@@ -94,6 +94,14 @@ class SqlServer:
         Called when the 'with' statement is finished
         Calls the 'disconnect' method to gracefully close the connection
             to the server
+
+        Args:
+            exc_type : Exception
+                The type of exception raised
+            exc_value : Exception
+                The value of the exception raised
+            traceback : Exception
+                The traceback of the exception raised
         """
 
         # Close the connection to the server
