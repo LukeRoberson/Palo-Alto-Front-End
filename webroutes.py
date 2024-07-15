@@ -1088,9 +1088,9 @@ class GetAddressesView(MethodView):
         for address in raw_addresses:
             entry = {}
             entry["name"] = address['@name']
-            entry["ip-netmask"] = address['ip-netmask']
-            entry["description"] = address['description']
-            entry["tag"] = address['tag']
+            entry["addr"] = address.get('ip-netmask', 'No IP')
+            entry["description"] = address.get('description', 'No description')
+            entry["tag"] = address.get('tag', 'No tag')
             address_list.append(entry)
 
         # Sort the addresses by name
@@ -1324,8 +1324,8 @@ class GetServicesView(MethodView):
             entry = {}
             entry["name"] = service['@name']
             entry["protocol"] = service['protocol']
-            entry["tag"] = service['tag']
             entry["description"] = service['description']
+            entry["tag"] = service['tag']
             services_list.append(entry)
 
         # Sort the service objects by name

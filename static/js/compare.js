@@ -24,8 +24,8 @@ document.getElementById('tag_compare').addEventListener('click', function() {
  */
 function compareTables() {
     // Get the tables and their values, get ready to look for missing items
-    var firstTable = document.getElementById('firstTable');
-    var secondTable = document.getElementById('secondTable');
+    var firstTable = document.getElementById('tagTableA');
+    var secondTable = document.getElementById('tagTableB');
     var firstTableItems = getTableItems(firstTable);
     var secondTableItems = getTableItems(secondTable);
 
@@ -36,14 +36,14 @@ function compareTables() {
 
     // Update tables with missing items (highlighted)
     // Include the table to update
-    appendMissingItemsToTable(missingItemsInFirstTable, 'secondTable');
-    appendMissingItemsToTable(missingItemsInSecondTable, 'firstTable');
+    appendMissingItemsToTable(missingItemsInFirstTable, 'tagTableB');   // Pay attention to the order here
+    appendMissingItemsToTable(missingItemsInSecondTable, 'tagTableA');
     sortTable(firstTable);
     sortTable(secondTable);
 
     // Refresh the table items, get ready to look for differences
-    var firstTable = document.getElementById('firstTable');
-    var secondTable = document.getElementById('secondTable');
+    var firstTable = document.getElementById('tagTableA');
+    var secondTable = document.getElementById('tagTableB');
     var firstTableItems = getTableItems(firstTable);
     var secondTableItems = getTableItems(secondTable);
 

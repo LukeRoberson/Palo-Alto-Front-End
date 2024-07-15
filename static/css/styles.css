@@ -33,6 +33,12 @@ body {
     transition: padding-left 0.5s ease;                 /* Smooth transition for sidebar toggle */
 }
 
+/* Indenting unordered list items */
+.indented-list {
+    padding-left: 50px;
+    list-style-type: none;
+}
+
 /* Highlighting styles for comparison */
 /* Different items */
 .highlight-different {
