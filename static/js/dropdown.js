@@ -18,10 +18,14 @@ fetch('/device_list')
     populateDropdownWithData('#tagDropdownB', 'w3-hover-green', devices, 'tagTableB');
     populateDropdownWithData('#addressDropdownA', 'w3-hover-blue', devices, 'addressAccordionA');
     populateDropdownWithData('#addressDropdownB', 'w3-hover-green', devices, 'addressAccordionB');
-    populateDropdownWithData('#applicationDropdownA', 'w3-hover-blue', devices, 'applicationTableA');
-    populateDropdownWithData('#applicationDropdownB', 'w3-hover-green', devices, 'applicationTableB');
-    populateDropdownWithData('#serviceDropdownA', 'w3-hover-blue', devices, 'serviceTableA');
-    populateDropdownWithData('#serviceDropdownB', 'w3-hover-green', devices, 'serviceTableB');
+    populateDropdownWithData('#addressGroupDropdownA', 'w3-hover-blue', devices, 'addressGroupAccordionA');
+    populateDropdownWithData('#addressGroupDropdownB', 'w3-hover-green', devices, 'addressGroupAccordionB');
+    populateDropdownWithData('#applicationGroupDropdownA', 'w3-hover-blue', devices, 'applicationGroupAccordionA');
+    populateDropdownWithData('#applicationGroupDropdownB', 'w3-hover-green', devices, 'applicationGroupAccordionB');
+    populateDropdownWithData('#serviceDropdownA', 'w3-hover-blue', devices, 'serviceAccordionA');
+    populateDropdownWithData('#serviceDropdownB', 'w3-hover-green', devices, 'serviceAccordionB');
+    populateDropdownWithData('#serviceGroupDropdownA', 'w3-hover-blue', devices, 'serviceGroupAccordionA');
+    populateDropdownWithData('#serviceGroupDropdownB', 'w3-hover-green', devices, 'serviceGroupAccordionB');
 })
 .catch(error => console.error('Error:', error));
 
@@ -110,7 +114,7 @@ function updateTagsTable(deviceId, tableId) {
  * This is specific to the addresses page and is called when a device is selected from the dropdown
  * 
  * @param {*} deviceId 
- * @param {*} tableId 
+ * @param {*} divId 
  */
 function updateAddressesTable(deviceId, divId) {
     // API call to fetch addresses for the selected device
@@ -170,33 +174,55 @@ function updateAddressesTable(deviceId, divId) {
  * This is specific to the services page and is called when a device is selected from the dropdown
  * 
  * @param {*} deviceId 
- * @param {*} tableId 
+ * @param {*} divId 
  */
-function updateServicesTable(deviceId, tableId) {
+function updateServicesTable(deviceId, divId) {
     // API call to fetch service objects for the selected device
     fetch(`/get_service_objects?id=${encodeURIComponent(deviceId)}`)
     .then(response => response.json())
     .then(services => {
-        // Get the table and clear it before populating it with the new services
-        const table = document.getElementById(tableId);
+        // The div element to populate with the list of addresses
+        const divElement = document.getElementById(divId);
 
-        // Keep the header row and clear the rest of the table
-        table.innerHTML = table.rows[0].outerHTML;
-
-        // Populate the table with the list of services
+        // Populate with the list of services
         services.forEach(service => {
-            // Create new rows and cells for each service
-            const row = table.insertRow(-1);
-            const nameCell = row.insertCell(0);
-            const protocolCell = row.insertCell(1);
-            const descriptionCell = row.insertCell(2);
-            const tagCell = row.insertCell(4);
+            // Sanitize the address name to use as an ID
+            const sanitizedId = service.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
 
-            // Populate the cells with the address data
-            nameCell.textContent = address.name;
-            protocolCell.textContent = address.protocol;
-            descriptionCell.textContent = address.description || 'No description available';
-            tagCell.textContent = address.tag;
+            // Create a new button element for each service
+            const button = document.createElement('button');
+            button.className = 'w3-button w3-block w3-left-align';
+            button.textContent = service.name;
+            button.onclick = function() { expandList(divId + '_' + sanitizedId) };
+
+            // Create list div
+            const div = document.createElement('div');
+            div.id = divId + '_' + sanitizedId;
+            div.className = 'w3-hide w3-border';
+
+            // Create ul
+            const ul = document.createElement('ul');
+            ul.className = 'indented-list';
+
+            // Create li elements for each service property
+            const protocolLi = document.createElement('li');
+            protocolLi.textContent = service.addr;
+            const descriptionLi = document.createElement('li');
+            descriptionLi.textContent = service.description;
+            const tagLi = document.createElement('li');
+            tagLi.textContent = service.tag.member.join(", ");
+
+            // Append li elements to ul
+            ul.appendChild(protocolLi);
+            ul.appendChild(descriptionLi);
+            ul.appendChild(tagLi);
+
+            // Append ul to div
+            div.appendChild(ul);
+
+            // Add items to the div element
+            divElement.appendChild(button);
+            divElement.appendChild(div);
         });
     })
     .catch(error => console.error('Error fetching services:', error));

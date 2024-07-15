@@ -6,16 +6,20 @@
 <div class="w3-bar w3-border w3-card-4">
     <a href="#" class="w3-bar-item w3-button" id="nav-tags">Tags</a>
     <a href="#" class="w3-bar-item w3-button" id="nav-addresses">Addresses</a>
-    <a href="#" class="w3-bar-item w3-button" id="nav-applications">Applications</a>
+    <a href="#" class="w3-bar-item w3-button" id="nav-addressGroups">Address Groups</a>
+    <a href="#" class="w3-bar-item w3-button" id="nav-applicationGroups">Application Groups</a>
     <a href="#" class="w3-bar-item w3-button" id="nav-services">Services</a>
+    <a href="#" class="w3-bar-item w3-button" id="nav-serviceGroups">Service Groups</a>
 </div>
 
 <!-- Dynamic content goes in here -->
 <div id="content-container">
     <div id="tags-content">{% include "tags.html" %}</div>
     <div id="addresses-content" style="display: none;">{% include "addresses.html" %}</div>
+    <div id="addressGroups-content" style="display: none;">{% include "address_groups.html" %}</div>
     <div id="applications-content" style="display: none;">{% include "applications.html" %}</div>
     <div id="services-content" style="display: none;">{% include "services.html" %}</div>
+    <div id="serviceGroup-content" style="display: none;">{% include "service_groups.html" %}</div>
 </div>
 
 <!-- Javascript function to show and hide the dynamic content -->
@@ -33,8 +37,10 @@
     // Event listeners for navigation items
     document.getElementById('nav-tags').addEventListener('click', () => showContent('tags-content'));
     document.getElementById('nav-addresses').addEventListener('click', () => showContent('addresses-content'));
-    document.getElementById('nav-applications').addEventListener('click', () => showContent('applications-content'));
+    document.getElementById('nav-addressGroups').addEventListener('click', () => showContent('addressGroups-content'));
+    document.getElementById('nav-applicationGroups').addEventListener('click', () => showContent('applications-content'));
     document.getElementById('nav-services').addEventListener('click', () => showContent('services-content'));
+    document.getElementById('nav-serviceGroups').addEventListener('click', () => showContent('serviceGroup-content'));
 </script>
 
 {% endblock %}

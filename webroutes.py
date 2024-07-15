@@ -1324,8 +1324,8 @@ class GetServicesView(MethodView):
             entry = {}
             entry["name"] = service['@name']
             entry["protocol"] = service['protocol']
-            entry["description"] = service['description']
-            entry["tag"] = service['tag']
+            entry["description"] = service.get('description', 'No description')
+            entry["tag"] = service.get('tag', 'No tag')
             services_list.append(entry)
 
         # Sort the service objects by name
