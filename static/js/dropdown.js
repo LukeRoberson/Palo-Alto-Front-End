@@ -37,9 +37,9 @@ fetch('/device_list')
  * @param {*} selector          - The selector for the dropdown element
  * @param {*} hoverColorClass   - The hover color class to apply to
  * @param {*} devices           - The list of devices to populate the dropdown with
- * @param {*} tableId           - The ID of the table to update when a device is selected
+ * @param {*} divId           - The ID of the table to update when a device is selected
  */
-function populateDropdownWithData(selector, hoverColorClass, devices, tableId) {
+function populateDropdownWithData(selector, hoverColorClass, devices, divId) {
     // Get the dropdown and the button
     const dropdown = document.querySelector(selector);
 
@@ -62,9 +62,12 @@ function populateDropdownWithData(selector, hoverColorClass, devices, tableId) {
             button.textContent = device.device_name;
 
             // Fetch tags for the selected device using device_id and update the specified table
-            if (tableId.includes('tag')) updateTagsTable(device.device_id, tableId);
-            if (tableId.includes('address')) updateAddressesTable(device.device_id, tableId);
-            if (tableId.includes('service')) updateServicesTable(device.device_id, tableId);
+            if (divId.includes('tag')) updateTagsTable(device.device_id, divId);
+            if (divId.includes('addressAccordion')) updateAddressesTable(device.device_id, divId);
+            if (divId.includes('addressGroupAccordion')) updateAddressGroupsTable(device.device_id, divId);
+            if (divId.includes('applicationGroupAccordion')) updateApplicationGroupsTable(device.device_id, divId);
+            if (divId.includes('serviceAccordion')) updateServicesTable(device.device_id, divId);
+            if (divId.includes('serviceGroupAccordion')) updateServiceGroupsTable(device.device_id, divId);
         });
 
         // Append the link to the dropdown
@@ -170,6 +173,120 @@ function updateAddressesTable(deviceId, divId) {
 
 
 /**
+ * Update the table with a list of address groups for the selected device
+ * This is specific to the address groups page and is called when a device is selected from the dropdown
+ * 
+ * @param {*} deviceId 
+ * @param {*} divId 
+ */
+function updateAddressGroupsTable(deviceId, divId) {
+    // API call to fetch address groups for the selected device
+    fetch(`/get_address_groups?id=${encodeURIComponent(deviceId)}`)
+    .then(response => response.json())
+    .then(addresses => {
+        // The div element to populate with the list of address groups
+        const divElement = document.getElementById(divId);
+
+        // Populate with the list of address groups
+        addresses.forEach(address => {
+            // Sanitize the address group name to use as an ID
+            const sanitizedId = address.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
+
+            // Create a new button element for each address
+            const button = document.createElement('button');
+            button.className = 'w3-button w3-block w3-left-align';
+            button.textContent = address.name;
+            button.onclick = function() { expandList(divId + '_' + sanitizedId) };
+
+            // Create list div
+            const div = document.createElement('div');
+            div.id = divId + '_' + sanitizedId;
+            div.className = 'w3-hide w3-border';
+
+            // Create ul
+            const ul = document.createElement('ul');
+            ul.className = 'indented-list';
+
+            // Create li elements for each address property
+            const addressLi = document.createElement('li');
+            addressLi.textContent = address.static.member.join(", ");
+            const descriptionLi = document.createElement('li');
+            descriptionLi.textContent = address.description;
+            const tagLi = document.createElement('li');
+            tagLi.textContent = address.tag.member.join(", ");
+
+            // Append li elements to ul
+            ul.appendChild(addressLi);
+            ul.appendChild(descriptionLi);
+            ul.appendChild(tagLi);
+
+            // Append ul to div
+            div.appendChild(ul);
+
+            // Add items to the div element
+            divElement.appendChild(button);
+            divElement.appendChild(div);
+        });
+    })
+    .catch(error => console.error('Error fetching addresses:', error));
+}
+
+
+/**
+ * Update the table with a list of application groups for the selected device
+ * This is specific to the application groups page and is called when a device is selected from the dropdown
+ * 
+ * @param {*} deviceId 
+ * @param {*} divId 
+ */
+function updateApplicationGroupsTable(deviceId, divId) {
+    // API call to fetch application groups for the selected device
+    fetch(`/get_application_groups?id=${encodeURIComponent(deviceId)}`)
+    .then(response => response.json())
+    .then(appGroups => {
+        // The div element to populate with the list of application groups
+        const divElement = document.getElementById(divId);
+
+        // Populate with the list of application groups
+        appGroups.forEach(appGroup => {
+            // Sanitize the address group name to use as an ID
+            const sanitizedId = appGroup.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
+
+            // Create a new button element for each group
+            const button = document.createElement('button');
+            button.className = 'w3-button w3-block w3-left-align';
+            button.textContent = appGroup.name;
+            button.onclick = function() { expandList(divId + '_' + sanitizedId) };
+
+            // Create list div
+            const div = document.createElement('div');
+            div.id = divId + '_' + sanitizedId;
+            div.className = 'w3-hide w3-border';
+
+            // Create ul
+            const ul = document.createElement('ul');
+            ul.className = 'indented-list';
+
+            // Create li elements for each address property
+            const appLi = document.createElement('li');
+            appLi.textContent = appGroup.members.member.join(", ");
+
+            // Append li elements to ul
+            ul.appendChild(appLi);
+
+            // Append ul to div
+            div.appendChild(ul);
+
+            // Add items to the div element
+            divElement.appendChild(button);
+            divElement.appendChild(div);
+        });
+    })
+    .catch(error => console.error('Error fetching application groups:', error));
+}
+
+
+/**
  * Update the table with a list of service objects for the selected device
  * This is specific to the services page and is called when a device is selected from the dropdown
  * 
@@ -215,6 +332,68 @@ function updateServicesTable(deviceId, divId) {
             // Append li elements to ul
             ul.appendChild(protocolLi);
             ul.appendChild(descriptionLi);
+            ul.appendChild(tagLi);
+
+            // Append ul to div
+            div.appendChild(ul);
+
+            // Add items to the div element
+            divElement.appendChild(button);
+            divElement.appendChild(div);
+        });
+    })
+    .catch(error => console.error('Error fetching services:', error));
+}
+
+
+/**
+ * Update the table with a list of service groups for the selected device
+ * This is specific to the service groups page and is called when a device is selected from the dropdown
+ * 
+ * @param {*} deviceId 
+ * @param {*} divId 
+ */
+function updateServiceGroupsTable(deviceId, divId) {
+    // API call to fetch service groups for the selected device
+    fetch(`/get_service_groups?id=${encodeURIComponent(deviceId)}`)
+    .then(response => response.json())
+    .then(serviceGroups => {
+        // The div element to populate with the list of groups
+        const divElement = document.getElementById(divId);
+
+        // Populate with the list of services
+        serviceGroups.forEach(group => {
+            // Sanitize the address name to use as an ID
+            const sanitizedId = group.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
+
+            // Create a new button element for each service
+            const button = document.createElement('button');
+            button.className = 'w3-button w3-block w3-left-align';
+            button.textContent = group.name;
+            button.onclick = function() { expandList(divId + '_' + sanitizedId) };
+
+            // Create list div
+            const div = document.createElement('div');
+            div.id = divId + '_' + sanitizedId;
+            div.className = 'w3-hide w3-border';
+
+            // Create ul
+            const ul = document.createElement('ul');
+            ul.className = 'indented-list';
+
+            // Create li elements for each service property (confirming they are arrays first)
+            const membersLi = document.createElement('li');
+            membersLi.textContent = group.members.member.join(", ");
+
+            const tagLi = document.createElement('li');
+            if (Array.isArray(group.tag?.member)) {
+                tagLi.textContent = group.tag.member.join(", ");
+            } else {
+                tagLi.textContent = 'No tags';
+            }
+
+            // Append li elements to ul
+            ul.appendChild(membersLi);
             ul.appendChild(tagLi);
 
             // Append ul to div

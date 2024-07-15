@@ -35,7 +35,7 @@ from webroutes import (
     GetTagsView,
     GetAddressesView,
     GetAddressGroupsView,
-    GetApplicationsView,
+    GetApplicationGroupsView,
     GetServicesView,
     GetServiceGroupView,
 )
@@ -260,7 +260,7 @@ app.add_url_rule(
 # Get the application groups from the device
 app.add_url_rule(
     '/get_application_groups',
-    view_func=GetApplicationsView.as_view('get_application_groups'),
+    view_func=GetApplicationGroupsView.as_view('get_application_groups'),
     defaults={'config': config}
 )
 

@@ -1167,9 +1167,9 @@ class GetAddressGroupsView(MethodView):
         for address_group in raw_address_groups:
             entry = {}
             entry["name"] = address_group['@name']
-            entry["static"] = address_group['static']
-            entry["description"] = address_group['description']
-            entry["tag"] = address_group['tag']
+            entry["static"] = address_group.get('static', 'None')
+            entry["description"] = address_group.get('description', 'None')
+            entry["tag"] = address_group.get('tag', 'No tags')
             address_group_list.append(entry)
 
         # Sort the address groups by name
@@ -1179,7 +1179,7 @@ class GetAddressGroupsView(MethodView):
         return jsonify(address_group_list)
 
 
-class GetApplicationsView(MethodView):
+class GetApplicationGroupsView(MethodView):
     '''
     GetApplicationsView class to get application group objects for a device.
 
@@ -1246,7 +1246,7 @@ class GetApplicationsView(MethodView):
         for application_group in raw_application_groups:
             entry = {}
             entry["name"] = application_group['@name']
-            entry["members"] = application_group['members']
+            entry["members"] = application_group.get('members', 'No members')
             application_group_list.append(entry)
 
         # Sort the application groups by name
@@ -1402,8 +1402,8 @@ class GetServiceGroupView(MethodView):
         for service in raw_service_groups:
             entry = {}
             entry["name"] = service['@name']
-            entry["members"] = service['members']
-            entry["tag"] = service['tag']
+            entry["members"] = service.get('members', 'No members')
+            entry["tag"] = service.get('tag', 'No tags')
             service_groups_list.append(entry)
 
         # Sort the service groups by name
