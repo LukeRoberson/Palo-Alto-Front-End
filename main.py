@@ -33,6 +33,11 @@ from webroutes import (
     SiteListView,
     RefreshDevSiteView,
     GetTagsView,
+    GetAddressesView,
+    GetAddressGroupsView,
+    GetApplicationsView,
+    GetServicesView,
+    GetServiceGroupView,
 )
 
 from flask_azure_oauth import FlaskAzureOauth
@@ -235,6 +240,41 @@ app.add_url_rule(
 app.add_url_rule(
     '/get_tags',
     view_func=GetTagsView.as_view('get_tags'),
+    defaults={'config': config}
+)
+
+# Get the address objects from the device
+app.add_url_rule(
+    '/get_address_objects',
+    view_func=GetAddressesView.as_view('get_address_objects'),
+    defaults={'config': config}
+)
+
+# Get the address groups from the device
+app.add_url_rule(
+    '/get_address_groups',
+    view_func=GetAddressGroupsView.as_view('get_address_groups'),
+    defaults={'config': config}
+)
+
+# Get the application groups from the device
+app.add_url_rule(
+    '/get_application_groups',
+    view_func=GetApplicationsView.as_view('get_application_groups'),
+    defaults={'config': config}
+)
+
+# Get the service objects from the device
+app.add_url_rule(
+    '/get_service_objects',
+    view_func=GetServicesView.as_view('get_service_objects'),
+    defaults={'config': config}
+)
+
+# Get the service groups from the device
+app.add_url_rule(
+    '/get_service_groups',
+    view_func=GetServiceGroupView.as_view('get_service_groups'),
     defaults={'config': config}
 )
 

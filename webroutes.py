@@ -942,7 +942,7 @@ class RefreshDevSiteView(MethodView):
 
 class GetTagsView(MethodView):
     '''
-    GetTags class to get the tags for a device.
+    GetTagsView class to get the tags for a device.
 
     Methods:
         get: Get method to get the tags for a device.
@@ -1019,3 +1019,395 @@ class GetTagsView(MethodView):
 
         # Return the tags as JSON
         return jsonify(tag_list)
+
+
+class GetAddressesView(MethodView):
+    '''
+    GetAddressesView class to get address objects for a device.
+
+    Methods:
+        get: Get method to get the address objects for a device.
+    '''
+
+    def get(
+        self,
+        config: AppSettings,
+    ) -> jsonify:
+        '''
+        Get method to get the address objects for a device.
+
+        Args:
+            config (AppSettings): The application settings object.
+
+        Returns:
+            jsonify: The address objects for the device.
+        '''
+
+        # Get the address objects from the device
+        device = request.args.get('id')
+        sql_server = config.sql_server
+        sql_database = config.sql_database
+        table = 'devices'
+
+        # Read the device details from the database
+        with SqlServer(
+            server=sql_server,
+            database=sql_database,
+            table=table,
+        ) as sql:
+            output = sql.read(
+                field='id',
+                value=device,
+            )
+
+        # Return a failure message if the database read failed
+        if not output:
+            return jsonify(
+                {
+                    "result": "Failure",
+                    "message": "Problems reading from the database"
+                }
+            ), 500
+
+        # Extract the details from the SQL output
+        hostname = output[0][1]
+        token = output[0][9]
+
+        # Create the device object
+        device_api = DeviceApi(
+            hostname=hostname,
+            rest_key=token,
+            version='v11.0'
+        )
+
+        # The address objects from the device
+        raw_addresses = device_api.get_addresses()
+
+        # A cleaned up list of address objects
+        address_list = []
+        for address in raw_addresses:
+            entry = {}
+            entry["name"] = address['@name']
+            entry["ip-netmask"] = address['ip-netmask']
+            entry["description"] = address['description']
+            entry["tag"] = address['tag']
+            address_list.append(entry)
+
+        # Sort the addresses by name
+        address_list.sort(key=lambda x: x['name'])
+
+        # Return the addresses as JSON
+        return jsonify(address_list)
+
+
+class GetAddressGroupsView(MethodView):
+    '''
+    GetAddressGroupsView class to get address group objects for a device.
+
+    Methods:
+        get: Get method to get the address group objects for a device.
+    '''
+
+    def get(
+        self,
+        config: AppSettings,
+    ) -> jsonify:
+        '''
+        Get method to get the address group objects for a device.
+
+        Args:
+            config (AppSettings): The application settings object.
+
+        Returns:
+            jsonify: The address group objects for the device.
+        '''
+
+        # Get the address group objects from the device
+        device = request.args.get('id')
+        sql_server = config.sql_server
+        sql_database = config.sql_database
+        table = 'devices'
+
+        # Read the device details from the database
+        with SqlServer(
+            server=sql_server,
+            database=sql_database,
+            table=table,
+        ) as sql:
+            output = sql.read(
+                field='id',
+                value=device,
+            )
+
+        # Return a failure message if the database read failed
+        if not output:
+            return jsonify(
+                {
+                    "result": "Failure",
+                    "message": "Problems reading from the database"
+                }
+            ), 500
+
+        # Extract the details from the SQL output
+        hostname = output[0][1]
+        token = output[0][9]
+
+        # Create the device object
+        device_api = DeviceApi(
+            hostname=hostname,
+            rest_key=token,
+            version='v11.0'
+        )
+
+        # The address groups from the device
+        raw_address_groups = device_api.get_address_groups()
+
+        # A cleaned up list of address groups
+        address_group_list = []
+        for address_group in raw_address_groups:
+            entry = {}
+            entry["name"] = address_group['@name']
+            entry["static"] = address_group['static']
+            entry["description"] = address_group['description']
+            entry["tag"] = address_group['tag']
+            address_group_list.append(entry)
+
+        # Sort the address groups by name
+        address_group_list.sort(key=lambda x: x['name'])
+
+        # Return the address groups as JSON
+        return jsonify(address_group_list)
+
+
+class GetApplicationsView(MethodView):
+    '''
+    GetApplicationsView class to get application group objects for a device.
+
+    Methods:
+        get: Get method to get the application group objects for a device.
+    '''
+
+    def get(
+        self,
+        config: AppSettings,
+    ) -> jsonify:
+        '''
+        Get method to get the application group objects for a device.
+
+        Args:
+            config (AppSettings): The application settings object.
+
+        Returns:
+            jsonify: The application group objects for the device.
+        '''
+
+        # Get the application group objects from the device
+        device = request.args.get('id')
+        sql_server = config.sql_server
+        sql_database = config.sql_database
+        table = 'devices'
+
+        # Read the device details from the database
+        with SqlServer(
+            server=sql_server,
+            database=sql_database,
+            table=table,
+        ) as sql:
+            output = sql.read(
+                field='id',
+                value=device,
+            )
+
+        # Return a failure message if the database read failed
+        if not output:
+            return jsonify(
+                {
+                    "result": "Failure",
+                    "message": "Problems reading from the database"
+                }
+            ), 500
+
+        # Extract the details from the SQL output
+        hostname = output[0][1]
+        token = output[0][9]
+
+        # Create the device object
+        device_api = DeviceApi(
+            hostname=hostname,
+            rest_key=token,
+            version='v11.0'
+        )
+
+        # The application groups from the device
+        raw_application_groups = device_api.get_application_groups()
+
+        # A cleaned up list of application groups
+        application_group_list = []
+        for application_group in raw_application_groups:
+            entry = {}
+            entry["name"] = application_group['@name']
+            entry["members"] = application_group['members']
+            application_group_list.append(entry)
+
+        # Sort the application groups by name
+        application_group_list.sort(key=lambda x: x['name'])
+
+        # Return the application groups as JSON
+        return jsonify(application_group_list)
+
+
+class GetServicesView(MethodView):
+    '''
+    GetServicesView class to get service objects for a device.
+
+    Methods:
+        get: Get method to get the service objects for a device.
+    '''
+
+    def get(
+        self,
+        config: AppSettings,
+    ) -> jsonify:
+        '''
+        Get method to get the service objects for a device.
+
+        Args:
+            config (AppSettings): The application settings object.
+
+        Returns:
+            jsonify: The service objects for the device.
+        '''
+
+        # Get the service objects from the device
+        device = request.args.get('id')
+        sql_server = config.sql_server
+        sql_database = config.sql_database
+        table = 'devices'
+
+        # Read the device details from the database
+        with SqlServer(
+            server=sql_server,
+            database=sql_database,
+            table=table,
+        ) as sql:
+            output = sql.read(
+                field='id',
+                value=device,
+            )
+
+        # Return a failure message if the database read failed
+        if not output:
+            return jsonify(
+                {
+                    "result": "Failure",
+                    "message": "Problems reading from the database"
+                }
+            ), 500
+
+        # Extract the details from the SQL output
+        hostname = output[0][1]
+        token = output[0][9]
+
+        # Create the device object
+        device_api = DeviceApi(
+            hostname=hostname,
+            rest_key=token,
+            version='v11.0'
+        )
+
+        # The service objects from the device
+        raw_services = device_api.get_services()
+
+        # A cleaned up list of service objects
+        services_list = []
+        for service in raw_services:
+            entry = {}
+            entry["name"] = service['@name']
+            entry["protocol"] = service['protocol']
+            entry["tag"] = service['tag']
+            entry["description"] = service['description']
+            services_list.append(entry)
+
+        # Sort the service objects by name
+        services_list.sort(key=lambda x: x['name'])
+
+        # Return the service objects as JSON
+        return jsonify(services_list)
+
+
+class GetServiceGroupView(MethodView):
+    '''
+    GetServiceGroupView class to get service groups for a device.
+
+    Methods:
+        get: Get method to get the service groups for a device.
+    '''
+
+    def get(
+        self,
+        config: AppSettings,
+    ) -> jsonify:
+        '''
+        Get method to get the service groups for a device.
+
+        Args:
+            config (AppSettings): The application settings object.
+
+        Returns:
+            jsonify: The service groups for the device.
+        '''
+
+        # Get the service groups from the device
+        device = request.args.get('id')
+        sql_server = config.sql_server
+        sql_database = config.sql_database
+        table = 'devices'
+
+        # Read the device details from the database
+        with SqlServer(
+            server=sql_server,
+            database=sql_database,
+            table=table,
+        ) as sql:
+            output = sql.read(
+                field='id',
+                value=device,
+            )
+
+        # Return a failure message if the database read failed
+        if not output:
+            return jsonify(
+                {
+                    "result": "Failure",
+                    "message": "Problems reading from the database"
+                }
+            ), 500
+
+        # Extract the details from the SQL output
+        hostname = output[0][1]
+        token = output[0][9]
+
+        # Create the device object
+        device_api = DeviceApi(
+            hostname=hostname,
+            rest_key=token,
+            version='v11.0'
+        )
+
+        # The service groups from the device
+        raw_service_groups = device_api.get_service_groups()
+
+        # A cleaned up list of service groups
+        service_groups_list = []
+        for service in raw_service_groups:
+            entry = {}
+            entry["name"] = service['@name']
+            entry["members"] = service['members']
+            entry["tag"] = service['tag']
+            service_groups_list.append(entry)
+
+        # Sort the service groups by name
+        service_groups_list.sort(key=lambda x: x['name'])
+
+        # Return the service groups as JSON
+        return jsonify(service_groups_list)
