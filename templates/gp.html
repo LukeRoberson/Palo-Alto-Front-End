@@ -2,8 +2,52 @@
 
 {% block content %}
 
-<header class="w3-container w3-teal">
-    <h1>Global Protect</h1>
-</header>
+<div class="w3-container">
+    <header class="w3-container">
+        <h2>Global Protect</h2>
+    </header>
+
+    <!-- Device Selector -->
+    <div class="w3-row">
+        <div class="w3-col m2 w3-center" style="visibility: hidden";>Hidden column for a nice display</div>
+        <div class="w3-col m8 w3-center">
+            <header class="w3-container w3-blue">
+                <div class="w3-dropdown-hover w3-blue">
+                    <h3>Select Devices</h3>
+                </div>
+            </header>
+            <div class="w3-container w3-margin">
+                <input class="w3-check" type="checkbox" checked="checked">
+                <label>Device #1</label>
+                <input class="w3-check" type="checkbox" checked="checked">
+                <label>Device #2</label>
+            </div>
+            <footer class="w3-container w3-blue">
+                <button class="w3-button w3-block w3-blue">
+                    Get Session Info
+                </button>
+            </footer>
+        </div>
+        <div class="w3-col m2 w3-center" style="visibility: hidden";>Hidden column for a nice display</div>
+    </div>
+
+    <br><br>
+
+    <!-- Session Info table -->
+    <header class="w3-container w3-green">
+        <h3>Global Protect Sessions</h3>
+    </header>
+    <div class="w3-container">
+        <div class="w3-card-4">
+            <div id="sessionAccordion" class="w3-container w3-margin">
+                <ul>
+                    <li>Hello</li>
+                </ul>
+                <!-- Dynamic content goes here -->
+            </div>
+        </div>
+    </div>
+
+</div>
 
 {% endblock %}
