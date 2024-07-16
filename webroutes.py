@@ -1411,3 +1411,357 @@ class GetServiceGroupView(MethodView):
 
         # Return the service groups as JSON
         return jsonify(service_groups_list)
+
+
+class GetNatPolicyView(MethodView):
+    '''
+    GetNatPolicyView class to get NAT policies for a device.
+
+    Methods:
+        get: Get method to get the NAT policies for a device.
+    '''
+
+    def get(
+        self,
+        config: AppSettings,
+    ) -> jsonify:
+        '''
+        Get method to get the NAT policies for a device.
+
+        Args:
+            config (AppSettings): The application settings object.
+
+        Returns:
+            jsonify: The NAT policies for the device.
+        '''
+
+        # Get the NAT policies from the device
+        device = request.args.get('id')
+        sql_server = config.sql_server
+        sql_database = config.sql_database
+        table = 'devices'
+
+        # Read the device details from the database
+        with SqlServer(
+            server=sql_server,
+            database=sql_database,
+            table=table,
+        ) as sql:
+            output = sql.read(
+                field='id',
+                value=device,
+            )
+
+        # Return a failure message if the database read failed
+        if not output:
+            return jsonify(
+                {
+                    "result": "Failure",
+                    "message": "Problems reading from the database"
+                }
+            ), 500
+
+        # Extract the details from the SQL output
+        hostname = output[0][1]
+        token = output[0][9]
+
+        # Create the device object
+        device_api = DeviceApi(
+            hostname=hostname,
+            rest_key=token,
+            version='v11.0'
+        )
+
+        # The NAT policies from the device
+        raw_nat = device_api.get_nat_policies()
+
+        # A cleaned up list of NAT policies
+        nat_list = []
+        for policy in raw_nat:
+            entry = {}
+            entry["name"] = policy['@name']
+            entry["source_trans"] = policy.get('source-translation', 'None')
+            entry["to"] = policy.get('to', 'None')
+            entry["from"] = policy.get('from', 'None')
+            entry["source"] = policy.get('source', 'None')
+            entry["destination"] = policy.get('destination', 'None')
+            entry["service"] = policy.get('service', 'None')
+            entry["tag"] = policy.get('tag', 'None')
+            entry["tag_group"] = policy.get('group-tag', 'None')
+            entry["description"] = policy.get('description', 'None')
+            nat_list.append(entry)
+
+        # Sort the NAT policies by name
+        nat_list.sort(key=lambda x: x['name'])
+
+        # Return the NAT policies as JSON
+        return jsonify(nat_list)
+
+
+class GetSecurityPolicyView(MethodView):
+    '''
+    GetSecurityPolicyView class to get security policies for a device.
+
+    Methods:
+        get: Get method to get the security policies for a device.
+    '''
+
+    def get(
+        self,
+        config: AppSettings,
+    ) -> jsonify:
+        '''
+        Get method to get the security policies for a device.
+
+        Args:
+            config (AppSettings): The application settings object.
+
+        Returns:
+            jsonify: The security policies for the device.
+        '''
+
+        # Get the security policies from the device
+        device = request.args.get('id')
+        sql_server = config.sql_server
+        sql_database = config.sql_database
+        table = 'devices'
+
+        # Read the device details from the database
+        with SqlServer(
+            server=sql_server,
+            database=sql_database,
+            table=table,
+        ) as sql:
+            output = sql.read(
+                field='id',
+                value=device,
+            )
+
+        # Return a failure message if the database read failed
+        if not output:
+            return jsonify(
+                {
+                    "result": "Failure",
+                    "message": "Problems reading from the database"
+                }
+            ), 500
+
+        # Extract the details from the SQL output
+        hostname = output[0][1]
+        token = output[0][9]
+
+        # Create the device object
+        device_api = DeviceApi(
+            hostname=hostname,
+            rest_key=token,
+            version='v11.0'
+        )
+
+        # The security policies from the device
+        raw_security = device_api.get_security_policies()
+
+        # A cleaned up list of security policies
+        security_list = []
+        for rule in raw_security:
+            entry = {}
+            entry["name"] = rule['@name']
+            entry["to"] = rule.get('to', 'None')
+            entry["from"] = rule.get('from', 'None')
+            entry["source"] = rule.get('source', 'None')
+            entry["destination"] = rule.get('destination', 'None')
+            entry["source_user"] = rule.get('source-user', 'None')
+            entry["category"] = rule.get('category', 'None')
+            entry["application"] = rule.get('application', 'None')
+            entry["service"] = rule.get('service', 'None')
+            entry["action"] = rule.get('action', 'None')
+            entry["type"] = rule.get('rule-tupe', 'None')
+            entry["log"] = rule.get('log-setting', 'None')
+            entry["log_start"] = rule.get('log-start', 'None')
+            entry["log_end"] = rule.get('log-end', 'None')
+            entry["disabled"] = rule.get('disabled', 'None')
+            entry["tag"] = rule.get('tag', 'None')
+            entry["tag_group"] = rule.get('group-tag', 'None')
+            entry["description"] = rule.get('description', 'None')
+            security_list.append(entry)
+
+        # Sort the security policies by name
+        security_list.sort(key=lambda x: x['name'])
+
+        # Return the security policies as JSON
+        return jsonify(security_list)
+
+
+class GetQoSPolicyView(MethodView):
+    '''
+    GetQoSPolicyView class to get QoS policies for a device.
+
+    Methods:
+        get: Get method to get the QoS policies for a device.
+    '''
+
+    def get(
+        self,
+        config: AppSettings,
+    ) -> jsonify:
+        '''
+        Get method to get the QoS policies for a device.
+
+        Args:
+            config (AppSettings): The application settings object.
+
+        Returns:
+            jsonify: The QoS policies for the device.
+        '''
+
+        # Get the QoS policies from the device
+        device = request.args.get('id')
+        sql_server = config.sql_server
+        sql_database = config.sql_database
+        table = 'devices'
+
+        # Read the device details from the database
+        with SqlServer(
+            server=sql_server,
+            database=sql_database,
+            table=table,
+        ) as sql:
+            output = sql.read(
+                field='id',
+                value=device,
+            )
+
+        # Return a failure message if the database read failed
+        if not output:
+            return jsonify(
+                {
+                    "result": "Failure",
+                    "message": "Problems reading from the database"
+                }
+            ), 500
+
+        # Extract the details from the SQL output
+        hostname = output[0][1]
+        token = output[0][9]
+
+        # Create the device object
+        device_api = DeviceApi(
+            hostname=hostname,
+            rest_key=token,
+            version='v11.0'
+        )
+
+        # The QoS policies from the device
+        raw_qos = device_api.get_qos_policies()
+
+        # A cleaned up list of security policies
+        security_list = []
+        for rule in raw_qos:
+            entry = {}
+            entry["name"] = rule['@name']
+            entry["to"] = rule.get('to', 'None')
+            entry["from"] = rule.get('from', 'None')
+            entry["source"] = rule.get('source', 'None')
+            entry["destination"] = rule.get('destination', 'None')
+            entry["source_user"] = rule.get('source-user', 'None')
+            entry["category"] = rule.get('category', 'None')
+            entry["application"] = rule.get('application', 'None')
+            entry["service"] = rule.get('service', 'None')
+            entry["action"] = rule.get('action', 'None')
+            entry["dscp"] = rule.get('dscp-tos', 'None')
+            entry["tag"] = rule.get('tag', 'None')
+            entry["tag_group"] = rule.get('group-tag', 'None')
+            entry["description"] = rule.get('description', 'None')
+            security_list.append(entry)
+
+        # Sort the security policies by name
+        security_list.sort(key=lambda x: x['name'])
+
+        # Return the security policies as JSON
+        return jsonify(security_list)
+
+
+class GetGPSessionsView(MethodView):
+    '''
+    GetGPSessionsView class to get active Global Protect sessions for a device.
+
+    Methods:
+        get: Get method to get the Global Protect sessions for a device.
+    '''
+
+    def get(
+        self,
+        config: AppSettings,
+    ) -> jsonify:
+        '''
+        Get method to get the Global Protect sessions for a device.
+
+        Args:
+            config (AppSettings): The application settings object.
+
+        Returns:
+            jsonify: The Global Protect sessions for the device.
+        '''
+
+        # Get the Global Protect sessions from the device
+        device = request.args.get('id')
+        sql_server = config.sql_server
+        sql_database = config.sql_database
+        table = 'devices'
+
+        # Read the device details from the database
+        with SqlServer(
+            server=sql_server,
+            database=sql_database,
+            table=table,
+        ) as sql:
+            output = sql.read(
+                field='id',
+                value=device,
+            )
+
+        # Return a failure message if the database read failed
+        if not output:
+            return jsonify(
+                {
+                    "result": "Failure",
+                    "message": "Problems reading from the database"
+                }
+            ), 500
+
+        # Extract the details from the SQL output
+        hostname = output[0][1]
+        token = output[0][9]
+
+        # Create the device object
+        device_api = DeviceApi(
+            hostname=hostname,
+            rest_key=token,
+            version='v11.0'
+        )
+
+        # The Global Protect sessions from the device
+        raw_gp_sessions = device_api.get_gp_sessions()
+
+        # A cleaned up list of Global Protect sessions
+        session_list = []
+        for session in raw_gp_sessions:
+            entry = {}
+            entry["name"] = session.get('username', 'None')
+            entry["username"] = session.get('primary-username', 'None')
+            entry["region"] = session.get('source-region', 'None')
+            entry["computer"] = session.get('computer', 'None')
+            entry["client"] = session.get('client', 'None')
+            entry["vpn_type"] = session.get('vpn-type', 'None')
+            entry["host"] = session.get('host-id', 'None')
+            entry["version"] = session.get('app-version', 'None')
+            entry["inside_ip"] = session.get('virtual-ip', 'None')
+            entry["outside_ip"] = session.get('public-ip', 'None')
+            entry["tunnel_type"] = session.get('tunnel-type', 'None')
+            entry["login"] = session.get('login-time', 'None')
+            session_list.append(entry)
+
+        # Sort the security policies by name
+        session_list.sort(key=lambda x: x['name'])
+
+        # Return the security policies as JSON
+        return jsonify(session_list)

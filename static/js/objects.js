@@ -37,7 +37,7 @@ fetch('/device_list')
  * @param {*} selector          - The selector for the dropdown element
  * @param {*} hoverColorClass   - The hover color class to apply to
  * @param {*} devices           - The list of devices to populate the dropdown with
- * @param {*} divId           - The ID of the table to update when a device is selected
+ * @param {*} divId             - The ID of the table to update when a device is selected
  */
 function populateDropdownWithData(selector, hoverColorClass, devices, divId) {
     // Get the dropdown and the button
@@ -68,6 +68,9 @@ function populateDropdownWithData(selector, hoverColorClass, devices, divId) {
             if (divId.includes('applicationGroupAccordion')) updateApplicationGroupsTable(device.device_id, divId);
             if (divId.includes('serviceAccordion')) updateServicesTable(device.device_id, divId);
             if (divId.includes('serviceGroupAccordion')) updateServiceGroupsTable(device.device_id, divId);
+            if (divId.includes('natAccordion')) updateNatTable(device.device_id, divId);
+            if (divId.includes('securityAccordion')) updateSecurityTable(device.device_id, divId);
+            if (divId.includes('qosAccordion')) updateQosTable(device.device_id, divId);
         });
 
         // Append the link to the dropdown

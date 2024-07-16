@@ -38,6 +38,10 @@ from webroutes import (
     GetApplicationGroupsView,
     GetServicesView,
     GetServiceGroupView,
+    GetNatPolicyView,
+    GetSecurityPolicyView,
+    GetQoSPolicyView,
+    GetGPSessionsView,
 )
 
 from flask_azure_oauth import FlaskAzureOauth
@@ -275,6 +279,34 @@ app.add_url_rule(
 app.add_url_rule(
     '/get_service_groups',
     view_func=GetServiceGroupView.as_view('get_service_groups'),
+    defaults={'config': config}
+)
+
+# Get the NAT Policies from the device
+app.add_url_rule(
+    '/get_nat_policies',
+    view_func=GetNatPolicyView.as_view('get_nat_policies'),
+    defaults={'config': config}
+)
+
+# Get the Security Policies from the device
+app.add_url_rule(
+    '/get_security_policies',
+    view_func=GetSecurityPolicyView.as_view('get_security_policies'),
+    defaults={'config': config}
+)
+
+# Get the QoS Policies from the device
+app.add_url_rule(
+    '/get_qos_policies',
+    view_func=GetQoSPolicyView.as_view('get_qos_policies'),
+    defaults={'config': config}
+)
+
+# Get the Global Protect sessions from the device
+app.add_url_rule(
+    '/get_gp_sessions',
+    view_func=GetGPSessionsView.as_view('get_gp_sessions'),
     defaults={'config': config}
 )
 
