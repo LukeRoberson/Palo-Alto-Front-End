@@ -14,8 +14,8 @@
 fetch('/device_list')
 .then(response => response.json())
 .then(devices => {
-    populateDropdownWithData('#tagDropdownA', 'w3-hover-blue', devices, 'tagTableA');
-    populateDropdownWithData('#tagDropdownB', 'w3-hover-green', devices, 'tagTableB');
+    populateDropdownWithData('#tagDropdownA', 'w3-hover-blue', devices, 'tagAccordionA');
+    populateDropdownWithData('#tagDropdownB', 'w3-hover-green', devices, 'tagAccordionB');
     populateDropdownWithData('#addressDropdownA', 'w3-hover-blue', devices, 'addressAccordionA');
     populateDropdownWithData('#addressDropdownB', 'w3-hover-green', devices, 'addressAccordionB');
     populateDropdownWithData('#addressGroupDropdownA', 'w3-hover-blue', devices, 'addressGroupAccordionA');
@@ -62,7 +62,7 @@ function populateDropdownWithData(selector, hoverColorClass, devices, divId) {
             button.textContent = device.device_name;
 
             // Fetch tags for the selected device using device_id and update the specified table
-            if (divId.includes('tag')) updateTagsTable(device.device_id, divId);
+            if (divId.includes('tagAccordion')) updateTagsTable(device.device_id, divId);
             if (divId.includes('addressAccordion')) updateAddressesTable(device.device_id, divId);
             if (divId.includes('addressGroupAccordion')) updateAddressGroupsTable(device.device_id, divId);
             if (divId.includes('applicationGroupAccordion')) updateApplicationGroupsTable(device.device_id, divId);
@@ -84,31 +84,52 @@ function populateDropdownWithData(selector, hoverColorClass, devices, divId) {
  * This is specific to the tags page and is called when a device is selected from the dropdown
  * 
  * @param {*} deviceId 
- * @param {*} tableId 
+ * @param {*} divId 
  */
-function updateTagsTable(deviceId, tableId) {
+function updateTagsTable(deviceId, divId) {
     // API call to fetch tags for the selected device
     fetch(`/get_tags?id=${encodeURIComponent(deviceId)}`)
     .then(response => response.json())
     .then(tags => {
-        // Get the table and clear it before populating it with the new tags
-        const table = document.getElementById(tableId);
+        // The div element to populate with the list of addresses
+        const divElement = document.getElementById(divId);
 
-        // Keep the header row and clear the rest of the table
-        table.innerHTML = table.rows[0].outerHTML;
-
-        // Populate the table with the list of tags
+        // Populate with the list of tags
         tags.forEach(tag => {
-            // Create new rows and cells for each tag
-            const row = table.insertRow(-1);
-            const nameCell = row.insertCell(0);
-            const descriptionCell = row.insertCell(1);
-            const colorCell = row.insertCell(2);
+            // Sanitize the address name to use as an ID
+            const sanitizedId = tag.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
 
-            // Populate the cells with the tag data
-            nameCell.textContent = tag.name;
-            descriptionCell.textContent = tag.description || 'No description available';
-            colorCell.textContent = tag.colour;
+            // Create a new button element for each address
+            const button = document.createElement('button');
+            button.className = 'w3-button w3-block w3-left-align';
+            button.textContent = tag.name;
+            button.onclick = function() { expandList(divId + '_' + sanitizedId) };
+
+            // Create list div
+            const div = document.createElement('div');
+            div.id = divId + '_' + sanitizedId;
+            div.className = 'w3-hide w3-border';
+
+            // Create ul
+            const ul = document.createElement('ul');
+            ul.className = 'indented-list';
+
+            // Create li elements for each address property
+            const descriptionLi = document.createElement('li');
+            descriptionLi.textContent = tag.description;
+            const colourLi = document.createElement('li');
+            colourLi.textContent = tag.colour;
+
+            // Append li elements to ul
+            ul.appendChild(descriptionLi);
+            ul.appendChild(colourLi);
+
+            // Append ul to div
+            div.appendChild(ul);
+
+            // Add items to the div element
+            divElement.appendChild(button);
+            divElement.appendChild(div);
         });
     })
     .catch(error => console.error('Error fetching tags:', error));
