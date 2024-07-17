@@ -41,7 +41,7 @@ body {
 
 /* Highlighting styles for comparison */
 /* Different items */
-.highlight-different {
+button.highlight-different {
     background-color: yellow;
 }
 

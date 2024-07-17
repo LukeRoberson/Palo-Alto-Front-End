@@ -1,12 +1,20 @@
 /*
     Compare lists and highlight differences
 
-    Starts by comparing the tables and adding missing entries
-        Missing entries are added to the respective table, and highlighted in red
-        Tables are then sorted alphabetically, so the entries line up
+    The structure of the items is:
+        1. A parent containter, with a list of divs (divs are dynamically created in object.js)
+        2. Each div contains a button and a list div
+        3. The button is the name of an object, and expands the list div when clicked
+        4. The list div contains a list (ul) of properties for the object
+
+    Compares the lists (arrays) and adding missing entries
+        The arrays are global variables created in object.js
+        Missing entries are added to the respective list and div, then highlighted in red
+        The lists and parent divs are sorted alphabetically based on the name of the object
     
-    Then, the tables are compared again, and entries that are different are highlighted in yellow
-        Entries that are in both tables, but are different, are highlighted in yellow
+    Now the lists will align, so they are compared for differences
+        The lists are compared for differences, and the buttons are highlighted in yellow
+        The properties of the objects are compared, not just the name
 */
 
 
@@ -15,13 +23,15 @@ document.getElementById('tag_compare').addEventListener('click', function() {
     let listAContainer = document.getElementById('tagAccordionA');
     let listBContainer = document.getElementById('tagAccordionB');
 
-    // Compare
+    // Find missing items, update the lists, and sort them
     compareLists(tagListA, tagListB, listAContainer, listBContainer);
-
-    // Call the function with the selector of the parent container
     sortDivsByIdSuffix('#tagAccordionA');
     sortDivsByIdSuffix('#tagAccordionB');
 
+    // Find differences and highlight them (need to sort first to ensure the lists are in the same order)
+    tagListA.sort((a, b) => a.name.localeCompare(b.name));
+    tagListB.sort((a, b) => a.name.localeCompare(b.name));
+    highlightDifferences(tagListA, tagListB, listAContainer, listBContainer);
 });
 
 
@@ -55,6 +65,9 @@ function compareAndAppend(firstList, secondList, firstContainer, secondContainer
     firstList.forEach(object => {
         // If the element is not in the second list, add it
         if (!secondList.find(element => element.name === object.name)) {
+            // Add to the list
+            secondList.push(object);
+
             // Create objects for the missing elements
             const sanitizedId = sanitizeId(object.name);
             const parentDiv = createElement('div', {id: firstContainer.id + '_' + sanitizedId});
@@ -69,7 +82,6 @@ function compareAndAppend(firstList, secondList, firstContainer, secondContainer
             // Append the list and button to the parent div
             listDiv.appendChild(ul);
             parentDiv.append(button, listDiv);
-            console.log(parentDiv);
 
             // Append the parent div to the second container
             secondContainer.appendChild(parentDiv);
@@ -119,7 +131,6 @@ function createButton (element, listContainer, sanitizedId) {
     button.textContent = element.name;
     button.classList.add('highlight-missing');
     button.onclick = function() { expandList(listContainer.id + '_' + sanitizedId) };
-    console.log(listContainer + '_' + sanitizedId)
 
     return button;
 }
@@ -174,4 +185,56 @@ function sortDivsByIdSuffix(parentSelector) {
     divsArray.forEach(div => {
         parent.appendChild(div);
     });
+}
+
+
+/**
+ * Finds objects that are different between two lists
+ * Looks at properties, not just the name
+ * 
+ * @param {*} listA 
+ * @param {*} listB 
+ * @param {*} containerA 
+ * @param {*} containerB 
+ */
+function highlightDifferences(listA, listB, containerA, containerB) {
+    // Loop through the first list
+    listA.forEach((itemA, index) => {
+        // The corresponding item in the second list (to compare to)
+        const itemB = listB[index];
+
+        // Compare the two items
+        if (areObjectsDifferent(itemA, itemB)) {
+            // Select the two buttons, and apply CSS to highlight
+            const buttonA = containerA.querySelector(`#${containerA.id}_${sanitizeId(itemA.name)} button`);
+            const buttonB = containerB.querySelector(`#${containerB.id}_${sanitizeId(itemB.name)} button`);
+            buttonA.classList.add('highlight-different');
+            buttonB.classList.add('highlight-different');
+        }
+    });
+}
+
+
+/**
+ * Compare if two JS objects are different
+ * Return true or false depending on the result
+ * 
+ * @param {*} obj1 
+ * @param {*} obj2 
+ * @returns 
+ */
+function areObjectsDifferent(obj1, obj2) {
+    // Get all keys from both objects
+    const allKeys = new Set([...Object.keys(obj1), ...Object.keys(obj2)]);
+
+    // Iterate over all keys to check for differences
+    for (let key of allKeys) {
+        if (obj1[key] !== obj2[key]) {
+            // If any property is different, return true
+            return true;
+        }
+    }
+
+    // If no differences are found, return false
+    return false;
 }
