@@ -10,7 +10,7 @@
 */
 
 
-// Event listener for the compare button
+// Event listener for the compare button on the tags page
 document.getElementById('tag_compare').addEventListener('click', function() {
     let listAContainer = document.getElementById('tagAccordionA');
     let listBContainer = document.getElementById('tagAccordionB');
@@ -25,105 +25,130 @@ document.getElementById('tag_compare').addEventListener('click', function() {
 });
 
 
+/**
+ * Compare two lists and highlight differences
+ * Just calls compareAndAppend twice, swapping the lists around
+ * 
+ * @param {*} listA 
+ * @param {*} listB 
+ * @param {*} listAContainer 
+ * @param {*} listBContainer 
+ */
 function compareLists(listA, listB, listAContainer, listBContainer) {
-    // Loop through each object in listA
-    listA.forEach(tag => {
-        // Check if this tag is in listB; If not, 'foundInB' will be undefined
-        const foundInB = listB.find(bElement => bElement.name === tag.name);
+    compareAndAppend(listA, listB, listAContainer, listBContainer);
+    compareAndAppend(listB, listA, listBContainer, listAContainer);
+}
 
-        // When an entry is missing, create the elements for comparison
-        if (!foundInB) {
-            // Sanitize the ID, which will be used for the div and button IDs
-            const sanitizedId = tag.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
 
-            // Create HTML elements
-            parentDiv = document.createElement('div');
-            parentDiv.id = listAContainer.id + '_' + sanitizedId;
-            button = createButton(tag, listBContainer, sanitizedId);
-            listDiv = createDiv(listBContainer, sanitizedId);
-            ul = createUl();
+/**
+ * Compare two lists
+ * Find elements in the first list that are not in the second list
+ * Append the missing item to the second list
+ * 
+ * @param {*} firstList 
+ * @param {*} secondList 
+ * @param {*} firstContainer 
+ * @param {*} secondContainer 
+ */
+function compareAndAppend(firstList, secondList, firstContainer, secondContainer) {
+    // Loop through the first list
+    firstList.forEach(object => {
+        // If the element is not in the second list, add it
+        if (!secondList.find(element => element.name === object.name)) {
+            // Create objects for the missing elements
+            const sanitizedId = sanitizeId(object.name);
+            const parentDiv = createElement('div', {id: firstContainer.id + '_' + sanitizedId});
+            const button = createButton(object, secondContainer, sanitizedId);
+            const listDiv = createDiv(secondContainer, sanitizedId);
+            const ul = createElement('ul', {className: 'indented-list'});
 
-            // Create li elements
-            const descriptionLi = document.createElement('li');
-            const colourLi = document.createElement('li');
-            descriptionLi.textContent = tag.description;
-            colourLi.textContent = tag.colour;
-            ul.appendChild(descriptionLi);
-            ul.appendChild(colourLi);
+            // Add the missing elements to the list div
+            ul.appendChild(createElement('li', {textContent: object.description}));
+            ul.appendChild(createElement('li', {textContent: object.colour}));
 
-            // Append elements
+            // Append the list and button to the parent div
             listDiv.appendChild(ul);
-            parentDiv.appendChild(button);
-            parentDiv.appendChild(listDiv);
-            listBContainer.appendChild(parentDiv);
-        }
-    });
+            parentDiv.append(button, listDiv);
+            console.log(parentDiv);
 
-    // Loop through each object in listB
-    listB.forEach(tag => {
-        // Check if this tag is in listA; If not, 'foundInA' will be undefined
-        const foundInA = listA.find(aElement => aElement.name === tag.name);
-
-        // When an entry is missing, create the elements for comparison
-        if (!foundInA) {
-            // Sanitize the ID, which will be used for the div and button IDs
-            const sanitizedId = tag.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
-
-            // Create HTML elements
-            parentDiv = document.createElement('div');
-            parentDiv.id = listBContainer.id + '_' + sanitizedId;
-            button = createButton(tag, listAContainer, sanitizedId);
-            listDiv = createDiv(listAContainer, sanitizedId);
-            ul = createUl();
-
-            // Create li elements
-            const descriptionLi = document.createElement('li');
-            const colourLi = document.createElement('li');
-            descriptionLi.textContent = tag.description;
-            colourLi.textContent = tag.colour;
-            ul.appendChild(descriptionLi);
-            ul.appendChild(colourLi);
-
-            // Append elements
-            listDiv.appendChild(ul);
-            parentDiv.appendChild(button);
-            parentDiv.appendChild(listDiv);
-            listAContainer.appendChild(parentDiv);
+            // Append the parent div to the second container
+            secondContainer.appendChild(parentDiv);
         }
     });
 }
 
 
+/**
+ * Sanatize a name so it can be used in dynamically created IDs
+ * 
+ * @param {*} name 
+ * @returns 
+ */
+function sanitizeId(name) {
+    return name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
+}
+
+
+/**
+ * Creates HTML tags (elements) with properties
+ * 
+ * @param {*} tag 
+ * @param {*} properties 
+ * @returns 
+ */
+function createElement(tag, properties = {}) {
+    const element = document.createElement(tag);
+    
+    // Create the element with the given properties
+    Object.entries(properties).forEach(([key, value]) => element[key] = value);
+    return element;
+}
+
+
+/**
+ * Create a button element for a list item
+ * 
+ * @param {*} element 
+ * @param {*} listContainer 
+ * @param {*} sanitizedId 
+ * @returns 
+ */
 function createButton (element, listContainer, sanitizedId) {
-    // Create a button
     const button = document.createElement('button');
     button.className = 'w3-button w3-block w3-left-align';
     button.textContent = element.name;
     button.classList.add('highlight-missing');
-    button.onclick = function() { expandList(listContainer + '_' + sanitizedId) };
+    button.onclick = function() { expandList(listContainer.id + '_' + sanitizedId) };
+    console.log(listContainer + '_' + sanitizedId)
 
     return button;
 }
 
 
+/**
+ * Create a div element for a list
+ * This will be in parallel with the button in a parent div
+ * 
+ * @param {*} container 
+ * @param {*} sanitizedId 
+ * @returns 
+ */
 function createDiv(container, sanitizedId) {
-    // Create list div
-    const div = document.createElement('div');
-    div.id = container.id + '_' + sanitizedId;
-    div.className = 'w3-hide w3-border';
+    const listDiv = document.createElement('div');
+    listDiv.id = container.id + '_' + sanitizedId;
+    listDiv.className = 'w3-hide w3-border';
 
-    return div;
+    return listDiv;
 }
 
 
-function createUl() {
-    const ul = document.createElement('ul');
-    ul.className = 'indented-list';
-
-    return ul;
-}
-
-
+/**
+ * Sorts parent divs based on the suffix of the 'id' attribute
+ * These divs contain a button and a list div
+ * 
+ * @param {*} parentSelector 
+ * @returns 
+ */
 function sortDivsByIdSuffix(parentSelector) {
     // Select the parent container
     const parent = document.querySelector(parentSelector);
@@ -135,7 +160,7 @@ function sortDivsByIdSuffix(parentSelector) {
     }
 
     // Get all divs as an array
-    const divsArray = Array.from(parent.querySelectorAll('div'));
+    const divsArray = Array.from(parent.querySelectorAll(':scope > div'));
     
     // Sort the array based on the suffix of the 'id' attribute, safely handling missing attributes
     divsArray.sort((a, b) => {
@@ -145,12 +170,6 @@ function sortDivsByIdSuffix(parentSelector) {
         return idA.localeCompare(idB);
     });
     
-    // Clear existing content in the parent container
-    // while (parent.firstChild) {
-    //     parent.removeChild(parent.firstChild);
-    // }
-    console.log(divsArray)
-
     // Re-append the divs in sorted order
     divsArray.forEach(div => {
         parent.appendChild(div);
