@@ -19,7 +19,7 @@
 
 
 // Event listener for the compare button on the tags page
-document.getElementById('tag_compare').addEventListener('click', function() {
+document.getElementById('tagCompare').addEventListener('click', function() {
     let listAContainer = document.getElementById('tagAccordionA');
     let listBContainer = document.getElementById('tagAccordionB');
 
@@ -32,6 +32,23 @@ document.getElementById('tag_compare').addEventListener('click', function() {
     tagListA.sort((a, b) => a.name.localeCompare(b.name));
     tagListB.sort((a, b) => a.name.localeCompare(b.name));
     highlightDifferences(tagListA, tagListB, listAContainer, listBContainer);
+});
+
+
+// Event listener for the compare button on the address page
+document.getElementById('addressObjectsCompare').addEventListener('click', function() {
+    let listAContainer = document.getElementById('addressAccordionA');
+    let listBContainer = document.getElementById('addressAccordionB');
+
+    // Find missing items, update the lists, and sort them
+    compareLists(addressListA, addressListB, listAContainer, listBContainer);
+    sortDivsByIdSuffix('#addressAccordionA');
+    sortDivsByIdSuffix('#addressAccordionB');
+
+    // Find differences and highlight them (need to sort first to ensure the lists are in the same order)
+    addressListA.sort((a, b) => a.name.localeCompare(b.name));
+    addressListB.sort((a, b) => a.name.localeCompare(b.name));
+    highlightDifferences(addressListA, addressListB, listAContainer, listBContainer);
 });
 
 

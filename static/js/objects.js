@@ -200,11 +200,11 @@ function updateAddressesTable(deviceId, divId) {
             const button = document.createElement('button');
             button.className = 'w3-button w3-block w3-left-align';
             button.textContent = address.name;
-            button.onclick = function() { expandList(divId + '_' + sanitizedId) };
+            button.onclick = function() { expandList(divId + '_list_' + sanitizedId) };
 
             // Create list div
             const listDiv = document.createElement('div');
-            listDiv.id = divId + '_' + sanitizedId;
+            listDiv.id = divId + '_list_' + sanitizedId;
             listDiv.className = 'w3-hide w3-border';
 
             // Create ul
@@ -282,12 +282,12 @@ function updateAddressGroupsTable(deviceId, divId) {
             const button = document.createElement('button');
             button.className = 'w3-button w3-block w3-left-align';
             button.textContent = address.name;
-            button.onclick = function() { expandList(divId + '_' + sanitizedId) };
+            button.onclick = function() { expandList(divId + '_list_' + sanitizedId) };
 
             // Create list div
-            const div = document.createElement('div');
-            div.id = divId + '_' + sanitizedId;
-            div.className = 'w3-hide w3-border';
+            const listDiv = document.createElement('div');
+            listDiv.id = divId + '_list_' + sanitizedId;
+            listDiv.className = 'w3-hide w3-border';
 
             // Create ul
             const ul = document.createElement('ul');
@@ -307,7 +307,7 @@ function updateAddressGroupsTable(deviceId, divId) {
             ul.appendChild(tagLi);
 
             // Append ul to div
-            div.appendChild(ul);
+            listDiv.appendChild(ul);
 
             // Add items to the div element
             parentDiv.appendChild(button);
@@ -364,12 +364,12 @@ function updateApplicationGroupsTable(deviceId, divId) {
             const button = document.createElement('button');
             button.className = 'w3-button w3-block w3-left-align';
             button.textContent = appGroup.name;
-            button.onclick = function() { expandList(divId + '_' + sanitizedId) };
+            button.onclick = function() { expandList(divId + '_list_' + sanitizedId) };
 
             // Create list div
-            const div = document.createElement('div');
-            div.id = divId + '_' + sanitizedId;
-            div.className = 'w3-hide w3-border';
+            const listDiv = document.createElement('div');
+            listDiv.id = divId + '_list_' + sanitizedId;
+            listDiv.className = 'w3-hide w3-border';
 
             // Create ul
             const ul = document.createElement('ul');
@@ -383,7 +383,7 @@ function updateApplicationGroupsTable(deviceId, divId) {
             ul.appendChild(appLi);
 
             // Append ul to div
-            div.appendChild(ul);
+            listDiv.appendChild(ul);
 
             // Add items to the div element
             parentDiv.appendChild(button);
@@ -438,12 +438,12 @@ function updateServicesTable(deviceId, divId) {
             const button = document.createElement('button');
             button.className = 'w3-button w3-block w3-left-align';
             button.textContent = service.name;
-            button.onclick = function() { expandList(divId + '_' + sanitizedId) };
+            button.onclick = function() { expandList(divId + '_list_' + sanitizedId) };
 
             // Create list div
-            const div = document.createElement('div');
-            div.id = divId + '_' + sanitizedId;
-            div.className = 'w3-hide w3-border';
+            const listDiv = document.createElement('div');
+            listDiv.id = divId + '_list_' + sanitizedId;
+            listDiv.className = 'w3-hide w3-border';
 
             // Create ul
             const ul = document.createElement('ul');
@@ -463,7 +463,7 @@ function updateServicesTable(deviceId, divId) {
             ul.appendChild(tagLi);
 
             // Append ul to div
-            div.appendChild(ul);
+            listDiv.appendChild(ul);
 
             // Add items to the div element
             parentDiv.appendChild(button);
@@ -520,12 +520,12 @@ function updateServiceGroupsTable(deviceId, divId) {
             const button = document.createElement('button');
             button.className = 'w3-button w3-block w3-left-align';
             button.textContent = group.name;
-            button.onclick = function() { expandList(divId + '_' + sanitizedId) };
+            button.onclick = function() { expandList(divId + '_list_' + sanitizedId) };
 
             // Create list div
-            const div = document.createElement('div');
-            div.id = divId + '_' + sanitizedId;
-            div.className = 'w3-hide w3-border';
+            const listDiv = document.createElement('div');
+            listDiv.id = divId + '_list_' + sanitizedId;
+            listDiv.className = 'w3-hide w3-border';
 
             // Create ul
             const ul = document.createElement('ul');
@@ -547,7 +547,7 @@ function updateServiceGroupsTable(deviceId, divId) {
             ul.appendChild(tagLi);
 
             // Append ul to div
-            div.appendChild(ul);
+            listDiv.appendChild(ul);
 
             // Add items to the div element
             parentDiv.appendChild(button);
@@ -558,7 +558,7 @@ function updateServiceGroupsTable(deviceId, divId) {
             const serviceGroupObject = {
                 name: group.name,
                 members: group.members.member.join(", "),
-                tag: group.tag.member.join(", "),
+                tag: group.tag.member?.join(", ") ?? 'No tags',
             };
             serviceGroupList.push(serviceGroupObject);
         });
