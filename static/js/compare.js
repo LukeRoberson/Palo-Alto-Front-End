@@ -18,38 +18,60 @@
 */
 
 
-// Event listener for the compare button on the tags page
+// Setup comparison for tags
 document.getElementById('tagCompare').addEventListener('click', function() {
-    let listAContainer = document.getElementById('tagAccordionA');
-    let listBContainer = document.getElementById('tagAccordionB');
-
-    // Find missing items, update the lists, and sort them
-    compareLists(tagListA, tagListB, listAContainer, listBContainer);
-    sortDivsByIdSuffix('#tagAccordionA');
-    sortDivsByIdSuffix('#tagAccordionB');
-
-    // Find differences and highlight them (need to sort first to ensure the lists are in the same order)
-    tagListA.sort((a, b) => a.name.localeCompare(b.name));
-    tagListB.sort((a, b) => a.name.localeCompare(b.name));
-    highlightDifferences(tagListA, tagListB, listAContainer, listBContainer);
+    setupComparison('tagAccordionA', 'tagAccordionB', tagListA, tagListB);
 });
 
-
-// Event listener for the compare button on the address page
+// Setup comparison for addresses
 document.getElementById('addressObjectsCompare').addEventListener('click', function() {
-    let listAContainer = document.getElementById('addressAccordionA');
-    let listBContainer = document.getElementById('addressAccordionB');
+    setupComparison('addressAccordionA', 'addressAccordionB', addressListA, addressListB);
+});
+
+// Setup comparison for address groups
+document.getElementById('addressGroupCompare').addEventListener('click', function() {
+    setupComparison('addressGroupAccordionA', 'addressGroupAccordionB', addressGroupListA, addressGroupListB);
+});
+
+// Setup comparison for application groups
+document.getElementById('applicationGroupCompare').addEventListener('click', function() {
+    setupComparison('applicationGroupAccordionA', 'applicationGroupAccordionB', applicationGroupListA, applicationGroupListB);
+});
+
+// Setup comparison for services
+document.getElementById('serviceObjectCompare').addEventListener('click', function() {
+    setupComparison('serviceAccordionA', 'serviceAccordionB', serviceListA, serviceListB);
+});
+
+// Setup comparison for service groups
+document.getElementById('serviceGroupCompare').addEventListener('click', function() {
+    setupComparison('serviceGroupAccordionA', 'serviceGroupAccordionB', serviceGroupListA, serviceGroupListB);
+});
+
+
+/**
+ * Setup the comparison of two lists, as needed by the event listeners
+ * 
+ * @param {*} listAId 
+ * @param {*} listBId 
+ * @param {*} listA 
+ * @param {*} listB 
+ */
+function setupComparison(listAId, listBId, listA, listB) {
+    // Get the two parent containers
+    let listAContainer = document.getElementById(listAId);
+    let listBContainer = document.getElementById(listBId);
 
     // Find missing items, update the lists, and sort them
-    compareLists(addressListA, addressListB, listAContainer, listBContainer);
-    sortDivsByIdSuffix('#addressAccordionA');
-    sortDivsByIdSuffix('#addressAccordionB');
+    compareLists(listA, listB, listAContainer, listBContainer);
+    sortDivsByIdSuffix(`#${listAId}`);
+    sortDivsByIdSuffix(`#${listBId}`);
 
     // Find differences and highlight them (need to sort first to ensure the lists are in the same order)
-    addressListA.sort((a, b) => a.name.localeCompare(b.name));
-    addressListB.sort((a, b) => a.name.localeCompare(b.name));
-    highlightDifferences(addressListA, addressListB, listAContainer, listBContainer);
-});
+    listA.sort((a, b) => a.name.localeCompare(b.name));
+    listB.sort((a, b) => a.name.localeCompare(b.name));
+    highlightDifferences(listA, listB, listAContainer, listBContainer);
+}
 
 
 /**
@@ -93,8 +115,9 @@ function compareAndAppend(firstList, secondList, firstContainer, secondContainer
             const ul = createElement('ul', {className: 'indented-list'});
 
             // Add the missing elements to the list div
-            ul.appendChild(createElement('li', {textContent: object.description}));
-            ul.appendChild(createElement('li', {textContent: object.colour}));
+            Object.entries(object).forEach(([key, value]) => {
+                ul.appendChild(createElement('li', { textContent: `${key}: ${value}` }));
+            });
 
             // Append the list and button to the parent div
             listDiv.appendChild(ul);
