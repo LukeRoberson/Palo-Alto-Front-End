@@ -9,6 +9,21 @@
         This will be expanded to other pages in the future.
 */
 
+// Globals
+let tagListA = [];
+let tagListB = [];
+let addressListA = [];
+let addressListB = [];
+let addressGroupListA = [];
+let addressGroupListB = [];
+let applicationGroupListA = [];
+let applicationGroupListB = [];
+let serviceListA = [];
+let serviceListB = [];
+let serviceGroupListA = [];
+let serviceGroupListB = [];
+
+
 // Fetch the device list once and populate dropdowns for all subpages
 // The two lists use different hover colors
 fetch('/device_list')
@@ -68,9 +83,6 @@ function populateDropdownWithData(selector, hoverColorClass, devices, divId) {
             if (divId.includes('applicationGroupAccordion')) updateApplicationGroupsTable(device.device_id, divId);
             if (divId.includes('serviceAccordion')) updateServicesTable(device.device_id, divId);
             if (divId.includes('serviceGroupAccordion')) updateServiceGroupsTable(device.device_id, divId);
-            if (divId.includes('natAccordion')) updateNatTable(device.device_id, divId);
-            if (divId.includes('securityAccordion')) updateSecurityTable(device.device_id, divId);
-            if (divId.includes('qosAccordion')) updateQosTable(device.device_id, divId);
         });
 
         // Append the link to the dropdown
@@ -87,6 +99,9 @@ function populateDropdownWithData(selector, hoverColorClass, devices, divId) {
  * @param {*} divId 
  */
 function updateTagsTable(deviceId, divId) {
+    // Create lists to track contents
+    let tagList = [];
+
     // API call to fetch tags for the selected device
     fetch(`/get_tags?id=${encodeURIComponent(deviceId)}`)
     .then(response => response.json())
@@ -99,16 +114,20 @@ function updateTagsTable(deviceId, divId) {
             // Sanitize the address name to use as an ID
             const sanitizedId = tag.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
 
-            // Create a new button element for each address
+            // Create a div to hold the button and list
+            parentDiv = document.createElement('div');
+            parentDiv.id = divId + '_' + sanitizedId;
+
+            // Create a new button element for each tag
             const button = document.createElement('button');
             button.className = 'w3-button w3-block w3-left-align';
             button.textContent = tag.name;
-            button.onclick = function() { expandList(divId + '_' + sanitizedId) };
+            button.onclick = function() { expandList(divId + '_list_' + sanitizedId) };
 
             // Create list div
-            const div = document.createElement('div');
-            div.id = divId + '_' + sanitizedId;
-            div.className = 'w3-hide w3-border';
+            const listDiv = document.createElement('div');
+            listDiv.id = divId + '_list_' + sanitizedId;
+            listDiv.className = 'w3-hide w3-border';
 
             // Create ul
             const ul = document.createElement('ul');
@@ -125,12 +144,26 @@ function updateTagsTable(deviceId, divId) {
             ul.appendChild(colourLi);
 
             // Append ul to div
-            div.appendChild(ul);
+            listDiv.appendChild(ul);
 
             // Add items to the div element
-            divElement.appendChild(button);
-            divElement.appendChild(div);
+            parentDiv.appendChild(button);
+            parentDiv.appendChild(listDiv);
+            divElement.appendChild(parentDiv);
+
+            // Create an array of tags
+            const tagObject = {
+                name: tag.name,
+                description: tag.description,
+                colour: tag.colour,
+            };
+            tagList.push(tagObject);
         });
+        if (divId.includes('tagAccordionA')) {
+            tagListA = tagList;
+        } else {
+            tagListB = tagList;
+        }
     })
     .catch(error => console.error('Error fetching tags:', error));
 }
@@ -144,6 +177,9 @@ function updateTagsTable(deviceId, divId) {
  * @param {*} divId 
  */
 function updateAddressesTable(deviceId, divId) {
+    // Create lists to track contents
+    let addressList = [];
+
     // API call to fetch addresses for the selected device
     fetch(`/get_address_objects?id=${encodeURIComponent(deviceId)}`)
     .then(response => response.json())
@@ -156,6 +192,10 @@ function updateAddressesTable(deviceId, divId) {
             // Sanitize the address name to use as an ID
             const sanitizedId = address.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
 
+            // Create a div to hold the button and list
+            parentDiv = document.createElement('div');
+            parentDiv.id = divId + '_' + sanitizedId;
+
             // Create a new button element for each address
             const button = document.createElement('button');
             button.className = 'w3-button w3-block w3-left-align';
@@ -163,9 +203,9 @@ function updateAddressesTable(deviceId, divId) {
             button.onclick = function() { expandList(divId + '_' + sanitizedId) };
 
             // Create list div
-            const div = document.createElement('div');
-            div.id = divId + '_' + sanitizedId;
-            div.className = 'w3-hide w3-border';
+            const listDiv = document.createElement('div');
+            listDiv.id = divId + '_' + sanitizedId;
+            listDiv.className = 'w3-hide w3-border';
 
             // Create ul
             const ul = document.createElement('ul');
@@ -185,12 +225,27 @@ function updateAddressesTable(deviceId, divId) {
             ul.appendChild(tagLi);
 
             // Append ul to div
-            div.appendChild(ul);
+            listDiv.appendChild(ul);
 
             // Add items to the div element
-            divElement.appendChild(button);
-            divElement.appendChild(div);
+            parentDiv.appendChild(button);
+            parentDiv.appendChild(listDiv);
+            divElement.appendChild(parentDiv);
+
+            // Create an array of addresses
+            const addressObject = {
+                name: address.name,
+                addr: address.addr,
+                description: address.description,
+                tag: address.tag.member.join(", "),
+            };
+            addressList.push(addressObject);
         });
+        if (divId.includes('addressAccordionA')) {
+            addressListA = addressList;
+        } else {
+            addressListB = addressList;
+        }
     })
     .catch(error => console.error('Error fetching addresses:', error));
 }
@@ -204,6 +259,9 @@ function updateAddressesTable(deviceId, divId) {
  * @param {*} divId 
  */
 function updateAddressGroupsTable(deviceId, divId) {
+    // Create a list to track contents
+    let addressGroupList = [];
+
     // API call to fetch address groups for the selected device
     fetch(`/get_address_groups?id=${encodeURIComponent(deviceId)}`)
     .then(response => response.json())
@@ -216,6 +274,10 @@ function updateAddressGroupsTable(deviceId, divId) {
             // Sanitize the address group name to use as an ID
             const sanitizedId = address.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
 
+            // Create a div to hold the button and list
+            parentDiv = document.createElement('div');
+            parentDiv.id = divId + '_' + sanitizedId;
+                        
             // Create a new button element for each address
             const button = document.createElement('button');
             button.className = 'w3-button w3-block w3-left-align';
@@ -248,9 +310,24 @@ function updateAddressGroupsTable(deviceId, divId) {
             div.appendChild(ul);
 
             // Add items to the div element
-            divElement.appendChild(button);
-            divElement.appendChild(div);
+            parentDiv.appendChild(button);
+            parentDiv.appendChild(listDiv);
+            divElement.appendChild(parentDiv);
+
+            // Create an array of address groups
+            const addressGroupObject = {
+                name: address.name,
+                static: address.static.member.join(", "),
+                description: address.description,
+                tag: address.tag.member.join(", "),
+            };
+            addressGroupList.push(addressGroupObject);
         });
+        if (divId.includes('addressGroupAccordionA')) {
+            addressGroupListA = addressGroupList;
+        } else {
+            addressGroupListB = addressGroupList;
+        }
     })
     .catch(error => console.error('Error fetching addresses:', error));
 }
@@ -264,6 +341,9 @@ function updateAddressGroupsTable(deviceId, divId) {
  * @param {*} divId 
  */
 function updateApplicationGroupsTable(deviceId, divId) {
+    // Create a list to track contents
+    let applicationGroupList = [];
+
     // API call to fetch application groups for the selected device
     fetch(`/get_application_groups?id=${encodeURIComponent(deviceId)}`)
     .then(response => response.json())
@@ -275,6 +355,10 @@ function updateApplicationGroupsTable(deviceId, divId) {
         appGroups.forEach(appGroup => {
             // Sanitize the address group name to use as an ID
             const sanitizedId = appGroup.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
+
+            // Create a div to hold the button and list
+            parentDiv = document.createElement('div');
+            parentDiv.id = divId + '_' + sanitizedId;
 
             // Create a new button element for each group
             const button = document.createElement('button');
@@ -302,9 +386,22 @@ function updateApplicationGroupsTable(deviceId, divId) {
             div.appendChild(ul);
 
             // Add items to the div element
-            divElement.appendChild(button);
-            divElement.appendChild(div);
+            parentDiv.appendChild(button);
+            parentDiv.appendChild(listDiv);
+            divElement.appendChild(parentDiv);
+
+            // Create an array of application groups
+            const appGroupObject = {
+                name: appGroup.name,
+                members: appGroup.members.member.join(", "),
+            };
+            applicationGroupList.push(appGroupObject);
         });
+        if (divId.includes('applicationGroupAccordionA')) {
+            applicationGroupListA = applicationGroupList;
+        } else {
+            applicationGroupListB = applicationGroupList;
+        }
     })
     .catch(error => console.error('Error fetching application groups:', error));
 }
@@ -318,6 +415,9 @@ function updateApplicationGroupsTable(deviceId, divId) {
  * @param {*} divId 
  */
 function updateServicesTable(deviceId, divId) {
+    // Create a list to track contents
+    let serviceList = [];
+
     // API call to fetch service objects for the selected device
     fetch(`/get_service_objects?id=${encodeURIComponent(deviceId)}`)
     .then(response => response.json())
@@ -329,6 +429,10 @@ function updateServicesTable(deviceId, divId) {
         services.forEach(service => {
             // Sanitize the address name to use as an ID
             const sanitizedId = service.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
+
+            // Create a div to hold the button and list
+            parentDiv = document.createElement('div');
+            parentDiv.id = divId + '_' + sanitizedId;
 
             // Create a new button element for each service
             const button = document.createElement('button');
@@ -362,9 +466,24 @@ function updateServicesTable(deviceId, divId) {
             div.appendChild(ul);
 
             // Add items to the div element
-            divElement.appendChild(button);
-            divElement.appendChild(div);
+            parentDiv.appendChild(button);
+            parentDiv.appendChild(listDiv);
+            divElement.appendChild(parentDiv);
+
+            // Create an array of services
+            const serviceObject = {
+                name: service.name,
+                addr: service.addr,
+                description: service.description,
+                tag: service.tag.member.join(", "),
+            };
+            serviceList.push(serviceObject);
         });
+        if (divId.includes('serviceAccordionA')) {
+            serviceListA = serviceList;
+        } else {
+            serviceListB = serviceList;
+        }
     })
     .catch(error => console.error('Error fetching services:', error));
 }
@@ -378,6 +497,9 @@ function updateServicesTable(deviceId, divId) {
  * @param {*} divId 
  */
 function updateServiceGroupsTable(deviceId, divId) {
+    // Create a list to track contents
+    let serviceGroupList = [];
+
     // API call to fetch service groups for the selected device
     fetch(`/get_service_groups?id=${encodeURIComponent(deviceId)}`)
     .then(response => response.json())
@@ -389,6 +511,10 @@ function updateServiceGroupsTable(deviceId, divId) {
         serviceGroups.forEach(group => {
             // Sanitize the address name to use as an ID
             const sanitizedId = group.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
+
+            // Create a div to hold the button and list
+            parentDiv = document.createElement('div');
+            parentDiv.id = divId + '_' + sanitizedId;
 
             // Create a new button element for each service
             const button = document.createElement('button');
@@ -424,9 +550,23 @@ function updateServiceGroupsTable(deviceId, divId) {
             div.appendChild(ul);
 
             // Add items to the div element
-            divElement.appendChild(button);
-            divElement.appendChild(div);
+            parentDiv.appendChild(button);
+            parentDiv.appendChild(listDiv);
+            divElement.appendChild(parentDiv);
+
+            // Create an array of services
+            const serviceGroupObject = {
+                name: group.name,
+                members: group.members.member.join(", "),
+                tag: group.tag.member.join(", "),
+            };
+            serviceGroupList.push(serviceGroupObject);
         });
+        if (divId.includes('serviceGroupAccordionA')) {
+            serviceGroupListA = serviceGroupList;
+        } else {
+            serviceGroupListB = serviceGroupList;
+        }
     })
     .catch(error => console.error('Error fetching services:', error));
 }

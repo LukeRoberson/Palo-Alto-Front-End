@@ -46,7 +46,7 @@ body {
 }
 
 /* Missing items */
-.highlight-missing {
+button.highlight-missing {
     background-color: red;
     font-style: italic;
     color: white;

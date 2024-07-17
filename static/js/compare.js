@@ -12,234 +12,147 @@
 
 // Event listener for the compare button
 document.getElementById('tag_compare').addEventListener('click', function() {
-    console.log('Comparing tags');
+    let listAContainer = document.getElementById('tagAccordionA');
+    let listBContainer = document.getElementById('tagAccordionB');
 
-    // Call the compareTables function
-    compareTables();
+    // Compare
+    compareLists(tagListA, tagListB, listAContainer, listBContainer);
+
+    // Call the function with the selector of the parent container
+    sortDivsByIdSuffix('#tagAccordionA');
+    sortDivsByIdSuffix('#tagAccordionB');
+
 });
 
 
-/**
- * Compares two tables and adds missing items to the respective table
- */
-function compareTables() {
-    // Get the tables and their values, get ready to look for missing items
-    var firstTable = document.getElementById('tagTableA');
-    var secondTable = document.getElementById('tagTableB');
-    var firstTableItems = getTableItems(firstTable);
-    var secondTableItems = getTableItems(secondTable);
+function compareLists(listA, listB, listAContainer, listBContainer) {
+    // Loop through each object in listA
+    listA.forEach(tag => {
+        // Check if this tag is in listB; If not, 'foundInB' will be undefined
+        const foundInB = listB.find(bElement => bElement.name === tag.name);
 
-    // Create two arrays to store the missing items in each table
-    // One is missing items in the first table, the other is missing items in the second table
-    var missingItemsInFirstTable = getMissingItems(firstTableItems, secondTableItems);
-    var missingItemsInSecondTable = getMissingItems(secondTableItems, firstTableItems);
+        // When an entry is missing, create the elements for comparison
+        if (!foundInB) {
+            // Sanitize the ID, which will be used for the div and button IDs
+            const sanitizedId = tag.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
 
-    // Update tables with missing items (highlighted)
-    // Include the table to update
-    appendMissingItemsToTable(missingItemsInFirstTable, 'tagTableB');   // Pay attention to the order here
-    appendMissingItemsToTable(missingItemsInSecondTable, 'tagTableA');
-    sortTable(firstTable);
-    sortTable(secondTable);
+            // Create HTML elements
+            parentDiv = document.createElement('div');
+            parentDiv.id = listAContainer.id + '_' + sanitizedId;
+            button = createButton(tag, listBContainer, sanitizedId);
+            listDiv = createDiv(listBContainer, sanitizedId);
+            ul = createUl();
 
-    // Refresh the table items, get ready to look for differences
-    var firstTable = document.getElementById('tagTableA');
-    var secondTable = document.getElementById('tagTableB');
-    var firstTableItems = getTableItems(firstTable);
-    var secondTableItems = getTableItems(secondTable);
+            // Create li elements
+            const descriptionLi = document.createElement('li');
+            const colourLi = document.createElement('li');
+            descriptionLi.textContent = tag.description;
+            colourLi.textContent = tag.colour;
+            ul.appendChild(descriptionLi);
+            ul.appendChild(colourLi);
 
-    // Determine the shorter length to avoid index out of range errors
-    var minLength = Math.min(firstTableItems.length, secondTableItems.length);
-
-    // Compare the items in the tables and highlight differences
-    for (var i = 0; i < minLength; i++) {
-        if (!arraysEqual(firstTableItems[i], secondTableItems[i])) {
-            // Assuming each item is a row in the table, highlight the row
-            highlightRow(firstTable.rows[i]);
-            highlightRow(secondTable.rows[i]);
+            // Append elements
+            listDiv.appendChild(ul);
+            parentDiv.appendChild(button);
+            parentDiv.appendChild(listDiv);
+            listBContainer.appendChild(parentDiv);
         }
-    }
-}
-
-
-/**
- * Gets the items in a table.
- * @param {HTMLTableElement[]} table - The table from which to get items.
- * @return {string[][]} The items in the table.
- */
-function getTableItems(table) {
-    // Create an empty array to store the items
-    var items = [];
-
-    // Get the rows in the table
-    var rows = table.getElementsByTagName('tr');
-
-    // Loop through the rows
-    for (var i = 0; i < rows.length; i++) {
-        // Get the cells in the row
-        var cells = rows[i].getElementsByTagName('td');
-        var item = [];
-
-        // Loop through the cells
-        for (var j = 0; j < cells.length; j++) {
-            // Add the cell text to the item array
-            item.push(cells[j].innerText);
-        }
-
-        // Add the item array to the items array
-        items.push(item);
-    }
-
-    // Return the items array (a 2D array of items in the table)
-    return items;
-}
-
-
-/**
- * Compares two arrays and returns the items that are in the source array but not in the target array.
- * @param {string[][]} sourceItems - The source array of items.
- * @param {string[][]} targetItems - The target array of items to compare against.
- * @return {string[][]} The items that are in the source array but not in the target array.
- */
-function getMissingItems(sourceItems, targetItems) {
-    // Array to store the missing items
-    var missingItems = [];
-
-    // Loop through the source items
-    for (var i = 0; i < sourceItems.length; i++) {
-        // Variable to store whether the item was found in the target items
-        var found = false;
-
-        // Loop through the target items
-        for (var j = 0; j < targetItems.length; j++) {
-            // If the items are equal, set found to true and break out of the loop
-            if (sourceItems[i][0] === targetItems[j][0]) {
-                found = true;
-                break;
-            }
-        }
-
-        // If the item was not found, add it to the missing items array
-        if (!found) {
-            missingItems.push(sourceItems[i]);
-        }
-    }
-
-    return missingItems;
-}
-
-
-/**
- * Compares two items and returns whether they are equal.
- * @param {string[]} arr1 - The first item to compare.
- * @param {string[]} arr2 - The second item to compare.
- * @return {boolean} Whether the items are equal.
- */
-function arraysEqual(arr1, arr2) {
-    // If the arrays are different lengths, they are not equal
-    // A quick check to avoid unnecessary comparisons
-    if (arr1.length !== arr2.length) {
-        return false;
-    }
-
-    // Loop through the arrays and compare each element
-    for (var i = 0; i < arr1.length; i++) {
-        if (arr1[i] !== arr2[i]) {
-            return false;
-        }
-    }
-
-    // If all elements are equal, return true
-    return true;
-}
-
-
-/**
- * Adds missing items to the table and highlights them.
- * @param {string[][]} missingItems - The missing items to print.
- * @param {string} tableName - The name of the table.
- */
-function appendMissingItemsToTable(missingItems, tableName) {
-    // Check if there are missing items
-    if (missingItems.length > 0) {
-        // Get the table by ID
-        var table = document.getElementById(tableName);
-        
-        // Loop through the missing items and add them
-        missingItems.forEach(item => {
-            // Create a new row at the end of the table
-            var row = table.insertRow(-1);
-            
-            // Add each value in the item to a new cell in the row
-            item.forEach(value => {
-                var cell = row.insertCell(-1);
-                cell.textContent = value;
-            });
-
-            // Apply the 'highlight-missing' class to the row
-            row.classList.add('highlight-missing');
-        });
-
-        // Sort the table alphabetically
-        var rows = table.rows;
-        var sortedRows = Array.from(rows).slice(1).sort((a, b) => {
-            var textA = a.innerText.toLowerCase();
-            var textB = b.innerText.toLowerCase();
-            if (textA < textB) {
-                return -1;
-            }
-            if (textA > textB) {
-                return 1;
-            }
-            return 0;
-        });
-
-        // Remove existing rows from the table
-        while (table.rows.length > 1) {
-            table.deleteRow(1);
-        }
-
-        // Append the sorted rows back to the table
-        sortedRows.forEach(row => {
-            table.appendChild(row);
-        });
-    }
-}
-
-
-/**
- * Sorts a table alphabetically.
- * @param {HTMLTableElement} table - The table to sort.
- */
-function sortTable(table) {
-    var rows = table.rows;
-    var sortedRows = Array.from(rows).slice(1).sort((a, b) => {
-        var textA = a.innerText.toLowerCase();
-        var textB = b.innerText.toLowerCase();
-        if (textA < textB) {
-            return -1;
-        }
-        if (textA > textB) {
-            return 1;
-        }
-        return 0;
     });
 
-    // Remove existing rows from the table
-    while (table.rows.length > 1) {
-        table.deleteRow(1);
-    }
+    // Loop through each object in listB
+    listB.forEach(tag => {
+        // Check if this tag is in listA; If not, 'foundInA' will be undefined
+        const foundInA = listA.find(aElement => aElement.name === tag.name);
 
-    // Append the sorted rows back to the table
-    sortedRows.forEach(row => {
-        table.appendChild(row);
+        // When an entry is missing, create the elements for comparison
+        if (!foundInA) {
+            // Sanitize the ID, which will be used for the div and button IDs
+            const sanitizedId = tag.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
+
+            // Create HTML elements
+            parentDiv = document.createElement('div');
+            parentDiv.id = listBContainer.id + '_' + sanitizedId;
+            button = createButton(tag, listAContainer, sanitizedId);
+            listDiv = createDiv(listAContainer, sanitizedId);
+            ul = createUl();
+
+            // Create li elements
+            const descriptionLi = document.createElement('li');
+            const colourLi = document.createElement('li');
+            descriptionLi.textContent = tag.description;
+            colourLi.textContent = tag.colour;
+            ul.appendChild(descriptionLi);
+            ul.appendChild(colourLi);
+
+            // Append elements
+            listDiv.appendChild(ul);
+            parentDiv.appendChild(button);
+            parentDiv.appendChild(listDiv);
+            listAContainer.appendChild(parentDiv);
+        }
     });
 }
 
 
-/**
- * Highlights a row in a table.
- * @param {HTMLTableRowElement} row - The row to highlight.
- */
-function highlightRow(row) {
-    row.classList.add('highlight-different');
+function createButton (element, listContainer, sanitizedId) {
+    // Create a button
+    const button = document.createElement('button');
+    button.className = 'w3-button w3-block w3-left-align';
+    button.textContent = element.name;
+    button.classList.add('highlight-missing');
+    button.onclick = function() { expandList(listContainer + '_' + sanitizedId) };
+
+    return button;
+}
+
+
+function createDiv(container, sanitizedId) {
+    // Create list div
+    const div = document.createElement('div');
+    div.id = container.id + '_' + sanitizedId;
+    div.className = 'w3-hide w3-border';
+
+    return div;
+}
+
+
+function createUl() {
+    const ul = document.createElement('ul');
+    ul.className = 'indented-list';
+
+    return ul;
+}
+
+
+function sortDivsByIdSuffix(parentSelector) {
+    // Select the parent container
+    const parent = document.querySelector(parentSelector);
+    
+    // Ensure the parent exists to avoid errors
+    if (!parent) {
+        console.error('Parent selector not found:', parentSelector);
+        return;
+    }
+
+    // Get all divs as an array
+    const divsArray = Array.from(parent.querySelectorAll('div'));
+    
+    // Sort the array based on the suffix of the 'id' attribute, safely handling missing attributes
+    divsArray.sort((a, b) => {
+        // Extract the part of the id after the underscore
+        const idA = a.id.split('_')[1] || "";
+        const idB = b.id.split('_')[1] || "";
+        return idA.localeCompare(idB);
+    });
+    
+    // Clear existing content in the parent container
+    // while (parent.firstChild) {
+    //     parent.removeChild(parent.firstChild);
+    // }
+    console.log(divsArray)
+
+    // Re-append the divs in sorted order
+    divsArray.forEach(div => {
+        parent.appendChild(div);
+    });
 }
