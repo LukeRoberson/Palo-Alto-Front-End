@@ -4,10 +4,16 @@
 
     There are usually two dropdowns in the UI, each with a different hover color.
     The dropdowns are populated with the same list of devices fetched from the server.
-
-    For now, this is specifically used in the tags page to populate the dropdowns with devices.
-        This will be expanded to other pages in the future.
 */
+
+// Lists of items that are fetched from the server
+let natListA = [];
+let natListB = [];
+let securityListA = [];
+let securityListB = [];
+let qosListA = [];
+let qosListB = [];
+
 
 // Fetch the device list once and populate dropdowns for all subpages
 // The two lists use different hover colors
@@ -81,6 +87,8 @@ function populateDropdownWithData(selector, hoverColorClass, devices, divId) {
  * @param {*} divId 
  */
 function updateNatTable(deviceId, divId) {
+    let natList = [];
+
     // API call to fetch NAT policies for the selected device
     fetch(`/get_nat_policies?id=${encodeURIComponent(deviceId)}`)
     .then(response => response.json())
@@ -93,16 +101,20 @@ function updateNatTable(deviceId, divId) {
             // Sanitize the policy name to use as an ID
             const sanitizedId = policy.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
 
+            // Create a div to hold the button and list
+            parentDiv = document.createElement('div');
+            parentDiv.id = divId + '_' + sanitizedId;
+            
             // Create a new button element for each policy
             const button = document.createElement('button');
             button.className = 'w3-button w3-block w3-left-align';
             button.textContent = policy.name;
-            button.onclick = function() { expandList(divId + '_' + sanitizedId) };
+            button.onclick = function() { expandList(divId + '_list_' + sanitizedId) };
 
             // Create list div
-            const div = document.createElement('div');
-            div.id = divId + '_' + sanitizedId;
-            div.className = 'w3-hide w3-border';
+            const listDiv = document.createElement('div');
+            listDiv.id = divId + '_list_' + sanitizedId;
+            listDiv.className = 'w3-hide w3-border';
 
             // Create ul
             const ul = document.createElement('ul');
@@ -184,12 +196,34 @@ function updateNatTable(deviceId, divId) {
             ul.appendChild(tagGroupLi);
 
             // Append ul to div
-            div.appendChild(ul);
+            listDiv.appendChild(ul);
 
             // Add items to the div element
-            divElement.appendChild(button);
-            divElement.appendChild(div);
+            parentDiv.appendChild(button);
+            parentDiv.appendChild(listDiv);
+            divElement.appendChild(parentDiv);
+
+            // Create an array of objects
+            const natObject = {
+                name: policy.name,
+                source_trans: policy.source_trans,
+                to: policy.to,
+                from: policy.from,
+                source: policy.source,
+                destination: policy.destination,
+                service: policy.service,
+                description: policy.description,
+                tag: policy.tag,
+                tag_group: policy.tag_group
+            };
+            natList.push(natObject);
         });
+
+        if (divId.includes('natAccordionA')) {
+            natListA = natList;
+        } else {
+            natListB = natList;
+        }
     })
     .catch(error => console.error('Error fetching NAT Policies:', error));
 }
@@ -203,6 +237,8 @@ function updateNatTable(deviceId, divId) {
  * @param {*} divId 
  */
 function updateSecurityTable(deviceId, divId) {
+    let securityList = []
+
     // API call to fetch security policies for the selected device
     fetch(`/get_security_policies?id=${encodeURIComponent(deviceId)}`)
     .then(response => response.json())
@@ -215,16 +251,20 @@ function updateSecurityTable(deviceId, divId) {
             // Sanitize the policy name to use as an ID
             const sanitizedId = policy.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
 
+            // Create a div to hold the button and list
+            parentDiv = document.createElement('div');
+            parentDiv.id = divId + '_' + sanitizedId;
+            
             // Create a new button element for each policy
             const button = document.createElement('button');
             button.className = 'w3-button w3-block w3-left-align';
             button.textContent = policy.name;
-            button.onclick = function() { expandList(divId + '_' + sanitizedId) };
+            button.onclick = function() { expandList(divId + '_list_' + sanitizedId) };
 
             // Create list div
-            const div = document.createElement('div');
-            div.id = divId + '_' + sanitizedId;
-            div.className = 'w3-hide w3-border';
+            const listDiv = document.createElement('div');
+            listDiv.id = divId + '_list_' + sanitizedId;
+            listDiv.className = 'w3-hide w3-border';
 
             // Create ul
             const ul = document.createElement('ul');
@@ -370,14 +410,43 @@ function updateSecurityTable(deviceId, divId) {
             ul.appendChild(tagGroupLi);
 
             // Append ul to div
-            div.appendChild(ul);
+            listDiv.appendChild(ul);
 
             // Add items to the div element
-            divElement.appendChild(button);
-            divElement.appendChild(div);
+            parentDiv.appendChild(button);
+            parentDiv.appendChild(listDiv);
+            divElement.appendChild(parentDiv);
+
+            // Create an array of objects
+            const securityObject = {
+                name: policy.name,
+                to: policy.to,
+                from: policy.from,
+                source: policy.source,
+                destination: policy.destination,
+                source_user: policy.source_user,
+                category: policy.category,
+                application: policy.application,
+                service: policy.service,
+                action: policy.action,
+                type: policy.type,
+                log: policy.log,
+                log_start: policy.log_start,
+                log_end: policy.log_end,
+                disabled: policy.disabled,
+                description: policy.description,
+                tag: policy.tag,
+                tag_group: policy.tag_group
+            };
+            securityList.push(securityObject);
         });
+        if (divId.includes('securityAccordionA')) {
+            securityListA = securityList;
+        } else {
+            securityListB = securityList;
+        }
     })
-    .catch(error => console.error('Error fetching NAT Policies:', error));
+    .catch(error => console.error('Error fetching Security Policies:', error));
 }
 
 
@@ -389,6 +458,8 @@ function updateSecurityTable(deviceId, divId) {
  * @param {*} divId 
  */
 function updateQosTable(deviceId, divId) {
+    let qosList = [];
+
     // API call to fetch QoS policies for the selected device
     fetch(`/get_qos_policies?id=${encodeURIComponent(deviceId)}`)
     .then(response => response.json())
@@ -401,16 +472,20 @@ function updateQosTable(deviceId, divId) {
             // Sanitize the policy name to use as an ID
             const sanitizedId = policy.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9-_]/g, '');
 
+            // Create a div to hold the button and list
+            parentDiv = document.createElement('div');
+            parentDiv.id = divId + '_' + sanitizedId;
+            
             // Create a new button element for each policy
             const button = document.createElement('button');
             button.className = 'w3-button w3-block w3-left-align';
             button.textContent = policy.name;
-            button.onclick = function() { expandList(divId + '_' + sanitizedId) };
+            button.onclick = function() { expandList(divId + '_list_' + sanitizedId) };
 
             // Create list div
-            const div = document.createElement('div');
-            div.id = divId + '_' + sanitizedId;
-            div.className = 'w3-hide w3-border';
+            const listDiv = document.createElement('div');
+            listDiv.id = divId + '_list_' + sanitizedId;
+            listDiv.className = 'w3-hide w3-border';
 
             // Create ul
             const ul = document.createElement('ul');
@@ -481,7 +556,7 @@ function updateQosTable(deviceId, divId) {
             }
 
             const dscpLi = document.createElement('li');
-            if (Array.isArray(policy.desp?.member)) {
+            if (Array.isArray(policy.dscp?.member)) {
                 dscpLi.textContent = policy.dscp.member.join(", ");
             } else {
                 dscpLi.textContent = 'No service';
@@ -524,14 +599,41 @@ function updateQosTable(deviceId, divId) {
             ul.appendChild(tagGroupLi);
 
             // Append ul to div
-            div.appendChild(ul);
+            listDiv.appendChild(ul);
 
             // Add items to the div element
-            divElement.appendChild(button);
-            divElement.appendChild(div);
+            parentDiv.appendChild(button);
+            parentDiv.appendChild(listDiv);
+            divElement.appendChild(parentDiv);
+
+            // Create an array of objects
+            const qosObject = {
+                name: policy.name,
+                to: policy.to,
+                from: policy.from,
+                source: policy.source,
+                destination: policy.destination,
+                source_user: policy.source_user,
+                category: policy.category,
+                application: policy.application,
+                service: policy.service,
+                action: policy.action,
+                dscp: policy.dscp,
+                description: policy.description,
+                tag: policy.tag,
+                tag_group: policy.tag_group
+            };
+            qosList.push(qosObject);
         });
+
+        if (divId.includes('qosAccordionA')) {
+            qosListA = qosList;
+        } else {
+            qosListB = qosList;
+        }
+
     })
-    .catch(error => console.error('Error fetching NAT Policies:', error));
+    .catch(error => console.error('Error fetching QoS Policies:', error));
 }
 
 

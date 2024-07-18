@@ -3,7 +3,7 @@
 {% block content %}
 
 <!-- Navigation bar -->
-<div class="w3-bar w3-border w3-card-4">
+<div class="w3-bar w3-border w3-card mini-nav">
     <a href="#" class="w3-bar-item w3-button" id="nav-tags">Tags</a>
     <a href="#" class="w3-bar-item w3-button" id="nav-addresses">Addresses</a>
     <a href="#" class="w3-bar-item w3-button" id="nav-addressGroups">Address Groups</a>
@@ -42,6 +42,41 @@
     document.getElementById('nav-services').addEventListener('click', () => showContent('services-content'));
     document.getElementById('nav-serviceGroups').addEventListener('click', () => showContent('serviceGroup-content'));
 </script>
+
+<!-- Event handlers for comparing objects -->
+<script>
+    // Setup comparison for tags
+    document.getElementById('tagCompare').addEventListener('click', function() {
+        setupComparison('tagAccordionA', 'tagAccordionB', tagListA, tagListB);
+    });
+
+    // Setup comparison for addresses
+    document.getElementById('addressObjectsCompare').addEventListener('click', function() {
+        setupComparison('addressAccordionA', 'addressAccordionB', addressListA, addressListB);
+    });
+
+    // Setup comparison for address groups
+    document.getElementById('addressGroupCompare').addEventListener('click', function() {
+        setupComparison('addressGroupAccordionA', 'addressGroupAccordionB', addressGroupListA, addressGroupListB);
+    });
+
+    // Setup comparison for application groups
+    document.getElementById('applicationGroupCompare').addEventListener('click', function() {
+        setupComparison('applicationGroupAccordionA', 'applicationGroupAccordionB', applicationGroupListA, applicationGroupListB);
+    });
+
+    // Setup comparison for services
+    document.getElementById('serviceObjectCompare').addEventListener('click', function() {
+        setupComparison('serviceAccordionA', 'serviceAccordionB', serviceListA, serviceListB);
+    });
+
+    // Setup comparison for service groups
+    document.getElementById('serviceGroupCompare').addEventListener('click', function() {
+        setupComparison('serviceGroupAccordionA', 'serviceGroupAccordionB', serviceGroupListA, serviceGroupListB);
+    });
+</script>
+
+<!-- External Javascript files -->
 <script src="{{ url_for('static', filename='js/objects.js') }}"></script>
 <script src="{{ url_for('static', filename='js/compare.js') }}"></script>
 

@@ -9,15 +9,15 @@
 /* Variables to control the main colour palate */
 :root {
     /* Light mode variables */
-    --light-background: #F8F8F8;
-    --light-surface: #FFFFFF;
-    --light-primary: #12D46A;
+    --light-background: floralwhite;
+    --light-surface: linen;
+    --light-primary: lightsteelblue;
     --light-secondary: #9DA0A1;
     --light-error: #FF0000;
 
     --light-on-background: #404258;
     --light-on-surface: #404258;
-    --light-on-primary: #FFFFFF;
+    --light-on-primary: black;
     --light-on-secondary: #FFFFFF;
     --light-on-error: #FFFFFF;
 
@@ -55,6 +55,11 @@
 .light-mode .w3-card header {
     background-color: var(--light-primary);
     color: var(--light-on-primary);
+}
+
+.light-mode .w3-card .mini-nav {
+    background-color: var(--light-surface);
+    color: var(--light-on-surface);
 }
 
 .light-mode .header,
@@ -110,6 +115,12 @@
     background-color: var(--dark-primary);
     color: var(--dark-on-primary);
 }
+
+.dark-mode .w3-card .mini-nav {
+    background-color: var(--dark-surface);
+    color: var(--dark-on-surface);
+}
+
 .dark-mode .header,
 .dark-mode .toggle-btn,
 .dark-mode .w3-card,

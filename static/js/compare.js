@@ -2,7 +2,7 @@
     Compare lists and highlight differences
 
     The structure of the items is:
-        1. A parent containter, with a list of divs (divs are dynamically created in object.js)
+        1. A parent containter, with a list of divs (divs are dynamically created in object.js and policies.js)
         2. Each div contains a button and a list div
         3. The button is the name of an object, and expands the list div when clicked
         4. The list div contains a list (ul) of properties for the object
@@ -16,37 +16,6 @@
         The lists are compared for differences, and the buttons are highlighted in yellow
         The properties of the objects are compared, not just the name
 */
-
-
-// Setup comparison for tags
-document.getElementById('tagCompare').addEventListener('click', function() {
-    setupComparison('tagAccordionA', 'tagAccordionB', tagListA, tagListB);
-});
-
-// Setup comparison for addresses
-document.getElementById('addressObjectsCompare').addEventListener('click', function() {
-    setupComparison('addressAccordionA', 'addressAccordionB', addressListA, addressListB);
-});
-
-// Setup comparison for address groups
-document.getElementById('addressGroupCompare').addEventListener('click', function() {
-    setupComparison('addressGroupAccordionA', 'addressGroupAccordionB', addressGroupListA, addressGroupListB);
-});
-
-// Setup comparison for application groups
-document.getElementById('applicationGroupCompare').addEventListener('click', function() {
-    setupComparison('applicationGroupAccordionA', 'applicationGroupAccordionB', applicationGroupListA, applicationGroupListB);
-});
-
-// Setup comparison for services
-document.getElementById('serviceObjectCompare').addEventListener('click', function() {
-    setupComparison('serviceAccordionA', 'serviceAccordionB', serviceListA, serviceListB);
-});
-
-// Setup comparison for service groups
-document.getElementById('serviceGroupCompare').addEventListener('click', function() {
-    setupComparison('serviceGroupAccordionA', 'serviceGroupAccordionB', serviceGroupListA, serviceGroupListB);
-});
 
 
 /**

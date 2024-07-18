@@ -4,12 +4,9 @@
 
     There are usually two dropdowns in the UI, each with a different hover color.
     The dropdowns are populated with the same list of devices fetched from the server.
-
-    For now, this is specifically used in the tags page to populate the dropdowns with devices.
-        This will be expanded to other pages in the future.
 */
 
-// Globals
+// Lists of items that are fetched from the server
 let tagListA = [];
 let tagListB = [];
 let addressListA = [];

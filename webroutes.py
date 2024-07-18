@@ -1491,9 +1491,6 @@ class GetNatPolicyView(MethodView):
             entry["description"] = policy.get('description', 'None')
             nat_list.append(entry)
 
-        # Sort the NAT policies by name
-        nat_list.sort(key=lambda x: x['name'])
-
         # Return the NAT policies as JSON
         return jsonify(nat_list)
 
@@ -1584,9 +1581,6 @@ class GetSecurityPolicyView(MethodView):
             entry["description"] = rule.get('description', 'None')
             security_list.append(entry)
 
-        # Sort the security policies by name
-        security_list.sort(key=lambda x: x['name'])
-
         # Return the security policies as JSON
         return jsonify(security_list)
 
@@ -1672,9 +1666,6 @@ class GetQoSPolicyView(MethodView):
             entry["tag_group"] = rule.get('group-tag', 'None')
             entry["description"] = rule.get('description', 'None')
             security_list.append(entry)
-
-        # Sort the security policies by name
-        security_list.sort(key=lambda x: x['name'])
 
         # Return the security policies as JSON
         return jsonify(security_list)
