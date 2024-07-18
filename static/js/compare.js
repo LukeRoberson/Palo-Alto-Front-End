@@ -59,6 +59,34 @@ function compareLists(listA, listB, listAContainer, listBContainer) {
 
 
 /**
+ * Add items to the tables
+ * These are shown in the lists of objects like tags, addresses, etc.
+ * 
+ * @param {*} tableName 
+ * @param {*} heading 
+ * @param {*} value 
+ */
+function addChildTableItem(tableName, heading, value) {
+    // Skip the name, as it is already displayed in the button
+    if (heading == 'name') {
+        return;
+    }
+
+    // Create the row
+    const row = tableName.insertRow();
+
+    // Create the heading cell
+    cell = row.insertCell();
+    cell.textContent = heading;
+    cell.className = 'left-cell';
+
+    // Create the value cell
+    cell = row.insertCell();
+    cell.textContent = value;
+}
+
+
+/**
  * Compare two lists
  * Find elements in the first list that are not in the second list
  * Append the missing item to the second list
@@ -81,15 +109,19 @@ function compareAndAppend(firstList, secondList, firstContainer, secondContainer
             const parentDiv = createElement('div', {id: firstContainer.id + '_' + sanitizedId});
             const button = createButton(object, secondContainer, sanitizedId);
             const listDiv = createDiv(secondContainer, sanitizedId);
-            const ul = createElement('ul', {className: 'indented-list'});
+            const table = createElement('table', {className: 'w3-table indented-table'});
+
+            // const ul = createElement('ul', {className: 'indented-list'});
 
             // Add the missing elements to the list div
             Object.entries(object).forEach(([key, value]) => {
-                ul.appendChild(createElement('li', { textContent: `${key}: ${value}` }));
+                // ul.appendChild(createElement('li', { textContent: `${key}: ${value}` }));
+                addChildTableItem(table, key, value);
             });
 
             // Append the list and button to the parent div
-            listDiv.appendChild(ul);
+            // listDiv.appendChild(ul);
+            listDiv.appendChild(table);
             parentDiv.append(button, listDiv);
 
             // Append the parent div to the second container
