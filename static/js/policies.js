@@ -80,6 +80,29 @@ function populateDropdownWithData(selector, hoverColorClass, devices, divId) {
 
 
 /**
+ * Add items to the tables
+ * These are shown in the lists of objects like tags, addresses, etc.
+ * 
+ * @param {*} tableName 
+ * @param {*} heading 
+ * @param {*} value 
+ */
+function addChildTableItem(tableName, heading, value) {
+    // Create the row
+    const row = tableName.insertRow();
+
+    // Create the heading cell
+    cell = row.insertCell();
+    cell.textContent = heading;
+    cell.className = 'left-cell';
+
+    // Create the value cell
+    cell = row.insertCell();
+    cell.textContent = value;
+}
+
+
+/**
  * Update the table with a list of NAT Policies for the selected device
  * This is specific to the NAT Policies page and is called when a device is selected from the dropdown
  * 
@@ -116,87 +139,19 @@ function updateNatTable(deviceId, divId) {
             listDiv.id = divId + '_list_' + sanitizedId;
             listDiv.className = 'w3-hide w3-border';
 
-            // Create ul
-            const ul = document.createElement('ul');
-            ul.className = 'indented-list';
-
-            // Create li elements for each service property (confirming they are arrays first)
-            const sourceTransLi = document.createElement('li');
-            if (Array.isArray(policy.source_trans?.member)) {
-                sourceTransLi.textContent = policy.source_trans.member.join(", ");
-            } else {
-                sourceTransLi.textContent = 'No source translation';
-            }
-
-            const toLi = document.createElement('li');
-            if (Array.isArray(policy.to?.member)) {
-                toLi.textContent = policy.to.member.join(", ");
-            } else {
-                toLi.textContent = 'No to address';
-            }
-
-            const fromLi = document.createElement('li');
-            if (Array.isArray(policy.from?.member)) {
-                fromLi.textContent = policy.from.member.join(", ");
-            } else {
-                fromLi.textContent = 'No from address';
-            }
-
-            const sourceLi = document.createElement('li');
-            if (Array.isArray(policy.source?.member)) {
-                sourceLi.textContent = policy.source.member.join(", ");
-            } else {
-                sourceLi.textContent = 'No source address';
-            }
-
-            const destLi = document.createElement('li');
-            if (Array.isArray(policy.destination?.member)) {
-                destLi.textContent = policy.destination.member.join(", ");
-            } else {
-                destLi.textContent = 'No destination address';
-            }
-
-            const serviceLi = document.createElement('li');
-            if (Array.isArray(policy.service?.member)) {
-                serviceLi.textContent = policy.service.member.join(", ");
-            } else {
-                serviceLi.textContent = 'No service';
-            }
-
-            const descLi = document.createElement('li');
-            if (Array.isArray(policy.description?.member)) {
-                descLi.textContent = policy.description.member.join(", ");
-            } else {
-                descLi.textContent = 'No description';
-            }
-
-            const tagLi = document.createElement('li');
-            if (Array.isArray(policy.tag?.member)) {
-                tagLi.textContent = policy.tag.member.join(", ");
-            } else {
-                tagLi.textContent = 'No tags';
-            }
-
-            const tagGroupLi = document.createElement('li');
-            if (Array.isArray(policy.tag_group?.member)) {
-                tagGroupLi.textContent = policy.tag_group.member.join(", ");
-            } else {
-                tagGroupLi.textContent = 'No grouping by tags';
-            }
-
-            // Append li elements to ul
-            ul.appendChild(sourceTransLi);
-            ul.appendChild(toLi);
-            ul.appendChild(fromLi);
-            ul.appendChild(sourceLi);
-            ul.appendChild(destLi);
-            ul.appendChild(serviceLi);
-            ul.appendChild(descLi);
-            ul.appendChild(tagLi);
-            ul.appendChild(tagGroupLi);
-
-            // Append ul to div
-            listDiv.appendChild(ul);
+            // Table
+            const table = document.createElement('table');
+            table.className = 'w3-table indented-table';
+            addChildTableItem(table, 'Source Translation', policy.source_trans.member ? policy.source_trans.member.join(", ") : "None");
+            addChildTableItem(table, 'To Address', policy.to.member ? policy.to.member.join(", ") : "None");
+            addChildTableItem(table, 'From Address', policy.from.member ? policy.from.member.join(", ") : "None");
+            addChildTableItem(table, 'Source Address', policy.source.member ? policy.source.member.join(", ") : "None");
+            addChildTableItem(table, 'Destination Address', policy.destination.member ? policy.destination.member.join(", ") : "None");
+            addChildTableItem(table, 'Service', policy.service.member ? policy.service.member.join(", ") : "None");
+            addChildTableItem(table, 'Description', policy.description.member ? policy.description.member.join(", ") : "None");
+            addChildTableItem(table, 'Tags', policy.tag.member ? policy.tag.member.join(", ") : "None");
+            addChildTableItem(table, 'Tag Group', policy.tag_group.member ? policy.tag_group.member.join(", ") : "None");
+            listDiv.appendChild(table);
 
             // Add items to the div element
             parentDiv.appendChild(button);
@@ -266,151 +221,27 @@ function updateSecurityTable(deviceId, divId) {
             listDiv.id = divId + '_list_' + sanitizedId;
             listDiv.className = 'w3-hide w3-border';
 
-            // Create ul
-            const ul = document.createElement('ul');
-            ul.className = 'indented-list';
-
-            // Create li elements for each service property (confirming they are arrays first)
-            const toLi = document.createElement('li');
-            if (Array.isArray(policy.to?.member)) {
-                toLi.textContent = policy.to.member.join(", ");
-            } else {
-                toLi.textContent = 'No to address';
-            }
-
-            const fromLi = document.createElement('li');
-            if (Array.isArray(policy.from?.member)) {
-                fromLi.textContent = policy.from.member.join(", ");
-            } else {
-                fromLi.textContent = 'No from address';
-            }
-
-            const sourceLi = document.createElement('li');
-            if (Array.isArray(policy.source?.member)) {
-                sourceLi.textContent = policy.source.member.join(", ");
-            } else {
-                sourceLi.textContent = 'No source address';
-            }
-
-            const destLi = document.createElement('li');
-            if (Array.isArray(policy.destination?.member)) {
-                destLi.textContent = policy.destination.member.join(", ");
-            } else {
-                destLi.textContent = 'No destination address';
-            }
-
-            const srcUserLi = document.createElement('li');
-            if (Array.isArray(policy.source_user?.member)) {
-                srcUserLi.textContent = policy.source_user.member.join(", ");
-            } else {
-                srcUserLi.textContent = 'No source user';
-            }
-
-            const categoryLi = document.createElement('li');
-            if (Array.isArray(policy.category?.member)) {
-                categoryLi.textContent = policy.category.member.join(", ");
-            } else {
-                categoryLi.textContent = 'No source user';
-            }
-
-            const appLi = document.createElement('li');
-            if (Array.isArray(policy.application?.member)) {
-                appLi.textContent = policy.application.member.join(", ");
-            } else {
-                appLi.textContent = 'No source user';
-            }
-
-            const serviceLi = document.createElement('li');
-            if (Array.isArray(policy.service?.member)) {
-                serviceLi.textContent = policy.service.member.join(", ");
-            } else {
-                serviceLi.textContent = 'No service';
-            }
-
-            const actionLi = document.createElement('li');
-            if (Array.isArray(policy.action?.member)) {
-                actionLi.textContent = policy.action.member.join(", ");
-            } else {
-                actionLi.textContent = 'No service';
-            }
-
-            const typeLi = document.createElement('li');
-            if (Array.isArray(policy.type?.member)) {
-                typeLi.textContent = policy.type.member.join(", ");
-            } else {
-                typeLi.textContent = 'No service';
-            }
-
-            const logLi = document.createElement('li');
-            if (Array.isArray(policy.log?.member)) {
-                logLi.textContent = policy.log.member.join(", ");
-            } else {
-                logLi.textContent = 'No loging';
-            }
-
-            const logStartLi = document.createElement('li');
-            if (Array.isArray(policy.log_start?.member)) {
-                logStartLi.textContent = policy.log_start.member.join(", ");
-            } else {
-                logStartLi.textContent = 'No loging on start';
-            }
-
-            const logEndLi = document.createElement('li');
-            if (Array.isArray(policy.log_end?.member)) {
-                logEndLi.textContent = policy.log_end.member.join(", ");
-            } else {
-                logEndLi.textContent = 'No logging on end';
-            }
-
-            const disabledLi = document.createElement('li');
-            if (Array.isArray(policy.disabled?.member)) {
-                disabledLi.textContent = policy.disabled.member.join(", ");
-            } else {
-                disabledLi.textContent = 'No disabled setting';
-            }
-
-            const descLi = document.createElement('li');
-            if (Array.isArray(policy.description?.member)) {
-                descLi.textContent = policy.description.member.join(", ");
-            } else {
-                descLi.textContent = 'No description';
-            }
-
-            const tagLi = document.createElement('li');
-            if (Array.isArray(policy.tag?.member)) {
-                tagLi.textContent = policy.tag.member.join(", ");
-            } else {
-                tagLi.textContent = 'No tags';
-            }
-
-            const tagGroupLi = document.createElement('li');
-            if (Array.isArray(policy.tag_group?.member)) {
-                tagGroupLi.textContent = policy.tag_group.member.join(", ");
-            } else {
-                tagGroupLi.textContent = 'No grouping by tags';
-            }
-
-            // Append li elements to ul
-            ul.appendChild(toLi);
-            ul.appendChild(fromLi);
-            ul.appendChild(sourceLi);
-            ul.appendChild(destLi);
-            ul.appendChild(srcUserLi);
-            ul.appendChild(categoryLi);
-            ul.appendChild(appLi);
-            ul.appendChild(serviceLi);
-            ul.appendChild(actionLi);
-            ul.appendChild(typeLi);
-            ul.appendChild(logLi);
-            ul.appendChild(logStartLi);
-            ul.appendChild(logEndLi);
-            ul.appendChild(disabledLi);
-            ul.appendChild(descLi);
-            ul.appendChild(tagLi);
-            ul.appendChild(tagGroupLi);
-
-            // Append ul to div
-            listDiv.appendChild(ul);
+            // Table
+            const table = document.createElement('table');
+            table.className = 'w3-table indented-table';
+            addChildTableItem(table, 'To Address', policy.to.member ? policy.to.member.join(", ") : "None");
+            addChildTableItem(table, 'From Address', policy.from.member ? policy.from.member.join(", ") : "None");
+            addChildTableItem(table, 'Source Address', policy.source.member ? policy.source.member.join(", ") : "None");
+            addChildTableItem(table, 'Destination Address', policy.destination.member ? policy.destination.member.join(", ") : "None");
+            addChildTableItem(table, 'Source User', policy.source_user.member ? policy.source_user.member.join(", ") : "None");
+            addChildTableItem(table, 'Category', policy.category.member ? policy.category.member.join(", ") : "None");
+            addChildTableItem(table, 'Application', policy.application.member ? policy.application.member.join(", ") : "None");
+            addChildTableItem(table, 'Service', policy.service.member ? policy.service.member.join(", ") : "None");
+            addChildTableItem(table, 'Action', policy.action.member ? policy.action.member.join(", ") : "None");
+            addChildTableItem(table, 'Type', policy.type.member ? policy.type.member.join(", ") : "None");
+            addChildTableItem(table, 'Log', policy.log.member ? policy.log.member.join(", ") : "None");
+            addChildTableItem(table, 'Log Start', policy.log_start.member ? policy.log_start.member.join(", ") : "None");
+            addChildTableItem(table, 'Log End', policy.log_end.member ? policy.log_end.member.join(", ") : "None");
+            addChildTableItem(table, 'Disabled', policy.disabled.member ? policy.disabled.member.join(", ") : "None");
+            addChildTableItem(table, 'Description', policy.description.member ? policy.description.member.join(", ") : "None");
+            addChildTableItem(table, 'Tags', policy.tag.member ? policy.tag.member.join(", ") : "None");
+            addChildTableItem(table, 'Tag Group', policy.tag_group.member ? policy.tag_group.member.join(", ") : "None");
+            listDiv.appendChild(table);
 
             // Add items to the div element
             parentDiv.appendChild(button);
@@ -487,119 +318,23 @@ function updateQosTable(deviceId, divId) {
             listDiv.id = divId + '_list_' + sanitizedId;
             listDiv.className = 'w3-hide w3-border';
 
-            // Create ul
-            const ul = document.createElement('ul');
-            ul.className = 'indented-list';
-
-            // Create li elements for each service property (confirming they are arrays first)
-            const toLi = document.createElement('li');
-            if (Array.isArray(policy.to?.member)) {
-                toLi.textContent = policy.to.member.join(", ");
-            } else {
-                toLi.textContent = 'No to address';
-            }
-
-            const fromLi = document.createElement('li');
-            if (Array.isArray(policy.from?.member)) {
-                fromLi.textContent = policy.from.member.join(", ");
-            } else {
-                fromLi.textContent = 'No from address';
-            }
-
-            const sourceLi = document.createElement('li');
-            if (Array.isArray(policy.source?.member)) {
-                sourceLi.textContent = policy.source.member.join(", ");
-            } else {
-                sourceLi.textContent = 'No source address';
-            }
-
-            const destLi = document.createElement('li');
-            if (Array.isArray(policy.destination?.member)) {
-                destLi.textContent = policy.destination.member.join(", ");
-            } else {
-                destLi.textContent = 'No destination address';
-            }
-
-            const srcUserLi = document.createElement('li');
-            if (Array.isArray(policy.source_user?.member)) {
-                srcUserLi.textContent = policy.source_user.member.join(", ");
-            } else {
-                srcUserLi.textContent = 'No source user';
-            }
-
-            const categoryLi = document.createElement('li');
-            if (Array.isArray(policy.category?.member)) {
-                categoryLi.textContent = policy.category.member.join(", ");
-            } else {
-                categoryLi.textContent = 'No source user';
-            }
-
-            const appLi = document.createElement('li');
-            if (Array.isArray(policy.application?.member)) {
-                appLi.textContent = policy.application.member.join(", ");
-            } else {
-                appLi.textContent = 'No source user';
-            }
-
-            const serviceLi = document.createElement('li');
-            if (Array.isArray(policy.service?.member)) {
-                serviceLi.textContent = policy.service.member.join(", ");
-            } else {
-                serviceLi.textContent = 'No service';
-            }
-
-            const actionLi = document.createElement('li');
-            if (Array.isArray(policy.action?.member)) {
-                actionLi.textContent = policy.action.member.join(", ");
-            } else {
-                actionLi.textContent = 'No service';
-            }
-
-            const dscpLi = document.createElement('li');
-            if (Array.isArray(policy.dscp?.member)) {
-                dscpLi.textContent = policy.dscp.member.join(", ");
-            } else {
-                dscpLi.textContent = 'No service';
-            }
-
-            const descLi = document.createElement('li');
-            if (Array.isArray(policy.description?.member)) {
-                descLi.textContent = policy.description.member.join(", ");
-            } else {
-                descLi.textContent = 'No description';
-            }
-
-            const tagLi = document.createElement('li');
-            if (Array.isArray(policy.tag?.member)) {
-                tagLi.textContent = policy.tag.member.join(", ");
-            } else {
-                tagLi.textContent = 'No tags';
-            }
-
-            const tagGroupLi = document.createElement('li');
-            if (Array.isArray(policy.tag_group?.member)) {
-                tagGroupLi.textContent = policy.tag_group.member.join(", ");
-            } else {
-                tagGroupLi.textContent = 'No grouping by tags';
-            }
-
-            // Append li elements to ul
-            ul.appendChild(toLi);
-            ul.appendChild(fromLi);
-            ul.appendChild(sourceLi);
-            ul.appendChild(destLi);
-            ul.appendChild(srcUserLi);
-            ul.appendChild(categoryLi);
-            ul.appendChild(appLi);
-            ul.appendChild(serviceLi);
-            ul.appendChild(actionLi);
-            ul.appendChild(dscpLi);
-            ul.appendChild(descLi);
-            ul.appendChild(tagLi);
-            ul.appendChild(tagGroupLi);
-
-            // Append ul to div
-            listDiv.appendChild(ul);
+            // Table
+            const table = document.createElement('table');
+            table.className = 'w3-table indented-table';
+            addChildTableItem(table, 'To Address', policy.to.member ? policy.to.member.join(", ") : "None");
+            addChildTableItem(table, 'From Address', policy.from.member ? policy.from.member.join(", ") : "None");
+            addChildTableItem(table, 'Source Address', policy.source.member ? policy.source.member.join(", ") : "None");
+            addChildTableItem(table, 'Destination Address', policy.destination.member ? policy.destination.member.join(", ") : "None");
+            addChildTableItem(table, 'Source User', policy.source_user.member ? policy.source_user.member.join(", ") : "None");
+            addChildTableItem(table, 'Category', policy.category.member ? policy.category.member.join(", ") : "None");
+            addChildTableItem(table, 'Application', policy.application.member ? policy.application.member.join(", ") : "None");
+            addChildTableItem(table, 'Service', policy.service.member ? policy.service.member.join(", ") : "None");
+            addChildTableItem(table, 'Action', policy.action.member ? policy.action.member.join(", ") : "None");
+            addChildTableItem(table, 'DSCP', policy.dscp.member ? policy.dscp.member.join(", ") : "None");
+            addChildTableItem(table, 'Description', policy.description.member ? policy.description.member.join(", ") : "None");
+            addChildTableItem(table, 'Tags', policy.tag.member ? policy.tag.member.join(", ") : "None");
+            addChildTableItem(table, 'Tag Group', policy.tag_group.member ? policy.tag_group.member.join(", ") : "None");
+            listDiv.appendChild(table);
 
             // Add items to the div element
             parentDiv.appendChild(button);

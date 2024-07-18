@@ -89,6 +89,29 @@ function populateDropdownWithData(selector, hoverColorClass, devices, divId) {
 
 
 /**
+ * Add items to the tables
+ * These are shown in the lists of objects like tags, addresses, etc.
+ * 
+ * @param {*} tableName 
+ * @param {*} heading 
+ * @param {*} value 
+ */
+function addChildTableItem(tableName, heading, value) {
+    // Create the row
+    const row = tableName.insertRow();
+
+    // Create the heading cell
+    cell = row.insertCell();
+    cell.textContent = heading;
+    cell.className = 'left-cell';
+
+    // Create the value cell
+    cell = row.insertCell();
+    cell.textContent = value;
+}
+
+
+/**
  * Update the table with a list of tags for the selected device
  * This is specific to the tags page and is called when a device is selected from the dropdown
  * 
@@ -97,7 +120,7 @@ function populateDropdownWithData(selector, hoverColorClass, devices, divId) {
  */
 function updateTagsTable(deviceId, divId) {
     // Create lists to track contents
-    let tagList = [];
+    let objectList = [];
 
     // API call to fetch tags for the selected device
     fetch(`/get_tags?id=${encodeURIComponent(deviceId)}`)
@@ -126,22 +149,12 @@ function updateTagsTable(deviceId, divId) {
             listDiv.id = divId + '_list_' + sanitizedId;
             listDiv.className = 'w3-hide w3-border';
 
-            // Create ul
-            const ul = document.createElement('ul');
-            ul.className = 'indented-list';
-
-            // Create li elements for each address property
-            const descriptionLi = document.createElement('li');
-            descriptionLi.textContent = tag.description;
-            const colourLi = document.createElement('li');
-            colourLi.textContent = tag.colour;
-
-            // Append li elements to ul
-            ul.appendChild(descriptionLi);
-            ul.appendChild(colourLi);
-
-            // Append ul to div
-            listDiv.appendChild(ul);
+            // Table
+            const table = document.createElement('table');
+            table.className = 'w3-table indented-table';
+            addChildTableItem(table, 'Description', tag.description);
+            addChildTableItem(table, 'Colour', tag.colour);
+            listDiv.appendChild(table);
 
             // Add items to the div element
             parentDiv.appendChild(button);
@@ -154,12 +167,12 @@ function updateTagsTable(deviceId, divId) {
                 description: tag.description,
                 colour: tag.colour,
             };
-            tagList.push(tagObject);
+            objectList.push(tagObject);
         });
         if (divId.includes('tagAccordionA')) {
-            tagListA = tagList;
+            tagListA = objectList;
         } else {
-            tagListB = tagList;
+            tagListB = objectList;
         }
     })
     .catch(error => console.error('Error fetching tags:', error));
@@ -204,25 +217,13 @@ function updateAddressesTable(deviceId, divId) {
             listDiv.id = divId + '_list_' + sanitizedId;
             listDiv.className = 'w3-hide w3-border';
 
-            // Create ul
-            const ul = document.createElement('ul');
-            ul.className = 'indented-list';
-
-            // Create li elements for each address property
-            const addressLi = document.createElement('li');
-            addressLi.textContent = address.addr;
-            const descriptionLi = document.createElement('li');
-            descriptionLi.textContent = address.description;
-            const tagLi = document.createElement('li');
-            tagLi.textContent = address.tag.member.join(", ");
-
-            // Append li elements to ul
-            ul.appendChild(addressLi);
-            ul.appendChild(descriptionLi);
-            ul.appendChild(tagLi);
-
-            // Append ul to div
-            listDiv.appendChild(ul);
+            // Table
+            const table = document.createElement('table');
+            table.className = 'w3-table indented-table';
+            addChildTableItem(table, 'Address', address.addr);
+            addChildTableItem(table, 'Description', address.description);
+            addChildTableItem(table, 'Tag', address.tag.member.join(", "));
+            listDiv.appendChild(table);
 
             // Add items to the div element
             parentDiv.appendChild(button);
@@ -286,25 +287,13 @@ function updateAddressGroupsTable(deviceId, divId) {
             listDiv.id = divId + '_list_' + sanitizedId;
             listDiv.className = 'w3-hide w3-border';
 
-            // Create ul
-            const ul = document.createElement('ul');
-            ul.className = 'indented-list';
-
-            // Create li elements for each address property
-            const addressLi = document.createElement('li');
-            addressLi.textContent = address.static.member.join(", ");
-            const descriptionLi = document.createElement('li');
-            descriptionLi.textContent = address.description;
-            const tagLi = document.createElement('li');
-            tagLi.textContent = address.tag.member.join(", ");
-
-            // Append li elements to ul
-            ul.appendChild(addressLi);
-            ul.appendChild(descriptionLi);
-            ul.appendChild(tagLi);
-
-            // Append ul to div
-            listDiv.appendChild(ul);
+            // Table
+            const table = document.createElement('table');
+            table.className = 'w3-table indented-table';
+            addChildTableItem(table, 'Address', address.static.member.join(", "));
+            addChildTableItem(table, 'Description', address.description);
+            addChildTableItem(table, 'Tag', address.tag.member.join(", "));
+            listDiv.appendChild(table);
 
             // Add items to the div element
             parentDiv.appendChild(button);
@@ -368,19 +357,11 @@ function updateApplicationGroupsTable(deviceId, divId) {
             listDiv.id = divId + '_list_' + sanitizedId;
             listDiv.className = 'w3-hide w3-border';
 
-            // Create ul
-            const ul = document.createElement('ul');
-            ul.className = 'indented-list';
-
-            // Create li elements for each address property
-            const appLi = document.createElement('li');
-            appLi.textContent = appGroup.members.member.join(", ");
-
-            // Append li elements to ul
-            ul.appendChild(appLi);
-
-            // Append ul to div
-            listDiv.appendChild(ul);
+            // Table
+            const table = document.createElement('table');
+            table.className = 'w3-table indented-table';
+            addChildTableItem(table, 'Members', appGroup.members.member.join(", "));
+            listDiv.appendChild(table);
 
             // Add items to the div element
             parentDiv.appendChild(button);
@@ -442,25 +423,13 @@ function updateServicesTable(deviceId, divId) {
             listDiv.id = divId + '_list_' + sanitizedId;
             listDiv.className = 'w3-hide w3-border';
 
-            // Create ul
-            const ul = document.createElement('ul');
-            ul.className = 'indented-list';
-
-            // Create li elements for each service property
-            const protocolLi = document.createElement('li');
-            protocolLi.textContent = service.addr;
-            const descriptionLi = document.createElement('li');
-            descriptionLi.textContent = service.description;
-            const tagLi = document.createElement('li');
-            tagLi.textContent = service.tag.member.join(", ");
-
-            // Append li elements to ul
-            ul.appendChild(protocolLi);
-            ul.appendChild(descriptionLi);
-            ul.appendChild(tagLi);
-
-            // Append ul to div
-            listDiv.appendChild(ul);
+            // Table
+            const table = document.createElement('table');
+            table.className = 'w3-table indented-table';
+            addChildTableItem(table, 'Protocol', service.protocol);
+            addChildTableItem(table, 'Description', service.description);
+            addChildTableItem(table, 'Tag', service.tag.member.join(", "));
+            listDiv.appendChild(table);
 
             // Add items to the div element
             parentDiv.appendChild(button);
@@ -524,27 +493,12 @@ function updateServiceGroupsTable(deviceId, divId) {
             listDiv.id = divId + '_list_' + sanitizedId;
             listDiv.className = 'w3-hide w3-border';
 
-            // Create ul
-            const ul = document.createElement('ul');
-            ul.className = 'indented-list';
-
-            // Create li elements for each service property (confirming they are arrays first)
-            const membersLi = document.createElement('li');
-            membersLi.textContent = group.members.member.join(", ");
-
-            const tagLi = document.createElement('li');
-            if (Array.isArray(group.tag?.member)) {
-                tagLi.textContent = group.tag.member.join(", ");
-            } else {
-                tagLi.textContent = 'No tags';
-            }
-
-            // Append li elements to ul
-            ul.appendChild(membersLi);
-            ul.appendChild(tagLi);
-
-            // Append ul to div
-            listDiv.appendChild(ul);
+            // Table
+            const table = document.createElement('table');
+            table.className = 'w3-table indented-table';
+            addChildTableItem(table, 'Members', group.members.member.join(", "));
+            addChildTableItem(table, 'Tag', group.tag.member?.join(", ") ?? 'No tags');
+            listDiv.appendChild(table);
 
             // Add items to the div element
             parentDiv.appendChild(button);

@@ -69,3 +69,13 @@ button.highlight-missing {
 .collapsible-content {
     display: none;
 }
+
+/* Tables showing objects */
+.left-cell {
+    font-weight: bold;
+    width: 25%;
+}
+
+.indented-table {
+    margin-left: 50px;
+}
