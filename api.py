@@ -50,6 +50,8 @@ class DeviceApi:
         __init__: Initialise the class
         __enter__: Enter method for context manager
         __exit__: Exit method for context manager
+        _rest_request: Send a REST request to the device
+        _xml_request: Send an XML request to the device
         get_config: Get the running configuration of the device
         get_device: Get the device basics
         get_ha: Get high availability details
@@ -57,6 +59,12 @@ class DeviceApi:
         get_addresses: Get address object from the device
         get_address_groups: Get address group objects from the device
         get_application_groups: Get application group objects from the device
+        get_services: Get services objects from the device
+        get_service_groups: Get service group objects from the device
+        get_nat_policies: Get NAT policies from the device
+        get_security_policies: Get security policies from the device
+        get_qos_policies: Get QoS policies from the device
+        get_gp_sessions: Get active Global Protect sessions
     '''
 
     def __init__(
@@ -89,11 +97,20 @@ class DeviceApi:
 
         # XML details
         self.xml_base_url = f'https://{self.hostname}/api'
+        self.xml_headers = {
+            "Authorization": f'Basic {self.xml_key}',
+        }
 
         # REST details
         self.rest_base_url = f'https://{self.hostname}/restapi/{version}'
-        self.location = location
-        self.vsys = vsys
+        self.rest_headers = {
+            "X-PAN-KEY": self.rest_key,
+        }
+        self.params = {
+            "location": location,
+            "vsys": vsys,
+            "output-format": "json",
+        }
 
     def __enter__(
         self,
@@ -132,28 +149,64 @@ class DeviceApi:
                 exc_info=(exc_type, exc_value, traceback)
             )
 
-    def get_config(
-        self
-    ) -> str:
+    def _rest_request(
+        self,
+        url: str,
+    ) -> dict | int:
         '''
-        Get the running configuration of the device
-        This uses the XML API
+        Send a REST request to the device
+        Handles checking the response
+
+        Args:
+            url (str): The URL to send the request to
+                Example: "/Objects/Tags"
 
         Returns:
-            str: The configuration
-                XML format, but returned as a string
+            dict: The response body
+            int: The response code if an error occurred
         '''
-
-        # Build the request
-        url = f"{self.xml_base_url}/?type=config&action=show&xpath=/"
-        headers = {
-            "Authorization": f'Basic {self.xml_key}',
-        }
 
         # Send the request
         response = requests.get(
-            url,
-            headers=headers
+            f"{self.rest_base_url}{url}",
+            headers=self.rest_headers,
+            params=self.params,
+        )
+
+        # Check the response code for errors
+        if response.status_code != 200:
+            print(
+                Fore.RED,
+                response.status_code,
+                Style.RESET_ALL
+            )
+
+            return response.status_code
+
+        # Return the body of the response
+        return response.json()['result']['entry']
+
+    def _xml_request(
+        self,
+        url: str,
+    ) -> str | int:
+        '''
+        Send an XML request to the device
+        Handles checking the response
+
+        Args:
+            url (str): The URL to send the request to
+                Example: "/?type=op&cmd=<show><system></system></show>"
+
+        Returns:
+            str: The response body
+            int: The response code if an error occurred
+        '''
+
+        # Send the request
+        response = requests.get(
+            f"{self.xml_base_url}{url}",
+            headers=self.xml_headers
         )
 
         # Check the response code for errors
@@ -171,6 +224,21 @@ class DeviceApi:
 
         # Return the configuration (in XML) as a string
         return response.text
+
+    def get_config(
+        self
+    ) -> str:
+        '''
+        Get the running configuration of the device
+        This uses the XML API
+
+        Returns:
+            str: The configuration
+                XML format, but returned as a string
+        '''
+
+        config = self._xml_request("/?type=config&action=show&xpath=/")
+        return config
 
     def get_device(
         self,
@@ -193,15 +261,12 @@ class DeviceApi:
             f"{self.xml_base_url}/?type=op"
             "&cmd=<show><system><info></info></system></show>"
         )
-        headers = {
-            "Authorization": f'Basic {self.xml_key}',
-        }
 
         # Send the request
         try:
             response = requests.get(
                 url,
-                headers=headers
+                headers=self.xml_headers
             )
 
         except (ConnectionError, MaxRetryError, NewConnectionError) as e:
@@ -268,15 +333,12 @@ class DeviceApi:
             "&cmd=<show><high-availability><state>"
             "</state></high-availability></show>"
         )
-        headers = {
-            "Authorization": f'Basic {self.xml_key}',
-        }
 
         # Send the request
         try:
             response = requests.get(
                 url,
-                headers=headers
+                headers=self.xml_headers
             )
 
         except (ConnectionError, MaxRetryError, NewConnectionError) as e:
@@ -345,39 +407,8 @@ class DeviceApi:
                 color (str): The color ID of the tag
         '''
 
-        # Build the request
-        url = f"{self.rest_base_url}/Objects/Tags"
-
-        headers = {
-            "X-PAN-KEY": self.rest_key,
-        }
-
-        params = {
-            "location": self.location,
-            "vsys": self.vsys,
-            "output-format": "json",
-        }
-
-        # Send the request
-        response = requests.get(
-            url,
-            headers=headers,
-            params=params
-        )
-
-        # Check the response code for errors
-        if response.status_code != 200:
-            print(
-                Fore.RED,
-                response.status_code,
-                Style.RESET_ALL
-            )
-
-            return response.status_code
-
-        # Return the tags as a list
-        tags = response.json()
-        return tags['result']['entry']
+        tags = self._rest_request("/Objects/Tags")
+        return tags
 
     def get_addresses(
         self
@@ -396,39 +427,8 @@ class DeviceApi:
                 tag (str): The tag of the address
         '''
 
-        # Build the request
-        url = f"{self.rest_base_url}/Objects/Addresses"
-
-        headers = {
-            "X-PAN-KEY": self.rest_key,
-        }
-
-        params = {
-            "location": self.location,
-            "vsys": self.vsys,
-            "output-format": "json",
-        }
-
-        # Send the request
-        response = requests.get(
-            url,
-            headers=headers,
-            params=params
-        )
-
-        # Check the response code for errors
-        if response.status_code != 200:
-            print(
-                Fore.RED,
-                response.status_code,
-                Style.RESET_ALL
-            )
-
-            return response.status_code
-
-        # Return the tags as a list
-        addresses = response.json()
-        return addresses['result']['entry']
+        addresses = self._rest_request("/Objects/Addresses")
+        return addresses
 
     def get_address_groups(
         self
@@ -449,39 +449,8 @@ class DeviceApi:
                 description (str): The description of the group
         '''
 
-        # Build the request
-        url = f"{self.rest_base_url}/Objects/AddressGroups"
-
-        headers = {
-            "X-PAN-KEY": self.rest_key,
-        }
-
-        params = {
-            "location": self.location,
-            "vsys": self.vsys,
-            "output-format": "json",
-        }
-
-        # Send the request
-        response = requests.get(
-            url,
-            headers=headers,
-            params=params
-        )
-
-        # Check the response code for errors
-        if response.status_code != 200:
-            print(
-                Fore.RED,
-                response.status_code,
-                Style.RESET_ALL
-            )
-
-            return response.status_code
-
-        # Return the tags as a list
-        address_groups = response.json()
-        return address_groups['result']['entry']
+        address_groups = self._rest_request("/Objects/AddressGroups")
+        return address_groups
 
     def get_application_groups(
         self
@@ -499,39 +468,8 @@ class DeviceApi:
                     member (list): The members of the group
         '''
 
-        # Build the request
-        url = f"{self.rest_base_url}/Objects/ApplicationGroups"
-
-        headers = {
-            "X-PAN-KEY": self.rest_key,
-        }
-
-        params = {
-            "location": self.location,
-            "vsys": self.vsys,
-            "output-format": "json",
-        }
-
-        # Send the request
-        response = requests.get(
-            url,
-            headers=headers,
-            params=params
-        )
-
-        # Check the response code for errors
-        if response.status_code != 200:
-            print(
-                Fore.RED,
-                response.status_code,
-                Style.RESET_ALL
-            )
-
-            return response.status_code
-
-        # Return the tags as a list
-        application_groups = response.json()
-        return application_groups['result']['entry']
+        application_groups = self._rest_request("/Objects/ApplicationGroups")
+        return application_groups
 
     def get_services(
         self
@@ -554,39 +492,8 @@ class DeviceApi:
                 description (str): The description of the service
         '''
 
-        # Build the request
-        url = f"{self.rest_base_url}/Objects/Services"
-
-        headers = {
-            "X-PAN-KEY": self.rest_key,
-        }
-
-        params = {
-            "location": self.location,
-            "vsys": self.vsys,
-            "output-format": "json",
-        }
-
-        # Send the request
-        response = requests.get(
-            url,
-            headers=headers,
-            params=params
-        )
-
-        # Check the response code for errors
-        if response.status_code != 200:
-            print(
-                Fore.RED,
-                response.status_code,
-                Style.RESET_ALL
-            )
-
-            return response.status_code
-
-        # Return the tags as a list
-        application_groups = response.json()
-        return application_groups['result']['entry']
+        services = self._rest_request("/Objects/Services")
+        return services
 
     def get_service_groups(
         self
@@ -606,39 +513,8 @@ class DeviceApi:
                     member (list): The tags of the group
         '''
 
-        # Build the request
-        url = f"{self.rest_base_url}/Objects/ServiceGroups"
-
-        headers = {
-            "X-PAN-KEY": self.rest_key,
-        }
-
-        params = {
-            "location": self.location,
-            "vsys": self.vsys,
-            "output-format": "json",
-        }
-
-        # Send the request
-        response = requests.get(
-            url,
-            headers=headers,
-            params=params
-        )
-
-        # Check the response code for errors
-        if response.status_code != 200:
-            print(
-                Fore.RED,
-                response.status_code,
-                Style.RESET_ALL
-            )
-
-            return response.status_code
-
-        # Return the tags as a list
-        application_groups = response.json()
-        return application_groups['result']['entry']
+        service_groups = self._rest_request("/Objects/ServiceGroups")
+        return service_groups
 
     def get_nat_policies(
         self
@@ -674,39 +550,8 @@ class DeviceApi:
                 description (str): The description of the NAT
         '''
 
-        # Build the request
-        url = f"{self.rest_base_url}/Policies/NATRules"
-
-        headers = {
-            "X-PAN-KEY": self.rest_key,
-        }
-
-        params = {
-            "location": self.location,
-            "vsys": self.vsys,
-            "output-format": "json",
-        }
-
-        # Send the request
-        response = requests.get(
-            url,
-            headers=headers,
-            params=params
-        )
-
-        # Check the response code for errors
-        if response.status_code != 200:
-            print(
-                Fore.RED,
-                response.status_code,
-                Style.RESET_ALL
-            )
-
-            return response.status_code
-
-        # Return the tags as a list
-        application_groups = response.json()
-        return application_groups['result']['entry']
+        nat_rules = self._rest_request("/Policies/NATRules")
+        return nat_rules
 
     def get_security_policies(
         self
@@ -753,39 +598,8 @@ class DeviceApi:
                 log-end (str): The log end of the security rule (yes or no)
         '''
 
-        # Build the request
-        url = f"{self.rest_base_url}/Policies/SecurityRules"
-
-        headers = {
-            "X-PAN-KEY": self.rest_key,
-        }
-
-        params = {
-            "location": self.location,
-            "vsys": self.vsys,
-            "output-format": "json",
-        }
-
-        # Send the request
-        response = requests.get(
-            url,
-            headers=headers,
-            params=params
-        )
-
-        # Check the response code for errors
-        if response.status_code != 200:
-            print(
-                Fore.RED,
-                response.status_code,
-                Style.RESET_ALL
-            )
-
-            return response.status_code
-
-        # Return the tags as a list
-        application_groups = response.json()
-        return application_groups['result']['entry']
+        security_rules = self._rest_request("/Policies/SecurityRules")
+        return security_rules
 
     def get_qos_policies(
         self
@@ -834,39 +648,8 @@ class DeviceApi:
                 group-tag (str): The group tag of the QoS rule
         '''
 
-        # Build the request
-        url = f"{self.rest_base_url}/Policies/QoSRules"
-
-        headers = {
-            "X-PAN-KEY": self.rest_key,
-        }
-
-        params = {
-            "location": self.location,
-            "vsys": self.vsys,
-            "output-format": "json",
-        }
-
-        # Send the request
-        response = requests.get(
-            url,
-            headers=headers,
-            params=params
-        )
-
-        # Check the response code for errors
-        if response.status_code != 200:
-            print(
-                Fore.RED,
-                response.status_code,
-                Style.RESET_ALL
-            )
-
-            return response.status_code
-
-        # Return the tags as a list
-        application_groups = response.json()
-        return application_groups['result']['entry']
+        qos_rules = self._rest_request("/Policies/QoSRules")
+        return qos_rules
 
     def get_gp_sessions(
         self,
@@ -898,15 +681,12 @@ class DeviceApi:
             "<current-user/>"
             "</global-protect-gateway></show>"
         )
-        headers = {
-            "Authorization": f'Basic {self.xml_key}',
-        }
 
         # Send the request
         try:
             response = requests.get(
                 url,
-                headers=headers
+                headers=self.xml_headers
             )
 
         except (ConnectionError, MaxRetryError, NewConnectionError) as e:
