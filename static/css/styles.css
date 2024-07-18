@@ -2,8 +2,19 @@
     Global styles for the application
 */
 
+
+:root {
+    /* Highlighting variables */
+    --highlight-different: yellow;
+    --highlight-different-color: black;
+    --highlight-missing: red;
+    --highlight-missing-text: italic;
+    --highlight-missing-color: white;
+}
+
 /* Base reset for html and body */
 html, body {
+    height: 100% -20px;
     margin: 0;
     padding: 0;
     font-family: "Raleway", sans-serif;
@@ -42,48 +53,19 @@ body {
 /* Highlighting styles for comparison */
 /* Different items */
 button.highlight-different {
-    background-color: yellow;
+    background-color: var(--highlight-different);
+    color: var(--highlight-different-color);
 }
 
 /* Missing items */
 button.highlight-missing {
-    background-color: red;
-    font-style: italic;
-    color: white;
+    background-color: var(--highlight-missing);
+    font-style: var(--highlight-missing-text);
+    color: var(--highlight-missing-color);
 }
 
-/* Loading spinner animation */
-.loading-spinner {
-    position: fixed;
-    z-index: 1000;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);                   /* Center the spinner */
-    border: 4px solid rgba(0, 0, 0, 0.1);
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border-left-color: #09f;
-    animation: spin 1s infinite linear;
-}
-
-/* Spinner keyframes */
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
 
 /* Collapsible content */
 .collapsible-content {
     display: none;
-}
-
-/* Icon rotation for collapsible triggers */
-.rotate-icon {
-    transform: rotate(270deg);
-    transition: transform 0.3s ease;
 }

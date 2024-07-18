@@ -1,4 +1,3 @@
-<!-- index.html -->
 {% extends "base.html" %}
 
 {% block content %}
@@ -87,8 +86,8 @@
     {% for device in device_list|sort(attribute='name') %}
     <div class="w3-half">
         <div class="w3-container w3-padding-16 device-card">
-            <div class="w3-card-4">
-                <header class="w3-container w3-light-grey">
+            <div class="w3-card">
+                <header class="w3-container">
                     <h3>{{ device.name }}</h3>
                 </header>
                 <br>
@@ -133,16 +132,20 @@
                     </table>
                 </div>
                 <br>
-                <button data-id="{{ device.id }}" class="w3-button w3-block w3-blue device-download-button">Download Config</button>
-                <button data-id="{{ device.id }}" data-device-name="{{ device.name }}" data-device-hostname="{{ device.hostname }}" data-device-site="{{ device.site }}" data-device-key="{{ device.key }}" class="w3-button w3-block w3-green device-edit-button">Edit</button>
-                <button data-id="{{ device.id }}" class="w3-button w3-block w3-red device-delete-button">Delete</button>
+                <footer>
+                    <div class="w3-bar w3-center w3-padding-16">
+                        <button data-id="{{ device.id }}" class="w3-button w3-round device-download-button" style="width:30%">Download Config</button>
+                        <button data-id="{{ device.id }}" data-device-name="{{ device.name }}" data-device-hostname="{{ device.hostname }}" data-device-site="{{ device.site }}" data-device-key="{{ device.key }}" class="w3-button w3-round device-edit-button" style="width:30%">Edit</button>
+                        <button data-id="{{ device.id }}" class="w3-button w3-round device-delete-button" style="width:30%">Delete</button>
+                    </div>
+                </footer>
             </div>
         </div>
     </div>
     {% else %}
     <div class="w3-container w3-padding-16 device-card">
-        <div class="w3-card-4">
-            <header class="w3-container w3-light-grey">
+        <div class="w3-card">
+            <header class="w3-container">
                 <h3>No Devices Found</h3>
             </header>
         </div>
@@ -165,8 +168,8 @@
     {% for pair in ha_list %}
     <div class="w3-third">
         <div class="w3-container w3-padding-16 ha-card"> <!-- Changed class to ha-card to match data-card-type -->
-            <div class="w3-card-4">
-                <header class="w3-container w3-light-grey">
+            <div class="w3-card">
+                <header class="w3-container">
                     <h3>HA Pair</h3>
                 </header>
                 <br>
@@ -188,8 +191,8 @@
     </div>
     {% else %}
     <div class="w3-container w3-padding-16 ha-card"> <!-- Changed class to ha-card for consistency -->
-        <div class="w3-card-4">
-            <header class="w3-container w3-light-grey">
+        <div class="w3-card">
+            <header class="w3-container">
                 <h3>No HA Pairs Found</h3>
             </header>
         </div>
@@ -209,8 +212,8 @@
         {% for site in site_list|sort(attribute='name') %}
         <div class="w3-third">
             <div class="w3-container w3-padding-16 site-card">
-                <div class="w3-card-4">
-                    <header class="w3-container w3-light-grey">
+                <div class="w3-card">
+                    <header class="w3-container">
                         <h3>{{ site.name }}</h3>
                     </header>
                     <br>
@@ -226,15 +229,20 @@
                             </tr>
                         </table>
                     </div>
-                    <button data-id="{{ site.id }}" id="edit_site" data-site-name="{{ site.name }}" class="w3-button w3-block w3-green site-edit-button">Edit</button>
-                    <button data-id="{{ site.id }}" class="w3-button w3-block w3-red site-delete-button">Delete</button>
+                    <br>
+                    <footer>
+                        <div class="w3-bar w3-center w3-padding-16">
+                            <button data-id="{{ site.id }}" id="edit_site" data-site-name="{{ site.name }}" class="w3-button w3-round site-edit-button" style="width:45%">Edit</button>
+                            <button data-id="{{ site.id }}" class="w3-button w3-round site-delete-button" style="width:45%"">Delete</button>
+                        </div>
+                    </footer>
                 </div>
             </div>
         </div>
         {% else %}
         <div class="w3-container w3-padding-16 device-card">
-            <div class="w3-card-4">
-                <header class="w3-container w3-light-grey">
+            <div class="w3-card">
+                <header class="w3-container">
                     <h3>No Devices Found</h3>
                 </header>
             </div>
@@ -247,7 +255,7 @@
 
 <!-- The Add Device Modal -->
 <div id="deviceModal" class="w3-modal">
-    <div class="w3-modal-content w3-card-4 w3-animate-zoom" style="max-width:600px">
+    <div class="w3-modal-content w3-card w3-animate-zoom" style="max-width:600px">
         <div class="w3-center"><br>
             <span onclick="document.getElementById('deviceModal').style.display='none'" class="w3-button w3-xlarge w3-hover-red w3-display-topright" title="Close Modal">&times;</span>
             <h3>Add Device</h3>
@@ -280,7 +288,7 @@
             </div>
         </form>
 
-        <div class="w3-container w3-border-top w3-padding-16 w3-light-grey">
+        <div class="w3-container w3-border-top w3-padding-16">
             <button onclick="document.getElementById('deviceModal').style.display='none'" type="button" class="w3-button w3-red">Cancel</button>
         </div>
     </div>
@@ -288,7 +296,7 @@
 
 <!-- The Edit Device Modal -->
 <div id="deviceEditModal" class="w3-modal">
-    <div class="w3-modal-content w3-card-4 w3-animate-zoom" style="max-width:600px">
+    <div class="w3-modal-content w3-card w3-animate-zoom" style="max-width:600px">
         <div class="w3-center"><br>
             <span onclick="document.getElementById('deviceEditModal').style.display='none'" class="w3-button w3-xlarge w3-hover-red w3-display-topright" title="Close Modal">&times;</span>
             <h3>Edit Device</h3>
@@ -322,7 +330,7 @@
             </div>
         </form>
 
-        <div class="w3-container w3-border-top w3-padding-16 w3-light-grey">
+        <div class="w3-container w3-border-top w3-padding-16">
             <button onclick="document.getElementById('deviceEditModal').style.display='none'" type="button" class="w3-button w3-red">Cancel</button>
         </div>
     </div>
@@ -332,7 +340,7 @@
 
 <!-- The Add Site Modal -->
 <div id="siteModal" class="w3-modal">
-    <div class="w3-modal-content w3-card-4 w3-animate-zoom" style="max-width:600px">
+    <div class="w3-modal-content w3-card w3-animate-zoom" style="max-width:600px">
         <div class="w3-center"><br>
             <span onclick="document.getElementById('siteModal').style.display='none'" class="w3-button w3-xlarge w3-hover-red w3-display-topright" title="Close Modal">&times;</span>
             <h3>Add Site</h3>
@@ -346,7 +354,7 @@
             </div>
         </form>
 
-        <div class="w3-container w3-border-top w3-padding-16 w3-light-grey">
+        <div class="w3-container w3-border-top w3-padding-16">
             <button onclick="document.getElementById('siteModal').style.display='none'" type="button" class="w3-button w3-red">Cancel</button>
         </div>
     </div>
@@ -354,7 +362,7 @@
 
 <!-- The Edit Site Modal -->
 <div id="siteEditModal" class="w3-modal">
-    <div class="w3-modal-content w3-card-4 w3-animate-zoom" style="max-width:600px">
+    <div class="w3-modal-content w3-card w3-animate-zoom" style="max-width:600px">
         <div class="w3-center"><br>
             <span onclick="document.getElementById('siteEditModal').style.display='none'" class="w3-button w3-xlarge w3-hover-red w3-display-topright" title="Close Modal">&times;</span>
             <h3>Edit Site</h3>
@@ -369,7 +377,7 @@
             </div>
         </form>
 
-        <div class="w3-container w3-border-top w3-padding-16 w3-light-grey">
+        <div class="w3-container w3-border-top w3-padding-16">
             <button onclick="document.getElementById('siteEditModal').style.display='none'" type="button" class="w3-button w3-red">Cancel</button>
         </div>
     </div>
@@ -377,7 +385,7 @@
 
 <!-- Confirmation Modal -->
 <div id="confirmModal" class="w3-modal">
-    <div class="w3-modal-content w3-card-4 w3-animate-zoom" style="max-width:600px">
+    <div class="w3-modal-content w3-card w3-animate-zoom" style="max-width:600px">
         <div class="w3-center"><br>
             <h3>Are you sure?</h3>
         </div>

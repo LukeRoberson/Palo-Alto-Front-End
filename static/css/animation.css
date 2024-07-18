@@ -1,0 +1,115 @@
+/*
+    Styles for anything animated
+*/
+
+:root {
+    /* Slider variables */
+    --slider-bg: #999999;
+    --slider-checked-bg: #2196F3;
+    --slider-thumb-color: white;
+    --slider-transition: .4s;
+    --slider-thumb-move: 20px;
+}
+
+
+/* Loading spinner animation */
+.loading-spinner {
+    position: fixed;
+    z-index: 1000;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);                   /* Center the spinner */
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border-left-color: #09f;
+    animation: spin 1s infinite linear;
+}
+
+/* Spinner keyframes */
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* Outer container of the light/dark mode slider */
+.switch {
+    position: absolute;
+    right: 60px;
+    top: 30%;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    /* Adjust for small screens */
+    @media (max-width: 600px) {
+        .switch {
+            padding: 0 10px;
+            margin: 0 auto;
+        }
+    }
+    
+/* Inner slider button of the light/dark mode slider */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--slider-bg);
+    transition: background-color var(--slider-transition), box-shadow var(--slider-transition), transform var(--slider-transition);
+}
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 2px;
+        bottom: 2px;
+        background-color: var(--slider-thumb-color);
+        transition: transform var(--slider-transition);
+    }
+
+    .slider.round {
+        border-radius: 20px;
+    }
+    
+    .slider.round:before {
+        border-radius: 50%;
+    }
+
+/* Change the appearance of the slider when checked */
+input:checked + .slider {
+    background-color: var(--slider-checked-bg);
+}
+
+input:focus + .slider, input:checked + .slider {
+    box-shadow: 0 0 1px var(--slider-checked-bg);
+}
+
+input:checked + .slider:before {
+    transform: translateX(var(--slider-thumb-move));
+}
+
+/* Icon rotation for collapsible triggers */
+.rotate-icon {
+    transform: rotate(270deg);
+    transition: transform 0.3s ease;
+}

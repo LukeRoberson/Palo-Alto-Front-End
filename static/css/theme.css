@@ -1,0 +1,141 @@
+/*
+    Styles relating to the theme
+    That is, light and dark mode styles
+
+    https://m2.material.io/design/color/dark-theme.html#anatomy
+*/
+
+
+/* Variables to control the main colour palate */
+:root {
+    /* Light mode variables */
+    --light-background: #F8F8F8;
+    --light-surface: #FFFFFF;
+    --light-primary: #12D46A;
+    --light-secondary: #9DA0A1;
+    --light-error: #FF0000;
+
+    --light-on-background: #404258;
+    --light-on-surface: #404258;
+    --light-on-primary: #FFFFFF;
+    --light-on-secondary: #FFFFFF;
+    --light-on-error: #FFFFFF;
+
+    /* Dark mode variables */
+    --dark-background: #000000;
+    --dark-surface: #1E1E1E;
+    --dark-primary: #BB86FC;
+    --dark-secondary: #03DAC6;
+    --dark-error: #CF6679;
+
+    --dark-on-background: #E3E3E3;
+    --dark-on-surface: #E3E3E3;
+    --dark-on-primary: #000000;
+    --dark-on-secondary: #000000;
+    --dark-on-error: #000000;
+}
+
+
+/* Light mode styles */
+.light-mode {
+    background-color: var(--light-background);
+    color: var(--light-on-background);
+}
+
+.light-mode .body {
+    background-color: var(--light-background);
+    color: var(--light-on-background);
+}
+
+.light-mode .main-content {
+    background-color: var(--light-background);
+    color: var(--light-on-background);
+}
+
+.light-mode .w3-card header {
+    background-color: var(--light-primary);
+    color: var(--light-on-primary);
+}
+
+.light-mode .header,
+.light-mode .toggle-btn,
+.light-mode .w3-card,
+.light-mode .w3-panel,
+.light-mode .nav-bar,
+.light-mode .nav-bar a {
+    background-color: var(--light-surface);
+    color: var(--light-on-surface);
+}
+
+.light-mode .nav-bar a:hover {
+    color: var(--light-primary);
+}
+
+.light-mode .device-download-button {
+    background-color: var(--light-primary);
+    color: var(--light-on-primary);
+}
+
+.light-mode .site-edit-button,
+.light-mode .device-edit-button {
+    background-color: var(--light-primary);
+    color: var(--light-on-primary);
+}
+
+.light-mode .site-delete-button,
+.light-mode .device-delete-button {
+    background-color: var(--light-error);
+    color: var(--light-on-error);
+}
+
+
+
+/* Dark mode styles */
+.dark-mode {
+    background-color: var(--dark-background);
+    color: var(--dark-on-background);
+}
+
+.dark-mode .body {
+    background-color: var(--dark-background);
+    color: var(--dark-on-background);
+}
+
+.dark-mode .main-content {
+    background-color: var(--dark-background);
+    color: var(--dark-on-background);
+}
+
+.dark-mode .w3-card header {
+    background-color: var(--dark-primary);
+    color: var(--dark-on-primary);
+}
+.dark-mode .header,
+.dark-mode .toggle-btn,
+.dark-mode .w3-card,
+.dark-mode .nav-bar,
+.dark-mode .nav-bar a {
+    background-color: var(--dark-surface);
+    color: var(--dark-on-surface);
+}
+
+.dark-mode .nav-bar a:hover {
+    color: var(--dark-primary);
+}
+
+.dark-mode .device-download-button {
+    background-color: var(--dark-primary);
+    color: var(--dark-on-primary);
+}
+
+.dark-mode .site-edit-button,
+.dark-mode .device-edit-button {
+    background-color: var(--dark-primary);
+    color: var(--dark-on-primary);
+}
+
+.dark-mode .site-delete-button,
+.dark-mode .device-delete-button {
+    background-color: var(--dark-error);
+    color: var(--dark-on-error);
+}

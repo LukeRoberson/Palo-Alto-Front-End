@@ -128,10 +128,14 @@ function applySavedTheme() {
 
     // Apply the theme to the body, defaulting to light-mode if no theme is saved
     if (currentTheme === "dark-mode") {
+        document.documentElement.classList.add("dark-mode");
+        document.documentElement.classList.remove("light-mode");
         document.body.classList.add("dark-mode");
         document.body.classList.remove("light-mode");
         modeToggle.checked = true;
     } else {
+        document.documentElement.classList.add("light-mode");
+        document.documentElement.classList.remove("dark-mode");
         document.body.classList.add("light-mode");
         document.body.classList.remove("dark-mode");
         modeToggle.checked = false;
@@ -146,13 +150,14 @@ function applySavedTheme() {
 function toggleDarkMode() {
     // If the toggle is checked, add dark-mode class to body and remove light-mode
     if (modeToggle.checked) {
+        document.documentElement.classList.add("dark-mode");
+        document.documentElement.classList.remove("light-mode");
         document.body.classList.add("dark-mode");
         document.body.classList.remove("light-mode");
-
-        // Save the theme to local storage
         localStorage.setItem("theme", "dark-mode");
     } else {
-        // Alternatively, add light-mode class to body and remove dark-mode
+        document.documentElement.classList.add("light-mode");
+        document.documentElement.classList.remove("dark-mode");
         document.body.classList.add("light-mode");
         document.body.classList.remove("dark-mode");
         localStorage.setItem("theme", "light-mode");
