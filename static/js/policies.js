@@ -35,9 +35,7 @@ fetch('/device_list')
  */
 function populateDropdownWithData(selector, hoverColorClass, devices, divId) {
     // Get the dropdown and the button
-    console.log(selector);
     const dropdown = document.querySelector(selector);
-    console.log(dropdown);
 
     // Get the button by traversing the DOM
     const button = dropdown.closest('.w3-dropdown-hover').querySelector('button h3');
