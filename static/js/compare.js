@@ -21,24 +21,29 @@
 /**
  * Setup the comparison of two lists, as needed by the event listeners
  * 
- * @param {*} listAId 
- * @param {*} listBId 
- * @param {*} listA 
- * @param {*} listB 
+ * @param {*} listAId       The ID of the first list container
+ * @param {*} listBId       The ID of the second list container
+ * @param {*} listA         The first list of objects
+ * @param {*} listB         The second list of objects
+ * @param {*} sort          Whether to sort the lists alphabetically (good for objects, bad for policies)
  */
-function setupComparison(listAId, listBId, listA, listB) {
+function setupComparison(listAId, listBId, listA, listB, sort=true) {
     // Get the two parent containers
     let listAContainer = document.getElementById(listAId);
     let listBContainer = document.getElementById(listBId);
 
     // Find missing items, update the lists, and sort them
     compareLists(listA, listB, listAContainer, listBContainer);
-    sortDivsByIdSuffix(`#${listAId}`);
-    sortDivsByIdSuffix(`#${listBId}`);
+    if (sort) {
+        sortDivsByIdSuffix(`#${listAId}`);
+        sortDivsByIdSuffix(`#${listBId}`);
+    }
 
     // Find differences and highlight them (need to sort first to ensure the lists are in the same order)
-    listA.sort((a, b) => a.name.localeCompare(b.name));
-    listB.sort((a, b) => a.name.localeCompare(b.name));
+    if (sort) {
+        listA.sort((a, b) => a.name.localeCompare(b.name));
+        listB.sort((a, b) => a.name.localeCompare(b.name));
+    }
     highlightDifferences(listA, listB, listAContainer, listBContainer);
 }
 

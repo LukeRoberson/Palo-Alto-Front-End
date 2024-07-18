@@ -38,17 +38,36 @@
 <script>
     // Setup comparison for NAT Rules
     document.getElementById('natCompare').addEventListener('click', function() {
-        setupComparison('natAccordionA', 'natAccordionB', natListA, natListB);
+        setupComparison({
+            listAId: 'natAccordionA',
+            listBId: 'natAccordionB',
+            listA: natListA,
+            listB: natListB,
+            sort: false
+
+        });
     });
 
     // Setup comparison for Security Rules
     document.getElementById('securityCompare').addEventListener('click', function() {
-        setupComparison('securityAccordionA', 'securityAccordionB', securityListA, securityListB);
+        setupComparison({
+            listAId: 'securityAccordionA',
+            listBId: 'securityAccordionB',
+            listA: securityListA,
+            listB: securityListB,
+            sort: false
+        });
     });
 
     // Setup comparison for QoS Policies
     document.getElementById('qosCompare').addEventListener('click', function() {
-        setupComparison('qosAccordionA', 'qosAccordionB', qosListA, qosListB);
+        setupComparison({
+            listAId: 'qosAccordionA',
+            listBId: 'qosAccordionB',
+            listA: qosListA,
+            listB: qosListB,
+            sort: false
+        });
     });
 </script>
 
