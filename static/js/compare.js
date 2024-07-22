@@ -44,7 +44,7 @@ function setupComparison(listAId, listBId, listA, listB, sort=true) {
         listA.sort((a, b) => a.name.localeCompare(b.name));
         listB.sort((a, b) => a.name.localeCompare(b.name));
     }
-    highlightDifferences(listA, listB, listAContainer, listBContainer);
+    // highlightDifferences(listA, listB, listAContainer, listBContainer);
 }
 
 
@@ -66,10 +66,11 @@ function compareLists(listA, listB, listAContainer, listBContainer) {
 /**
  * Add items to the tables
  * These are shown in the lists of objects like tags, addresses, etc.
+ * Called for each item (row) in the table
  * 
- * @param {*} tableName 
- * @param {*} heading 
- * @param {*} value 
+ * @param {*} tableName     An existing table that needs an item added
+ * @param {*} heading       The heading, which is in the left cell
+ * @param {*} value         The value, which is in the right cell
  */
 function addChildTableItem(tableName, heading, value) {
     // Skip the name, as it is already displayed in the button
@@ -80,15 +81,29 @@ function addChildTableItem(tableName, heading, value) {
     // Create the row
     const row = tableName.insertRow();
 
-    // Create the heading cell
+    // Create the heading cell (left cell)
     cell = row.insertCell();
     cell.textContent = heading;
     cell.className = 'left-cell';
 
     // Create the value cell
     cell = row.insertCell();
-    cell.textContent = value;
-}
+    // cell.textContent = value;
+    if (value && typeof value === 'object' && value.member && Array.isArray(value.member)) {
+        // Handle cases where 'value' is an array containing 'member' as a property
+        cell.textContent = value.member ? value.member.join(', ') : "None";
+        
+    } else if (value && typeof value === 'object' && value["static-ip"] && typeof value["static-ip"] === 'object') {
+        // Correctly handle 'static-ip' as an object, not an array
+        let bidirNat = value?.["static-ip"]?.["bi-directional"] ?? "None";
+        let sourceTransIp = value?.["static-ip"]?.["translated-address"] ?? "None";
+
+        cell.innerHTML = sourceTransIp + "<br>Bidirectional: " + bidirNat;
+
+    } else {
+        // Default case, just display the value
+        cell.textContent = value;
+    }}
 
 
 /**
@@ -106,8 +121,11 @@ function compareAndAppend(firstList, secondList, firstContainer, secondContainer
     firstList.forEach(object => {
         // If the element is not in the second list, add it
         if (!secondList.find(element => element.name === object.name)) {
-            // Add to the list
-            secondList.push(object);
+            // Get the index of the missing object in the first list
+            let index = firstList.indexOf(object);
+
+            // Add to the list (in the same index as the first list)
+            secondList.splice(index, 0, object);
 
             // Create objects for the missing elements
             const sanitizedId = sanitizeId(object.name);
@@ -116,21 +134,18 @@ function compareAndAppend(firstList, secondList, firstContainer, secondContainer
             const listDiv = createDiv(secondContainer, sanitizedId);
             const table = createElement('table', {className: 'w3-table indented-table'});
 
-            // const ul = createElement('ul', {className: 'indented-list'});
-
             // Add the missing elements to the list div
             Object.entries(object).forEach(([key, value]) => {
-                // ul.appendChild(createElement('li', { textContent: `${key}: ${value}` }));
                 addChildTableItem(table, key, value);
             });
 
             // Append the list and button to the parent div
-            // listDiv.appendChild(ul);
             listDiv.appendChild(table);
             parentDiv.append(button, listDiv);
 
-            // Append the parent div to the second container
-            secondContainer.appendChild(parentDiv);
+            // Insert the parent div into the second container at the correct index
+            let referenceNode = secondContainer.children[index] || null;
+            secondContainer.insertBefore(parentDiv, referenceNode);
         }
     });
 }

@@ -139,18 +139,23 @@ function updateNatTable(deviceId, divId) {
             listDiv.id = divId + '_list_' + sanitizedId;
             listDiv.className = 'w3-hide w3-border';
 
-            // Table
+            // Table - Lots of items to parse through
+            //  Some of these are nested objects, so we need to check if they exist before accessing them
             const table = document.createElement('table');
             table.className = 'w3-table indented-table';
-            addChildTableItem(table, 'Source Translation', policy.source_trans.member ? policy.source_trans.member.join(", ") : "None");
-            addChildTableItem(table, 'To Address', policy.to.member ? policy.to.member.join(", ") : "None");
-            addChildTableItem(table, 'From Address', policy.from.member ? policy.from.member.join(", ") : "None");
+            let bidirNat = policy.source_trans?.["static-ip"]?.["bi-directional"] ?? "None";
+            let sourceTransIp = policy.source_trans?.["static-ip"]?.["translated-address"] ?? "None";
+
+            addChildTableItem(table, 'Source Translation', sourceTransIp + "\nBidirectional: " + bidirNat);
+            addChildTableItem(table, 'Dest Zone', policy.to.member ? policy.to.member.join(", ") : "None");
+            addChildTableItem(table, 'Src Zone', policy.from.member ? policy.from.member.join(", ") : "None");
             addChildTableItem(table, 'Source Address', policy.source.member ? policy.source.member.join(", ") : "None");
             addChildTableItem(table, 'Destination Address', policy.destination.member ? policy.destination.member.join(", ") : "None");
-            addChildTableItem(table, 'Service', policy.service.member ? policy.service.member.join(", ") : "None");
-            addChildTableItem(table, 'Description', policy.description.member ? policy.description.member.join(", ") : "None");
+            addChildTableItem(table, 'Service', policy.service ? policy.service : "None");
+            addChildTableItem(table, 'Description', policy.description ? policy.description : "None");
             addChildTableItem(table, 'Tags', policy.tag.member ? policy.tag.member.join(", ") : "None");
-            addChildTableItem(table, 'Tag Group', policy.tag_group.member ? policy.tag_group.member.join(", ") : "None");
+            addChildTableItem(table, 'Tag Group', policy.tag_group ? policy.tag_group : "None");
+
             listDiv.appendChild(table);
 
             // Add items to the div element
