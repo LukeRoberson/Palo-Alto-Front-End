@@ -310,26 +310,60 @@ function highlightDifferences(listA, listB, containerA, containerB) {
 
 
 /**
- * Compare if two JS objects are different
- * Return true or false depending on the result
+ * Deep equality check for two objects
+ * This is used to compare the properties of two objects when they contains arrays or other objects
  * 
- * @param {*} obj1 
- * @param {*} obj2 
- * @returns 
+ * @param {*} obj1      The first object
+ * @param {*} obj2      The second object
+ * @returns             True if the objects are deeply equal, false otherwise
+ */
+function areObjectsDeeplyEqual(obj1, obj2) {
+    if (obj1 === obj2) {
+        return true;
+    }
+    if (typeof obj1 !== 'object' || typeof obj2 !== 'object' || obj1 == null || obj2 == null) {
+        return false;
+    }
+    const keys1 = Object.keys(obj1);
+    const keys2 = Object.keys(obj2);
+    if (keys1.length !== keys2.length) {
+        return false;
+    }
+    for (let key of keys1) {
+        if (!keys2.includes(key) || !areObjectsDeeplyEqual(obj1[key], obj2[key])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+/**
+ * Compares two objects and returns true if they are different
+ * 
+ * @param {*} obj1      The first object
+ * @param {*} obj2      The second object
+ * @returns             True if the objects are different, false otherwise
  */
 function areObjectsDifferent(obj1, obj2) {
-    // Get all keys from both objects
+    // Get the unique keys from both
     const allKeys = new Set([...Object.keys(obj1), ...Object.keys(obj2)]);
 
-    // Iterate over all keys to check for differences
+    // Loop through all keys, and compare the values
     for (let key of allKeys) {
-        if (obj1[key] !== obj2[key]) {
-            console.log('Different:', key, obj1[key], obj2[key]);       // FIX: Some objects are being tagged as different, but they are not
-            // If any property is different, return true
+        // Skip the name key
+        if (key == "name") {
+            continue;
+        }
+
+        // Use the deep equality check for both array and non-array values
+        const value1 = obj1[key];
+        const value2 = obj2[key];
+        if (!areObjectsDeeplyEqual(value1, value2)) {
+            console.log('Different:', key, value1, value2);
             return true;
         }
     }
 
-    // If no differences are found, return false
     return false;
 }
