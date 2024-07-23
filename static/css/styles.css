@@ -64,7 +64,6 @@ button.highlight-missing {
     color: var(--highlight-missing-color);
 }
 
-
 /* Collapsible content */
 .collapsible-content {
     display: none;

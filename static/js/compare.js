@@ -123,6 +123,58 @@ function compareAndAppend(listA, listB, listAContainer, listBContainer) {
 
     // Loop as long as there are items in either list
     while (listA.length > index || listB.length > index) {
+        // Handle getting to the end of listA while listB still has items
+        if (listA[index] === undefined) {
+            // Add the missing item to the end of the list
+            listA.push(listB[index]);
+
+            // Create objects for the missing elements
+            const sanitizedId = sanitizeId(listA[index].name);
+            const parentDiv = createElement('div', {id: listAContainer.id + '_' + sanitizedId});
+            const button = createButton(listA[index], listAContainer, sanitizedId);
+            const listDiv = createDiv(listAContainer, sanitizedId);
+            const table = createElement('table', {className: 'w3-table indented-table'});
+
+            // Add the missing elements to the list div
+            Object.entries(listA[index]).forEach(([key, value]) => {
+                addChildTableItem(table, key, value);
+            });
+
+            // Append the list and button to the parent div
+            listDiv.appendChild(table);
+            parentDiv.append(button, listDiv);
+
+            // Insert the parent div into the second container at the correct index
+            let referenceNode = listAContainer.children[index] || null;
+            listAContainer.insertBefore(parentDiv, referenceNode);
+        }
+
+        // Handle getting to the end of listB while listA still has items
+        if (listB[index] === undefined) {
+            // Add the missing item to the end of the list
+            listB.push(listA[index]);
+
+            // Create objects for the missing elements
+            const sanitizedId = sanitizeId(listB[index].name);
+            const parentDiv = createElement('div', {id: listBContainer.id + '_' + sanitizedId});
+            const button = createButton(listB[index], listBContainer, sanitizedId);
+            const listDiv = createDiv(listBContainer, sanitizedId);
+            const table = createElement('table', {className: 'w3-table indented-table'});
+
+            // Add the missing elements to the list div
+            Object.entries(listB[index]).forEach(([key, value]) => {
+                addChildTableItem(table, key, value);
+            });
+
+            // Append the list and button to the parent div
+            listDiv.appendChild(table);
+            parentDiv.append(button, listDiv);
+
+            // Insert the parent div into the second container at the correct index
+            let referenceNode = listBContainer.children[index] || null;
+            listBContainer.insertBefore(parentDiv, referenceNode);
+        }
+
         // Check if the ListA item is anywhere in ListB
         if (!listB.some(item => item.name.toLowerCase() === listA[index].name.toLowerCase())) {
             // Add to the list (in the same index as the first list)
@@ -295,9 +347,6 @@ function highlightDifferences(listA, listB, containerA, containerB) {
 
         // Compare the two items
         if (areObjectsDifferent(itemA, itemB)) {
-            // console.log(containerA.id + "_" + sanitizeId(itemA.name));
-            // console.log(containerB.id + "_" + sanitizeId(itemB.name));
-
             // Select the two buttons, and apply CSS to highlight
             const buttonA = containerA.querySelector(`#${containerA.id}_${sanitizeId(itemA.name)} button`);
             const buttonB = containerB.querySelector(`#${containerB.id}_${sanitizeId(itemB.name)} button`);
@@ -360,7 +409,6 @@ function areObjectsDifferent(obj1, obj2) {
         const value1 = obj1[key];
         const value2 = obj2[key];
         if (!areObjectsDeeplyEqual(value1, value2)) {
-            console.log('Different:', key, value1, value2);
             return true;
         }
     }

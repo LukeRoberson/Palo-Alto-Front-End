@@ -229,23 +229,22 @@ function updateSecurityTable(deviceId, divId) {
             // Table
             const table = document.createElement('table');
             table.className = 'w3-table indented-table';
-            addChildTableItem(table, 'To Address', policy.to.member ? policy.to.member.join(", ") : "None");
-            addChildTableItem(table, 'From Address', policy.from.member ? policy.from.member.join(", ") : "None");
+            addChildTableItem(table, 'To Zone', policy.to.member ? policy.to.member.join(", ") : "None");
+            addChildTableItem(table, 'From Zone', policy.from.member ? policy.from.member.join(", ") : "None");
             addChildTableItem(table, 'Source Address', policy.source.member ? policy.source.member.join(", ") : "None");
             addChildTableItem(table, 'Destination Address', policy.destination.member ? policy.destination.member.join(", ") : "None");
             addChildTableItem(table, 'Source User', policy.source_user.member ? policy.source_user.member.join(", ") : "None");
             addChildTableItem(table, 'Category', policy.category.member ? policy.category.member.join(", ") : "None");
             addChildTableItem(table, 'Application', policy.application.member ? policy.application.member.join(", ") : "None");
             addChildTableItem(table, 'Service', policy.service.member ? policy.service.member.join(", ") : "None");
-            addChildTableItem(table, 'Action', policy.action.member ? policy.action.member.join(", ") : "None");
-            addChildTableItem(table, 'Type', policy.type.member ? policy.type.member.join(", ") : "None");
-            addChildTableItem(table, 'Log', policy.log.member ? policy.log.member.join(", ") : "None");
-            addChildTableItem(table, 'Log Start', policy.log_start.member ? policy.log_start.member.join(", ") : "None");
-            addChildTableItem(table, 'Log End', policy.log_end.member ? policy.log_end.member.join(", ") : "None");
-            addChildTableItem(table, 'Disabled', policy.disabled.member ? policy.disabled.member.join(", ") : "None");
-            addChildTableItem(table, 'Description', policy.description.member ? policy.description.member.join(", ") : "None");
+            addChildTableItem(table, 'Action', policy.action);
+            addChildTableItem(table, 'Log', policy.log ? policy.log : "None");
+            addChildTableItem(table, 'Log Start', policy.log_start ? policy.log_start : "None");
+            addChildTableItem(table, 'Log End', policy.log_end ? policy.log_end : "None");
+            addChildTableItem(table, 'Disabled', policy.disabled ? policy.disabled : "None");
+            addChildTableItem(table, 'Description', policy.description ? policy.description : "None");
             addChildTableItem(table, 'Tags', policy.tag.member ? policy.tag.member.join(", ") : "None");
-            addChildTableItem(table, 'Tag Group', policy.tag_group.member ? policy.tag_group.member.join(", ") : "None");
+            addChildTableItem(table, 'Tag Group', policy.tag_group ? policy.tag_group : "None");
             listDiv.appendChild(table);
 
             // Add items to the div element
@@ -326,6 +325,8 @@ function updateQosTable(deviceId, divId) {
             // Table
             const table = document.createElement('table');
             table.className = 'w3-table indented-table';
+            let dscpCodepoints = policy.dscp.codepoints?.entry?.['0']?.['@name'] ?? "None";
+
             addChildTableItem(table, 'To Address', policy.to.member ? policy.to.member.join(", ") : "None");
             addChildTableItem(table, 'From Address', policy.from.member ? policy.from.member.join(", ") : "None");
             addChildTableItem(table, 'Source Address', policy.source.member ? policy.source.member.join(", ") : "None");
@@ -334,11 +335,10 @@ function updateQosTable(deviceId, divId) {
             addChildTableItem(table, 'Category', policy.category.member ? policy.category.member.join(", ") : "None");
             addChildTableItem(table, 'Application', policy.application.member ? policy.application.member.join(", ") : "None");
             addChildTableItem(table, 'Service', policy.service.member ? policy.service.member.join(", ") : "None");
-            addChildTableItem(table, 'Action', policy.action.member ? policy.action.member.join(", ") : "None");
-            addChildTableItem(table, 'DSCP', policy.dscp.member ? policy.dscp.member.join(", ") : "None");
-            addChildTableItem(table, 'Description', policy.description.member ? policy.description.member.join(", ") : "None");
+            addChildTableItem(table, 'DSCP', dscpCodepoints);
+            addChildTableItem(table, 'Description', policy.description ? policy.description : "None");
             addChildTableItem(table, 'Tags', policy.tag.member ? policy.tag.member.join(", ") : "None");
-            addChildTableItem(table, 'Tag Group', policy.tag_group.member ? policy.tag_group.member.join(", ") : "None");
+            addChildTableItem(table, 'Tag Group', policy.tag_group ? policy.tag_group : "None");
             listDiv.appendChild(table);
 
             // Add items to the div element
