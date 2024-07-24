@@ -860,12 +860,19 @@ class DeviceListView(MethodView):
 
         Returns:
             jsonify: The list of devices in the database.
+                device_id (str): The device ID.
+                device_name (str): The device name.
+                ha_state (str): The HA state of the device.
         '''
 
         # Create a list of device names
         device_list = []
         for device in device_manager.device_list:
-            device_info = {"device_id": device.id, "device_name": device.name}
+            device_info = {
+                "device_id": device.id,
+                "device_name": device.name,
+                "ha_state": device.ha_local_state
+            }
             device_list.append(device_info)
 
         # Return the list of device names as JSON
@@ -1682,6 +1689,7 @@ class GetGPSessionsView(MethodView):
     def get(
         self,
         config: AppSettings,
+        device_manager: DeviceManager,
     ) -> jsonify:
         '''
         Get method to get the Global Protect sessions for a device.
@@ -1694,40 +1702,20 @@ class GetGPSessionsView(MethodView):
         '''
 
         # Get the Global Protect sessions from the device
-        device = request.args.get('id')
-        sql_server = config.sql_server
-        sql_database = config.sql_database
-        table = 'devices'
+        device_id = request.args.get('id')
+        for device in device_manager.device_list:
+            if str(device.id) == device_id:
+                hostname = device.hostname
+                username = device.username
+                password = device.decrypted_pw
+                break
 
-        # Read the device details from the database
-        with SqlServer(
-            server=sql_server,
-            database=sql_database,
-            table=table,
-        ) as sql:
-            output = sql.read(
-                field='id',
-                value=device,
-            )
-
-        # Return a failure message if the database read failed
-        if not output:
-            return jsonify(
-                {
-                    "result": "Failure",
-                    "message": "Problems reading from the database"
-                }
-            ), 500
-
-        # Extract the details from the SQL output
-        hostname = output[0][1]
-        token = output[0][9]
+        api_pass = base64.b64encode(f'{username}:{password}'.encode()).decode()
 
         # Create the device object
         device_api = DeviceApi(
             hostname=hostname,
-            rest_key=token,
-            version='v11.0'
+            xml_key=api_pass,
         )
 
         # The Global Protect sessions from the device

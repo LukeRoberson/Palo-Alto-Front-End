@@ -307,7 +307,7 @@ app.add_url_rule(
 app.add_url_rule(
     '/get_gp_sessions',
     view_func=GetGPSessionsView.as_view('get_gp_sessions'),
-    defaults={'config': config}
+    defaults={'config': config, 'device_manager': device_manager}
 )
 
 
