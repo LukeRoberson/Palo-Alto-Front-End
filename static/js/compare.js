@@ -33,7 +33,7 @@ function setupComparison(listAId, listBId, listA, listB, sort=true) {
     let listBContainer = document.getElementById(listBId);
 
     // Find missing items, update the lists, and sort them
-    compareLists(listA, listB, listAContainer, listBContainer);
+    compareAndAppend(listA, listB, listAContainer, listBContainer);
     if (sort) {
         sortDivsByIdSuffix(`#${listAId}`);
         sortDivsByIdSuffix(`#${listBId}`);
@@ -45,20 +45,6 @@ function setupComparison(listAId, listBId, listA, listB, sort=true) {
         listB.sort((a, b) => a.name.localeCompare(b.name));
     }
     highlightDifferences(listA, listB, listAContainer, listBContainer);
-}
-
-
-/**
- * Compare two lists and highlight differences
- * Just calls compareAndAppend twice, swapping the lists around
- * 
- * @param {*} listA 
- * @param {*} listB 
- * @param {*} listAContainer 
- * @param {*} listBContainer 
- */
-function compareLists(listA, listB, listAContainer, listBContainer) {
-    compareAndAppend(listA, listB, listAContainer, listBContainer);
 }
 
 
@@ -102,7 +88,8 @@ function addChildTableItem(tableName, heading, value) {
     } else {
         // Default case, just display the value
         cell.textContent = value;
-    }}
+    }
+}
 
 
 /**
@@ -353,6 +340,26 @@ function highlightDifferences(listA, listB, containerA, containerB) {
 
             buttonA.classList.add('highlight-different');
             buttonB.classList.add('highlight-different');
+
+            // Check if there is an item elsewhere in listB that matches itemA and is not at the same index
+            const matchingIndexB = listB.findIndex((item, index) => index !== listA.indexOf(itemA) && !areObjectsDifferent(item.name, itemA.name));
+            if (matchingIndexB !== -1) {
+                const iconB = document.createElement('i');
+                iconB.className = 'fa-solid fa-arrows-up-down';
+                iconB.style.color = 'blue';
+                iconB.style.marginRight = '10px';
+                buttonB.insertBefore(iconB, buttonB.firstChild);
+            }
+
+            // Similarly, check if there is an item elsewhere in listA that matches itemB and is not at the same index
+            const matchingIndexA = listA.findIndex((item, index) => index !== listB.indexOf(itemB) && !areObjectsDifferent(item.name, itemB.name));
+            if (matchingIndexA !== -1) {
+                const iconA = document.createElement('i');
+                iconA.className = 'fa-solid fa-arrows-up-down';
+                iconA.style.color = 'blue';
+                iconA.style.marginRight = '10px';
+                buttonA.insertBefore(iconA, buttonA.firstChild);
+            }
         }
     });
 }
