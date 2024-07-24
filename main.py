@@ -10,6 +10,8 @@ from flask import (
     session,
     url_for,
 )
+import msal
+import uuid
 
 from webroutes import (
     IndexView,
@@ -44,10 +46,6 @@ from webroutes import (
     GetGPSessionsView,
 )
 
-from flask_azure_oauth import FlaskAzureOauth
-import requests
-from requests.exceptions import HTTPError
-import colorama
 from settings import AppSettings
 from device import SiteManager, DeviceManager
 
@@ -55,54 +53,64 @@ from device import SiteManager, DeviceManager
 # Load the configuration from the config.yaml file
 config = AppSettings()
 
-
 # Create a Flask web app
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'devkey'         # NOTE: Update this to something better later
 
+# Configure your Azure AD details
+CLIENT_ID = config.azure_app
+CLIENT_SECRET = config.azure_secret
+TENANT_ID = config.azure_tenant
+AUTHORITY = f'https://login.microsoftonline.com/{TENANT_ID}'
+REDIRECT_PATH = '/getAToken'
+SCOPE = ['User.Read']  # Adjust scopes as needed
 
-def azure_auth() -> FlaskAzureOauth:
-    '''
-    Set up Azure AD authentication for the Flask app
+# Initialize MSAL
+msal_app = msal.ConfidentialClientApplication(
+    CLIENT_ID, authority=AUTHORITY,
+    client_credential=CLIENT_SECRET)
 
-    Returns:
-        FlaskAzureOauth: An instance of the FlaskAzureOauth class
-    '''
-
-    # Set the Azure configuration settings
-    app.config['AZURE_OAUTH_TENANCY'] = config.azure_tenant
-    app.config['AZURE_OAUTH_APPLICATION_ID'] = config.azure_app
-    app.config['AZURE_OAUTH_CLIENT_SECRET'] = config.azure_secret
-
-    # Azure authentication
-    auth = FlaskAzureOauth()
-    try:
-        auth.init_app(app)
-
-    except HTTPError as e:
-        print(
-            colorama.Fore.RED,
-            "There is a problem connecting to Azure's authentication URL.",
-            colorama.Style.RESET_ALL
-        )
-        print(e)
-
-    except Exception as e:
-        print(
-            colorama.Fore.RED,
-            "An error occurred while setting up Azure authentication.",
-            colorama.Style.RESET_ALL
-        )
-        print(e)
-
-    return auth
-
-
-# Authenticate the user with Azure AD
-auth = azure_auth()
 
 # Manage the sites and devices
 site_manager = SiteManager(config)
 device_manager = DeviceManager(config, site_manager)
+
+
+@app.route('/login')
+def login():
+    # Generate the full authorization URL
+    session['state'] = str(uuid.uuid4())
+    auth_url = msal_app.get_authorization_request_url(
+        SCOPE, state=session['state'],
+        redirect_uri=url_for('authorized', _external=True)
+    )
+    return redirect(auth_url)
+
+
+@app.route(REDIRECT_PATH)
+def authorized():
+    # Validate state
+    if request.args.get('state') != session.get('state'):
+        return 'State does not match', 400
+    if 'error' in request.args:
+        return (
+            f"Error: {request.args.get('error')} - "
+            f"{request.args.get('error_description')}"
+        )
+
+    # Get the authorization code from the response
+    code = request.args.get('code')
+    result = msal_app.acquire_token_by_authorization_code(
+        code,
+        scopes=SCOPE,  # Specify the same scope used in login
+        redirect_uri=url_for('authorized', _external=True))
+
+    if 'access_token' in result:
+        # Successful authentication
+        session['user'] = result.get('id_token_claims')
+        return f"Welcome {session['user'].get('name')}!"
+    else:
+        return 'Authentication failed.', 401
 
 
 # Index/Info Page
@@ -311,59 +319,12 @@ app.add_url_rule(
 )
 
 
-# Redirect unauthenticated requests to Azure AD sign-in page
-@app.errorhandler(401)
-def custom_401(error):
-    base_url = "https://login.microsoftonline.com"
-    tenant = f"{config.azure_tenant}/oauth2/v2.0/authorize"
-    params = (
-        f"client_id={config.azure_app}&response_type=code"
-        f"&redirect_uri={config.redirect_uri}&response_mode=query"
-        f"&scope=openid%20profile%20email"
-    )
-    azure_ad_sign_in_url = f"{base_url}/{tenant}?{params}"
-    return redirect(azure_ad_sign_in_url)
-
-
-@app.route('/callback')
-def callback():
-    # Extract the authorization code from the request
-    code = request.args.get('code')
-
-    # Prepare the data for the token request
-    token_url = (
-        "https://login.microsoftonline.com/"
-        f"{config.azure_tenant}/oauth2/v2.0/token"
-    )
-    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-    data = {
-        'client_id': config.azure_app,
-        'scope': 'openid profile email',
-        'code': code,
-        'redirect_uri': config.redirect_uri,
-        'grant_type': 'authorization_code',
-        'client_secret': config.azure_secret,
-    }
-
-    # Make a POST request to get the access token
-    response = requests.post(token_url, headers=headers, data=data)
-    response_data = response.json()
-
-    # Extract the access token from the response
-    access_token = response_data.get('access_token')
-
-    # Optional: Store the access token in the session or database for later use
-    session['access_token'] = access_token
-
-    # Redirect to the homepage or another page after successful sign in
-    return redirect(url_for('index'))
-
-
 if __name__ == '__main__':
     site_manager.get_sites()
     device_manager.get_devices()
 
     app.run(
+        host='0.0.0.0',
         debug=config.web_debug,
         ssl_context=(
             'certificates/cert.pem',

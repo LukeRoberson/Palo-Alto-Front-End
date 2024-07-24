@@ -26,7 +26,7 @@ modeToggle.addEventListener('change', toggleDarkMode);
  */
 function adjustBodyMargin() {
     // Calculate the header's height
-    var headerHeight = document.querySelector('.header').offsetHeight;
+    let headerHeight = document.querySelector('.header').offsetHeight;
  
     // Set the body's margin-top to match the header's height
     document.body.style.marginTop = headerHeight + 'px';
@@ -46,9 +46,10 @@ function adjustContentMargin() {
     if (navBar && mainContent) {
         // Set navWidth based on whether the navBar is collapsed, using a ternary operator
         let navWidth = isCollapsed ? 50 : 250;
-
-        // Set the left margin of the main content
         mainContent.style.paddingLeft = `${navWidth}px`;
+
+        // Make the main content visible after adjusting the margin
+        mainContent.style.visibility = 'visible';
     }
 }
 
@@ -61,14 +62,44 @@ function adjustContentMargin() {
  */
 function toggleNav() {
     // Get the nav bar and main content
-    var nav = document.getElementById("navBar");
+    let nav = document.getElementById("navBar");
 
     // Toggle the 'collapsed' class on the nav bar
     nav.classList.toggle("collapsed");
-    navBar.classList.toggle('shrink');
+
+    // Save the state to local storage
+    localStorage.setItem("navState", nav.classList.contains("collapsed"));
 
     // Adjust the main content's left margin
     adjustContentMargin();
+}
+
+
+/**
+ * Restore the navigation bar's state when the page loads
+ */
+function restoreNavState() {
+    // Disable animations
+    document.body.classList.add("no-animation");
+
+    // Get the nav bar and the saved state from local storage
+    let nav = document.getElementById("navBar");
+    let isCollapsed = localStorage.getItem("navState");
+
+    // If the saved state is true, collapse the nav bar
+    if (isCollapsed === "true") {
+        nav.classList.add("collapsed");
+    } else {
+        nav.classList.remove("collapsed");
+    }
+
+    // Update the viewport
+    adjustContentMargin();
+
+    // Re-enable animations
+    setTimeout(() => {
+        document.body.classList.remove("no-animation");
+    }, 100);
 }
 
 

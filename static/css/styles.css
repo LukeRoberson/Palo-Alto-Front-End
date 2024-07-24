@@ -39,6 +39,7 @@ body {
 
 /* Main content styling */
 #main-content {
+    visibility: hidden;                                 /* Hide content until loaded */
     padding: 20px;
     margin-left: 20px;
     transition: padding-left 0.5s ease;                 /* Smooth transition for sidebar toggle */
@@ -77,4 +78,12 @@ button.highlight-missing {
 
 .indented-table {
     margin-left: 50px;
+}
+
+/* Class to disable animations */
+.no-animation *,
+.no-animation *::before,
+.no-animation *::after {
+    transition: none !important;
+    animation: none !important;
 }

@@ -33,6 +33,8 @@ fetch('/device_list')
         checkbox.classList.add('w3-check', 'w3-large');
         checkbox.style.marginBottom = '10px';
         checkbox.checked = true;
+        checkbox.setAttribute('data-device-id', device.device_id);
+        checkbox.setAttribute('data-device-name', device.device_name);
 
         // Create a label for the checkbox
         const label = document.createElement('label');
@@ -56,11 +58,17 @@ document.getElementById('gp-session-button').addEventListener('click', function(
     const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
 
     // API call for each selected device
-    checkboxes.forEach(checkbox => {
-        const deviceId = checkbox.parentNode.querySelector('label').getAttribute('data-device-id');
-        const deviceName = checkbox.parentNode.querySelector('label').textContent;
+    // checkboxes.forEach(checkbox => {
+    for (const checkbox of checkboxes) {
+        const deviceId = checkbox.getAttribute('data-device-id');
+        const deviceName = checkbox.getAttribute('data-device-name');
         const url = new URL('/get_gp_sessions', window.location.origin);
         url.searchParams.append('id', deviceId);
+
+        // Skip if the device ID is null (this sometimes happens in dark mode; Magic!)
+        if (deviceId === null) {
+            continue;
+        }
 
         // Get the div that will hold the session info, and clear it
         const sessionAccordion = document.getElementById('sessionAccordion');
@@ -115,7 +123,7 @@ document.getElementById('gp-session-button').addEventListener('click', function(
             });
         })
         .catch(error => console.error('Error:', error));
-    });
+    };
 });
 
 

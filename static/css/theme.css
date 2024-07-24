@@ -52,6 +52,10 @@
     color: var(--light-on-background);
 }
 
+.light-mode .text {
+    color: var(--light-on-background);
+}
+
 .light-mode .w3-card header {
     background-color: var(--light-primary);
     color: var(--light-on-primary);
@@ -93,6 +97,12 @@
     color: var(--light-on-error);
 }
 
+.light-mode .input {
+    background-color: var(--light-surface);
+    color: var(--light-on-surface);
+    border: 0.5px solid var(--light-on-surface);
+}
+
 
 
 /* Dark mode styles */
@@ -111,6 +121,10 @@
     color: var(--dark-on-background);
 }
 
+.dark-mode .text {
+    color: var(--dark-on-background);
+}
+
 .dark-mode .w3-card header {
     background-color: var(--dark-primary);
     color: var(--dark-on-primary);
@@ -123,7 +137,10 @@
 
 .dark-mode .header,
 .dark-mode .toggle-btn,
-.dark-mode .w3-card,
+.dark-mode .w3-card {
+    border: 0.5px solid var(--dark-on-surface);
+    background-color: var(--dark-surface);
+}
 .dark-mode .nav-bar,
 .dark-mode .nav-bar a {
     background-color: var(--dark-surface);
@@ -149,4 +166,10 @@
 .dark-mode .device-delete-button {
     background-color: var(--dark-error);
     color: var(--dark-on-error);
+}
+
+.dark-mode .input {
+    background-color: var(--dark-surface);
+    color: var(--dark-on-surface);
+    border: 0.5px solid var(--dark-on-surface);
 }

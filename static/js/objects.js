@@ -66,7 +66,7 @@ function populateDropdownWithData(selector, hoverColorClass, devices, divId) {
         // Create a new link element for each device
         const link = document.createElement('a');
         link.href = '#';
-        link.className = `w3-bar-item w3-button ${hoverColorClass}`;
+        link.className = `w3-bar-item w3-button ${hoverColorClass} text`;
         link.textContent = device.device_name;
         
         // Add click event listener to each link

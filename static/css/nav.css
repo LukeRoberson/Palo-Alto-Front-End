@@ -38,8 +38,7 @@
 }
 
 /* Adjustments when nav bar is collapsed or expanded */
-.nav-bar.collapsed,
-.nav-bar.expanded {
+.nav-bar.collapsed {
     width: 50px;                    /* Default for collapsed */
 }
 
