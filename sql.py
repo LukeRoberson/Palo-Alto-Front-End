@@ -5,6 +5,10 @@ Creates and reads entries in an SQL database
 import pymssql
 import traceback as tb
 from colorama import Fore, Style
+import base64
+
+from settings import AppSettings
+from encryption import CryptoSecret
 
 
 class SqlServer:
@@ -40,13 +44,17 @@ class SqlServer:
         server: str,
         database: str,
         table: str,
-        port: int = 1433
+        port: int = 1433,
+        config: AppSettings = None
     ) -> None:
         '''
         Class constructor
 
         Gets the SQL server/db/table names
         Sets up empty connection and cursor objects
+
+        Authentication can be Windows integrated or SQL Server
+            This is based on the settings in the config object
 
         Args:
             server : str
@@ -57,7 +65,12 @@ class SqlServer:
                 The table name
             port : int
                 The port number (default is 1433)
+            config : AppSettings
+                The settings object
         '''
+
+        # Settings
+        self.config = config
 
         # SQL server information
         self.server = server
@@ -144,6 +157,7 @@ class SqlServer:
     ) -> bool:
         '''
         Connect to the SQL server
+        Use SQL or integrated Windows authentication based on the settings
 
         Returns:
             True : bool
@@ -152,10 +166,30 @@ class SqlServer:
 
         # Connect to the server and database
         try:
-            self.conn = pymssql.connect(
-                server=f"{self.server}:{self.port}",
-                database=self.db
-            )
+            if self.config.sql_auth_type == 'SQL':
+                # Decrypt the password in the settings
+                with CryptoSecret() as decryptor:
+                    real_pw = decryptor.decrypt(
+                        secret=self.config.sql_password,
+                        salt=base64.urlsafe_b64decode(
+                            self.config.sql_salt.encode()
+                        )
+                    )
+
+                # Connect to the server
+                self.conn = pymssql.connect(
+                    server=f"{self.server}:{self.port}",
+                    database=self.db,
+                    user=self.config.sql_username,
+                    password=real_pw,
+                )
+
+            else:
+                # Connect using Windows authentication
+                self.conn = pymssql.connect(
+                    server=f"{self.server}:{self.port}",
+                    database=self.db,
+                )
 
         # Handle errors
         except pymssql.OperationalError as e:
@@ -164,9 +198,18 @@ class SqlServer:
                 print(
                     Fore.RED,
                     "Unable to connect to the database server.\n",
-                    Style.RESET_ALL,
+                    Fore.YELLOW,
                     "The server may be unavailable or the server"
-                    " address might be incorrect."
+                    " address might be incorrect.",
+                    Style.RESET_ALL,
+                )
+            elif error_code == 18456:
+                print(
+                    Fore.RED,
+                    "Unable to connect to the database server.\n",
+                    Fore.YELLOW,
+                    "The username or password may be incorrect.",
+                    Style.RESET_ALL,
                 )
             else:
                 print(f"Operational error: {error_code}: {error_message}\n")

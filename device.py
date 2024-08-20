@@ -109,6 +109,7 @@ class Device:
         name: str = '',
         serial: str = '',
         ha_partner_serial: str = '',
+        config: AppSettings = None,
     ) -> None:
         '''
         Constructor for Device class
@@ -125,6 +126,9 @@ class Device:
             serial (str): Serial number of the device
             ha_partner_serial (str): Serial number of the HA partner
         '''
+
+        # Configuration
+        self.config = config
 
         # Device details
         self.name = name
@@ -180,6 +184,7 @@ class Device:
             server=settings.sql_server,
             database=settings.sql_database,
             table=table,
+            config=self.config
         ) as sql:
             output = sql.read(
                 field='id',
@@ -282,6 +287,7 @@ class Device:
             server=settings.sql_server,
             database=settings.sql_database,
             table=table,
+            config=self.config,
         ) as sql:
             result = sql.update(
                 field='id',
@@ -331,6 +337,7 @@ class SiteManager():
         '''
 
         # Sql Server connection
+        self.config = config
         self.sql_server = config.sql_server
         self.sql_database = config.sql_database
         self.table = 'sites'
@@ -371,6 +378,7 @@ class SiteManager():
             server=self.sql_server,
             database=self.sql_database,
             table=self.table,
+            config=self.config,
         ) as sql:
             output = sql.read(
                 field='',
@@ -439,6 +447,7 @@ class SiteManager():
             server=self.sql_server,
             database=self.sql_database,
             table=self.table,
+            config=self.config,
         ) as sql:
             result = sql.add(
                 fields={
@@ -478,6 +487,7 @@ class SiteManager():
             server=self.sql_server,
             database=self.sql_database,
             table=self.table,
+            config=self.config,
         ) as sql:
             result = sql.delete(
                 field='id',
@@ -523,6 +533,7 @@ class SiteManager():
             server=self.sql_server,
             database=self.sql_database,
             table=self.table,
+            config=self.config,
         ) as sql:
             try:
                 result = sql.update(
@@ -613,6 +624,7 @@ class DeviceManager():
         self.sql_server = config.sql_server
         self.sql_database = config.sql_database
         self.table = 'devices'
+        self.config = config
 
         # Site manager object
         self.site_manager = site_manager
@@ -650,6 +662,7 @@ class DeviceManager():
             server=self.sql_server,
             database=self.sql_database,
             table=self.table,
+            config=self.config,
         ) as sql:
             output = sql.read(
                 field='vendor',
@@ -676,6 +689,7 @@ class DeviceManager():
                 name=device[10],
                 serial=device[11],
                 ha_partner_serial=device[12],
+                config=self.config,
             )
 
             self.device_list.append(this_device)
@@ -772,6 +786,7 @@ class DeviceManager():
             username=username,
             password=password_encoded,
             salt=salt_encoded,
+            config=self.config,
         )
 
         # Add to the database
@@ -779,6 +794,7 @@ class DeviceManager():
             server=self.sql_server,
             database=self.sql_database,
             table=self.table,
+            config=self.config,
         ) as sql:
             result = sql.add(
                 fields={
@@ -824,6 +840,7 @@ class DeviceManager():
             server=self.sql_server,
             database=self.sql_database,
             table=self.table,
+            config=self.config,
         ) as sql:
             result = sql.delete(
                 field='id',
@@ -880,6 +897,7 @@ class DeviceManager():
             server=self.sql_server,
             database=self.sql_database,
             table=self.table,
+            config=self.config,
         ) as sql:
             try:
                 result = sql.update(

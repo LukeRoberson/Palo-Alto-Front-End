@@ -31,7 +31,7 @@ function attachButtonClickListener(buttonId, endpoint) {
     }
 
     // Register the listener for the button
-    button.addEventListener('click', function(event) {
+    button.addEventListener('click', function (event) {
         // Prevent the default form submission
         event.preventDefault();
 
@@ -50,23 +50,24 @@ function attachButtonClickListener(buttonId, endpoint) {
             method: 'POST',
             body: formData,
         })
-        .then(response => {
-            // Check the response status
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Check the 'result' field and display the message with appropriate color
-            if (data.result === 'Success') {
-                showNotification(data.message, 'Success');
-            } else if (data.result === 'Failure') {
-                showNotification(data.message, 'Failure');
-            }
-        })
+            .then(response => {
+                // Check the response status
+                if (!response.ok) {
+                    showNotification('REST API Failure', 'Failure');
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Check the 'result' field and display the message with appropriate color
+                if (data.result === 'Success') {
+                    showNotification(data.message, 'Success');
+                } else if (data.result === 'Failure') {
+                    showNotification(data.message, 'Failure');
+                }
+            })
 
-        // Catch any errors and log them to the console
-        .catch(error => console.error('Error:', error));
+            // Catch any errors and log them to the console
+            .catch(error => console.error('Error:', error));
     });
 }

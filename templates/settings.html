@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<div class="w3-container">
+<div class="w3-container" name="Azure Settings">
     <div class="w3-container">
         <h2>Azure Settings</h2>
     </div>
@@ -33,7 +33,7 @@
 </div>
 <br>
 
-<div class="w3-container">
+<div class="w3-container" name="SQL Settings">
     <div class="w3-container">
         <h2>SQL Settings</h2>
     </div>
@@ -52,7 +52,19 @@
         </p>
         <p>
             <label>Authentication Type</label>
-            <input class="w3-input w3-border" type="text" name="sql_auth" value="{{ sql_auth }}">
+            <select name="sql_auth" id="sql_auth" class="w3-select w3-border">
+                <option value="none" selected disabled hidden>Select an option</option>
+                <option value="Windows Integrated">Windows Integrated</option>
+                <option value="SQL">SQL</option>
+            </select>
+        </p>
+        <p id="sql_user" style="display: none;">
+            <label>Username</label>
+            <input class="w3-input w3-border" type="text" name="sql_username" value="{{ sql_user }}">
+        </p>
+        <p id="sql_pass" style="display: none;">
+            <label>Password</label>
+            <input class="w3-input w3-border" type="password" name="sql_password" value="{{ sql_pass }}">
         </p>
         <p>
             <button id="saveSql" class="w3-btn w3-green w3-round">Save</button>
@@ -62,7 +74,7 @@
 </div>
 <br>
 
-<div class="w3-container">
+<div class="w3-container" name="General Settings">
     <div class="w3-container">
         <h2>General Settings</h2>
     </div>
@@ -78,9 +90,9 @@
         <p>
             <label>Debug Mode</label>
             <input class="w3-radio" name="web_debug" type="radio" value="on" {% if web_debug %}checked{% endif %}>
-                <label>On</label>
+            <label>On</label>
             <input class="w3-radio" name="web_debug" type="radio" value="off" {% if not web_debug %}checked{% endif %}>
-                <label>Off</label>
+            <label>Off</label>
         </p>
         <p>
             <button id="saveWeb" class="w3-btn w3-green w3-round">Save</button>
@@ -90,5 +102,45 @@
 <br>
 
 <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+<script>
+    // Set SQL Authentication value; 'Windows Integrated' or 'SQL'
+    const sqlAuthValue = "{{ sql_auth }}";
+
+    // Dropdown select element for the SQL Authentication type
+    const sqlAuthSelect = document.querySelector('select[name="sql_auth"]');
+
+    // Username and Password input fields for SQL Authentication
+    const sqlUser = document.getElementById('sql_user');
+    const sqlPass = document.getElementById('sql_pass');
+
+    // Set the SQL Authentication value and display the Username and Password input fields depending on the initial settings
+    if (sqlAuthValue === "Windows Integrated") {
+        sqlAuthSelect.value = "Windows Integrated";
+        sqlUser.style.display = "none";
+        sqlPass.style.display = "none";
+    } else if (sqlAuthValue === "SQL") {
+        sqlAuthSelect.value = "SQL";
+        sqlUser.style.display = "block";
+        sqlPass.style.display = "block";
+    } else {
+        sqlAuthSelect.value = "none";
+        sqlUser.style.display = "none";
+        sqlPass.style.display = "none";
+    }
+
+    // Show or hide the Username and Password input fields depending on the selected SQL Authentication type
+    sqlAuthSelect.addEventListener('change', function () {
+        if (sqlAuthSelect.value === "Windows Integrated") {
+            sqlUser.style.display = "none";
+            sqlPass.style.display = "none";
+        } else if (sqlAuthSelect.value === "SQL") {
+            sqlUser.style.display = "block";
+            sqlPass.style.display = "block";
+        } else {
+            sqlUser.style.display = "none";
+            sqlPass.style.display = "none";
+        }
+    });
+</script>
 
 {% endblock %}

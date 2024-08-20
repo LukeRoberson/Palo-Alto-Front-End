@@ -138,6 +138,7 @@ function updateNatTable(deviceId, divId) {
             const listDiv = document.createElement('div');
             listDiv.id = divId + '_list_' + sanitizedId;
             listDiv.className = 'w3-hide w3-border';
+            listDiv.style = 'overflow-x: auto;';
 
             // Table - Lots of items to parse through
             //  Some of these are nested objects, so we need to check if they exist before accessing them
@@ -322,6 +323,7 @@ function updateQosTable(deviceId, divId) {
             const listDiv = document.createElement('div');
             listDiv.id = divId + '_list_' + sanitizedId;
             listDiv.className = 'w3-hide w3-border';
+            listDiv.style = 'overflow-x: auto;';
 
             // Table
             const table = document.createElement('table');

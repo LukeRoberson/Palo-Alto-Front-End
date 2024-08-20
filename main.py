@@ -55,7 +55,6 @@ config = AppSettings()
 
 # Create a Flask web app
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'devkey'         # NOTE: Update this to something better later
 
 # Configure your Azure AD details
 CLIENT_ID = config.azure_app

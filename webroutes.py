@@ -201,6 +201,8 @@ class SettingsView(MethodView):
             sql_port=config.sql_port,
             sql_database=config.sql_database,
             sql_auth=config.sql_auth_type,
+            sql_user=config.sql_username,
+            sql_pass=config.sql_password,
             web_ip=config.web_ip,
             web_port=config.web_port,
             web_debug=config.web_debug
@@ -275,7 +277,82 @@ class SaveSqlView(MethodView):
 
         Returns:
             jsonify: The result of the save operation.
+            int: The HTTP status code.
+                The code is 200 if HTTP was fine,
+                    but there was some other error, such as missing values
         '''
+
+        # Handle sql_auth missing
+        if 'sql_auth' not in request.form:
+            return jsonify(
+                {
+                    "result": "Failure",
+                    "message": "SQL authentication type is missing"
+                }
+            ), 200
+
+        # Handle empty values
+        if (
+            request.form['sql_port'] == '' or
+            request.form['sql_server'] == '' or
+            request.form['sql_database'] == '' or
+            request.form['sql_auth'] == ''
+        ):
+            return jsonify(
+                {
+                    "result": "Failure",
+                    "message": "SQL settings can't be empty"
+                }
+            ), 200
+
+        # Check SQL auth vs username/password
+        if request.form['sql_auth'] == 'SQL':
+            if (
+                'sql_username' not in request.form or
+                'sql_password' not in request.form or
+                request.form['sql_username'] == '' or
+                request.form['sql_password'] == ''
+            ):
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "SQL username/password can't be empty"
+                    }
+                ), 200
+
+        # Save username/password as variables if available
+        if 'sql_username' in request.form:
+            sql_username = request.form['sql_username']
+        else:
+            sql_username = ''
+
+        if 'sql_password' in request.form:
+            sql_password = request.form['sql_password']
+        else:
+            sql_password = ''
+
+        # Check if the password has changed (don't double encrypt)
+        if sql_password != config.sql_password and sql_password != '':
+            print(
+                Fore.CYAN,
+                "Updating and encrypting password in config.yaml",
+                Style.RESET_ALL
+            )
+
+            # Encrypt the password
+            with CryptoSecret() as encryptor:
+                encrypted = encryptor.encrypt(sql_password)
+                sql_password = encrypted[0].decode()
+                config.sql_salt = (
+                    base64.urlsafe_b64encode(encrypted[1]).decode()
+                )
+
+        else:
+            print(
+                Fore.CYAN,
+                "Password hasn't changed, not encrypting or updating",
+                Style.RESET_ALL
+            )
 
         # Attempt saving the settings to the config file
         try:
@@ -283,6 +360,8 @@ class SaveSqlView(MethodView):
             config.sql_port = request.form['sql_port']
             config.sql_database = request.form['sql_database']
             config.sql_auth_type = request.form['sql_auth']
+            config.sql_username = sql_username
+            config.sql_password = sql_password
             config.write_config()
 
             # If it's all good, return a nice message
@@ -295,6 +374,7 @@ class SaveSqlView(MethodView):
 
         # Return an error message if it failed
         except KeyError as e:
+            print(Fore.RED, e, Style.RESET_ALL)
             return jsonify(
                 {
                     "result": "Failure",
@@ -384,6 +464,7 @@ class TestSqlView(MethodView):
             server=request.form['sql_server'],
             database=request.form['sql_database'],
             table='sites',
+            config=config,
         ) as sql:
             result = sql.test_connection()
 
@@ -780,6 +861,7 @@ class DownloadConfigView(MethodView):
             server=config.sql_server,
             database=config.sql_database,
             table=table,
+            config=config,
         ) as sql:
             output = sql.read(
                 field='id',
@@ -980,6 +1062,7 @@ class GetTagsView(MethodView):
             server=sql_server,
             database=sql_database,
             table=table,
+            config=config,
         ) as sql:
             output = sql.read(
                 field='id',
@@ -1061,6 +1144,7 @@ class GetAddressesView(MethodView):
             server=sql_server,
             database=sql_database,
             table=table,
+            config=config,
         ) as sql:
             output = sql.read(
                 field='id',
@@ -1140,6 +1224,7 @@ class GetAddressGroupsView(MethodView):
             server=sql_server,
             database=sql_database,
             table=table,
+            config=config,
         ) as sql:
             output = sql.read(
                 field='id',
@@ -1219,6 +1304,7 @@ class GetApplicationGroupsView(MethodView):
             server=sql_server,
             database=sql_database,
             table=table,
+            config=config,
         ) as sql:
             output = sql.read(
                 field='id',
@@ -1296,6 +1382,7 @@ class GetServicesView(MethodView):
             server=sql_server,
             database=sql_database,
             table=table,
+            config=config,
         ) as sql:
             output = sql.read(
                 field='id',
@@ -1375,6 +1462,7 @@ class GetServiceGroupView(MethodView):
             server=sql_server,
             database=sql_database,
             table=table,
+            config=config,
         ) as sql:
             output = sql.read(
                 field='id',
@@ -1453,6 +1541,7 @@ class GetNatPolicyView(MethodView):
             server=sql_server,
             database=sql_database,
             table=table,
+            config=config,
         ) as sql:
             output = sql.read(
                 field='id',
@@ -1535,6 +1624,7 @@ class GetSecurityPolicyView(MethodView):
             server=sql_server,
             database=sql_database,
             table=table,
+            config=config,
         ) as sql:
             output = sql.read(
                 field='id',
@@ -1625,6 +1715,7 @@ class GetQoSPolicyView(MethodView):
             server=sql_server,
             database=sql_database,
             table=table,
+            config=config,
         ) as sql:
             output = sql.read(
                 field='id',

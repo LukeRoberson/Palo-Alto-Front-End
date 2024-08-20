@@ -148,6 +148,7 @@ function updateTagsTable(deviceId, divId) {
             const listDiv = document.createElement('div');
             listDiv.id = divId + '_list_' + sanitizedId;
             listDiv.className = 'w3-hide w3-border';
+            listDiv.style = 'overflow-x: auto;';
 
             // Table
             const table = document.createElement('table');
@@ -216,6 +217,7 @@ function updateAddressesTable(deviceId, divId) {
             const listDiv = document.createElement('div');
             listDiv.id = divId + '_list_' + sanitizedId;
             listDiv.className = 'w3-hide w3-border';
+            listDiv.style = 'overflow-x: auto;';
 
             // Table
             const table = document.createElement('table');
@@ -286,6 +288,7 @@ function updateAddressGroupsTable(deviceId, divId) {
             const listDiv = document.createElement('div');
             listDiv.id = divId + '_list_' + sanitizedId;
             listDiv.className = 'w3-hide w3-border';
+            listDiv.style = 'overflow-x: auto;';
 
             // Table
             const table = document.createElement('table');
@@ -356,6 +359,7 @@ function updateApplicationGroupsTable(deviceId, divId) {
             const listDiv = document.createElement('div');
             listDiv.id = divId + '_list_' + sanitizedId;
             listDiv.className = 'w3-hide w3-border';
+            listDiv.style = 'overflow-x: auto;';
 
             // Table
             const table = document.createElement('table');
@@ -422,6 +426,7 @@ function updateServicesTable(deviceId, divId) {
             const listDiv = document.createElement('div');
             listDiv.id = divId + '_list_' + sanitizedId;
             listDiv.className = 'w3-hide w3-border';
+            listDiv.style = 'overflow-x: auto;';
 
             // Table
             const table = document.createElement('table');
@@ -492,6 +497,7 @@ function updateServiceGroupsTable(deviceId, divId) {
             const listDiv = document.createElement('div');
             listDiv.id = divId + '_list_' + sanitizedId;
             listDiv.className = 'w3-hide w3-border';
+            listDiv.style = 'overflow-x: auto;';
 
             // Table
             const table = document.createElement('table');

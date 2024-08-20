@@ -120,6 +120,7 @@ function compareAndAppend(listA, listB, listAContainer, listBContainer) {
             const parentDiv = createElement('div', {id: listAContainer.id + '_' + sanitizedId});
             const button = createButton(listA[index], listAContainer, sanitizedId);
             const listDiv = createDiv(listAContainer, sanitizedId);
+            listDiv.style = 'overflow-x: auto;';
             const table = createElement('table', {className: 'w3-table indented-table'});
 
             // Add the missing elements to the list div

@@ -40,6 +40,9 @@ class AppSettings():
         self.sql_port = config['sql']['port']
         self.sql_database = config['sql']['database']
         self.sql_auth_type = config['sql']['auth-type']
+        self.sql_username = config['sql']['username']
+        self.sql_password = config['sql']['password']
+        self.sql_salt = config['sql']['salt']
 
         # Web server settings
         self.web_ip = config['web']['ip']
@@ -64,7 +67,10 @@ class AppSettings():
                 'server': self.sql_server,
                 'port': self.sql_port,
                 'database': self.sql_database,
-                'auth-type': self.sql_auth_type
+                'auth-type': self.sql_auth_type,
+                'username': self.sql_username,
+                'password': self.sql_password,
+                'salt': self.sql_salt
             },
             'web': {
                 'ip': self.web_ip,
