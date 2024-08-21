@@ -85,3 +85,7 @@ class AppSettings():
 
         except Exception as e:
             print(e)
+
+
+# Instantiate the object
+config = AppSettings()

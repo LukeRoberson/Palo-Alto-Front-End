@@ -7,3 +7,4 @@
 *.pem
 config.yaml
 api-test.py
+module_updates.txt

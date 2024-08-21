@@ -7,6 +7,7 @@ from sql import SqlServer
 from settings import AppSettings
 from api import DeviceApi
 from encryption import CryptoSecret
+from settings import config
 
 from colorama import Fore, Style
 import uuid
@@ -1011,3 +1012,8 @@ class DeviceManager():
                             'passive': peer
                         })
                         break
+
+
+# Manage the sites and devices
+site_manager = SiteManager(config)
+device_manager = DeviceManager(config, site_manager)
