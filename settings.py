@@ -4,18 +4,34 @@ Class to track settings
 
 
 from yaml import safe_load, safe_dump
+from colorama import Fore, Style
 
 
 class AppSettings():
     '''
     Track all application settings
     Stored in YAML file, so this must be read and updated
+
+    Methods:
+        _read_config: Read the configuration file
+        _validate_config: Validate the configuration file
+        write_config: Write the configuration file
     '''
 
     def __init__(self) -> None:
         '''
         Initialize the settings
+
+        Validation flags:
+            config_exists: True if the config file exists
+            config_valid: True if the config file is valid
+                This doesn't mean the settings are correct,
+                    just that the file is valid
         '''
+
+        # Validation flags
+        self.config_exists = None
+        self.config_valid = None
 
         # Get settings from the yaml file
         self._read_config()
@@ -23,11 +39,33 @@ class AppSettings():
     def _read_config(self) -> None:
         '''
         Read the configuration file (config.yaml)
+        Validate that it exists and is valid
         '''
 
         # Read the configuration file
-        with open('config.yaml') as f:
-            config = safe_load(f)
+        try:
+            with open('config.yaml') as f:
+                config = safe_load(f)
+
+        except FileNotFoundError:
+            self.config_exists = False
+            print(
+                Fore.RED,
+                'Config file not found',
+                Style.RESET_ALL
+            )
+            return
+        self.config_exists = True
+
+        # Validate the configuration file
+        self._validate_config(config)
+        if self.config_valid is not True:
+            print(
+                Fore.RED,
+                'Config file is invalid',
+                Style.RESET_ALL
+            )
+            return
 
         # Azure settings
         self.redirect_uri = config['azure']['redirect-uri']
@@ -48,6 +86,107 @@ class AppSettings():
         self.web_ip = config['web']['ip']
         self.web_port = config['web']['port']
         self.web_debug = config['web']['debug']
+
+    def _validate_config(
+        self,
+        config: dict,
+    ) -> None:
+        '''
+        Validate the configuration file (config.yaml)
+        This is to ensure all settings are present
+        Does not check if the settings are correct
+
+        1. Check for the 'azure' section
+        2. Check for the 'sql' section
+        3. Check for the 'web' section
+        4. Check that 'debug' is true/false
+
+        Args:
+            config (dict): The configuration settings
+        '''
+
+        # Check for the 'azure' section
+        if 'azure' not in config:
+            print(
+                Fore.RED,
+                "Config: The 'azure' section is missing from the config file.",
+                Style.RESET_ALL
+            )
+            self.config_valid = False
+            return
+
+        # Check that azure config parameters all exist in the azure section
+        params = ['app-id', 'app-secret', 'redirect-uri', 'tenant-id']
+        if not all(key in config['azure'] for key in params):
+            print(
+                Fore.RED,
+                "Config: All parameters need to exist in the Azure section:\n",
+                "'app-id', 'app-secret', 'redirect-uri', 'tenant-id'",
+                Style.RESET_ALL
+            )
+            self.config_valid = False
+            return
+
+        # Check for the 'sql' section
+        if 'sql' not in config:
+            print(
+                Fore.RED,
+                "Config: The 'sql' section is missing from the config file.",
+                Style.RESET_ALL
+            )
+            self.config_valid = False
+            return
+
+        # Check that sql config parameters all exist in the sql section
+        params = [
+            'server', 'port', 'database',
+            'auth-type', 'username', 'password', 'salt'
+        ]
+        if not all(key in config['sql'] for key in params):
+            print(
+                Fore.RED,
+                "Config: All parameters need to exist in the SQL section:\n",
+                "'server', 'port', 'database',",
+                " 'auth-type', 'username', 'password', 'salt'",
+                Style.RESET_ALL
+            )
+            self.config_valid = False
+            return
+
+        # Check for the 'web' section
+        if 'web' not in config:
+            print(
+                Fore.RED,
+                "Config: The 'web' section is missing from the config file.",
+                Style.RESET_ALL
+            )
+            self.config_valid = False
+            return
+
+        # Check that 'debug', 'ip', and 'port' all exist in the web section
+        if not all(key in config['web'] for key in ['debug', 'ip', 'port']):
+            print(
+                Fore.RED,
+                "Config: All parameters need to exist in the web section:\n",
+                "'debug', 'ip', and 'port'",
+                Style.RESET_ALL
+            )
+            self.config_valid = False
+            return
+
+        # Check that 'debug' is set to true/false
+        debug = config.get('web', {}).get('debug')
+        if debug is not True and debug is not False:
+            print(
+                Fore.RED,
+                "Config: The 'debug' setting must be true or false.",
+                Style.RESET_ALL
+            )
+            self.config_valid = False
+            return
+
+        # When all checks pass
+        self.config_valid = True
 
     def write_config(self) -> None:
         '''

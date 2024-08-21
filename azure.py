@@ -8,28 +8,52 @@ import msal
 from flask import Blueprint, redirect, request, session, url_for
 import uuid
 from functools import wraps
+from colorama import Fore, Style
 
 azure_bp = Blueprint('azure', __name__)
 
 # Configure Azure AD details
-CLIENT_ID = config.azure_app
-CLIENT_SECRET = config.azure_secret
-TENANT_ID = config.azure_tenant
-AUTHORITY = f'https://login.microsoftonline.com/{TENANT_ID}'
-REDIRECT_PATH = config.redirect_uri
-SCOPE = ['User.Read']
+CLIENT_ID = None
+CLIENT_SECRET = None
+TENANT_ID = None
+AUTHORITY = None
+REDIRECT_PATH = None
+SCOPE = None
+msal_app = None
 
-# Initialize MSAL
-msal_app = msal.ConfidentialClientApplication(
-    CLIENT_ID, authority=AUTHORITY,
-    client_credential=CLIENT_SECRET)
+if config.config_exists and config.config_valid:
+    CLIENT_ID = config.azure_app
+    CLIENT_SECRET = config.azure_secret
+    TENANT_ID = config.azure_tenant
+    AUTHORITY = f'https://login.microsoftonline.com/{TENANT_ID}'
+    REDIRECT_PATH = config.redirect_uri
+    SCOPE = ['User.Read']
+
+    # Initialize MSAL
+    msal_app = msal.ConfidentialClientApplication(
+        CLIENT_ID, authority=AUTHORITY,
+        client_credential=CLIENT_SECRET)
+
+elif config.config_exists is False:
+    print(
+        Fore.YELLOW,
+        "No config - Cannot read Azure settings",
+        Style.RESET_ALL
+    )
+
+else:
+    print(
+        Fore.RED,
+        "Config file is invalid - Cannot read Azure settings",
+        Style.RESET_ALL
+    )
 
 
 # Decorator to protect routes with Azure AD login
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if config.web_debug == 'True':
+        if config.web_debug is False:
             return f(*args, **kwargs)
         if 'user' not in session:
             return redirect(url_for('azure.login', next=request.url))

@@ -1015,5 +1015,24 @@ class DeviceManager():
 
 
 # Manage the sites and devices
-site_manager = SiteManager(config)
-device_manager = DeviceManager(config, site_manager)
+if config.config_exists and config.config_valid:
+    site_manager = SiteManager(config)
+    device_manager = DeviceManager(config, site_manager)
+
+elif config.config_exists is False:
+    print(
+        Fore.YELLOW,
+        "There is no config file. Please create one.",
+        Style.RESET_ALL
+    )
+    site_manager = None
+    device_manager = None
+
+else:
+    print(
+        Fore.YELLOW,
+        "The config file is invalid. Please correct it.",
+        Style.RESET_ALL
+    )
+    site_manager = None
+    device_manager = None
