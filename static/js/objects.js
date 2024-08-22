@@ -125,6 +125,12 @@ function updateTagsTable(deviceId, divId) {
     // Show loading spinner
     document.getElementById('tagLoadingSpinner').style.display = 'block';
 
+    // The div element to populate with the list of addresses
+    const divElement = document.getElementById(divId);
+
+    // Clear any existing content in the div
+    divElement.innerHTML = '';
+
     // API call to fetch tags for the selected device
     fetch(`/get_tags?id=${encodeURIComponent(deviceId)}`)
         .then(response => response.json())
@@ -205,6 +211,12 @@ function updateAddressesTable(deviceId, divId) {
 
     // Show loading spinner
     document.getElementById('addressLoadingSpinner').style.display = 'block';
+
+    // The div element to populate with the list of addresses
+    const divElement = document.getElementById(divId);
+
+    // Clear any existing content in the div
+    divElement.innerHTML = '';
 
     // API call to fetch addresses for the selected device
     fetch(`/get_address_objects?id=${encodeURIComponent(deviceId)}`)
@@ -288,6 +300,12 @@ function updateAddressGroupsTable(deviceId, divId) {
     // Show loading spinner
     document.getElementById('addressGroupLoadingSpinner').style.display = 'block';
 
+    // The div element to populate with the list of addresses
+    const divElement = document.getElementById(divId);
+
+    // Clear any existing content in the div
+    divElement.innerHTML = '';
+
     // API call to fetch address groups for the selected device
     fetch(`/get_address_groups?id=${encodeURIComponent(deviceId)}`)
         .then(response => response.json())
@@ -370,6 +388,12 @@ function updateApplicationGroupsTable(deviceId, divId) {
     // Show loading spinner
     document.getElementById('applicationsLoadingSpinner').style.display = 'block';
 
+    // The div element to populate with the list of addresses
+    const divElement = document.getElementById(divId);
+
+    // Clear any existing content in the div
+    divElement.innerHTML = '';
+
     // API call to fetch application groups for the selected device
     fetch(`/get_application_groups?id=${encodeURIComponent(deviceId)}`)
         .then(response => response.json())
@@ -447,6 +471,12 @@ function updateServicesTable(deviceId, divId) {
 
     // Show loading spinner
     document.getElementById('serviceLoadingSpinner').style.display = 'block';
+
+    // The div element to populate with the list of addresses
+    const divElement = document.getElementById(divId);
+
+    // Clear any existing content in the div
+    divElement.innerHTML = '';
 
     // API call to fetch service objects for the selected device
     fetch(`/get_service_objects?id=${encodeURIComponent(deviceId)}`)
@@ -529,6 +559,12 @@ function updateServiceGroupsTable(deviceId, divId) {
 
     // Show loading spinner
     document.getElementById('serviceGroupLoadingSpinner').style.display = 'block';
+
+    // The div element to populate with the list of addresses
+    const divElement = document.getElementById(divId);
+
+    // Clear any existing content in the div
+    divElement.innerHTML = '';
 
     // API call to fetch service groups for the selected device
     fetch(`/get_service_groups?id=${encodeURIComponent(deviceId)}`)

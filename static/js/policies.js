@@ -115,6 +115,12 @@ function updateNatTable(deviceId, divId) {
     // Show loading spinner
     document.getElementById('natLoadingSpinner').style.display = 'block';
 
+    // The div element to populate with the list of addresses
+    const divElement = document.getElementById(divId);
+
+    // Clear any existing content in the div
+    divElement.innerHTML = '';
+
     // API call to fetch NAT policies for the selected device
     fetch(`/get_nat_policies?id=${encodeURIComponent(deviceId)}`)
         .then(response => response.json())
@@ -212,6 +218,12 @@ function updateSecurityTable(deviceId, divId) {
 
     // Show loading spinner
     document.getElementById('securityLoadingSpinner').style.display = 'block';
+
+    // The div element to populate with the list of addresses
+    const divElement = document.getElementById(divId);
+
+    // Clear any existing content in the div
+    divElement.innerHTML = '';
 
     // API call to fetch security policies for the selected device
     fetch(`/get_security_policies?id=${encodeURIComponent(deviceId)}`)
@@ -320,6 +332,12 @@ function updateQosTable(deviceId, divId) {
 
     // Show loading spinner
     document.getElementById('qosLoadingSpinner').style.display = 'block';
+
+    // The div element to populate with the list of addresses
+    const divElement = document.getElementById(divId);
+
+    // Clear any existing content in the div
+    divElement.innerHTML = '';
 
     // API call to fetch QoS policies for the selected device
     fetch(`/get_qos_policies?id=${encodeURIComponent(deviceId)}`)
