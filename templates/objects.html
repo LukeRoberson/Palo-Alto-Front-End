@@ -29,11 +29,11 @@
         document.querySelectorAll('#content-container > div').forEach(div => {
             div.style.display = 'none';
         });
-        
+
         // Show the requested content
         document.getElementById(contentId).style.display = 'block';
     }
-    
+
     // Event listeners for navigation items
     document.getElementById('nav-tags').addEventListener('click', () => showContent('tags-content'));
     document.getElementById('nav-addresses').addEventListener('click', () => showContent('addresses-content'));
@@ -46,32 +46,32 @@
 <!-- Event handlers for comparing objects -->
 <script>
     // Setup comparison for tags
-    document.getElementById('tagCompare').addEventListener('click', function() {
+    document.getElementById('tagCompare').addEventListener('click', function () {
         setupComparison('tagAccordionA', 'tagAccordionB', tagListA, tagListB);
     });
 
     // Setup comparison for addresses
-    document.getElementById('addressObjectsCompare').addEventListener('click', function() {
+    document.getElementById('addressObjectsCompare').addEventListener('click', function () {
         setupComparison('addressAccordionA', 'addressAccordionB', addressListA, addressListB);
     });
 
     // Setup comparison for address groups
-    document.getElementById('addressGroupCompare').addEventListener('click', function() {
+    document.getElementById('addressGroupCompare').addEventListener('click', function () {
         setupComparison('addressGroupAccordionA', 'addressGroupAccordionB', addressGroupListA, addressGroupListB);
     });
 
     // Setup comparison for application groups
-    document.getElementById('applicationGroupCompare').addEventListener('click', function() {
+    document.getElementById('applicationGroupCompare').addEventListener('click', function () {
         setupComparison('applicationGroupAccordionA', 'applicationGroupAccordionB', applicationGroupListA, applicationGroupListB);
     });
 
     // Setup comparison for services
-    document.getElementById('serviceObjectCompare').addEventListener('click', function() {
+    document.getElementById('serviceObjectCompare').addEventListener('click', function () {
         setupComparison('serviceAccordionA', 'serviceAccordionB', serviceListA, serviceListB);
     });
 
     // Setup comparison for service groups
-    document.getElementById('serviceGroupCompare').addEventListener('click', function() {
+    document.getElementById('serviceGroupCompare').addEventListener('click', function () {
         setupComparison('serviceGroupAccordionA', 'serviceGroupAccordionB', serviceGroupListA, serviceGroupListB);
     });
 </script>
