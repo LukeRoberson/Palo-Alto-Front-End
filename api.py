@@ -30,7 +30,7 @@ import requests
 from requests.exceptions import ConnectionError
 from urllib3.exceptions import MaxRetryError, NewConnectionError
 from types import TracebackType
-from typing import Optional, Type
+from typing import Optional, Type, Union
 
 from colorama import Fore, Style
 import xml.etree.ElementTree as ET
@@ -186,210 +186,153 @@ class DeviceApi:
         # Return the body of the response
         return response.json()['result']['entry']
 
-    def _xml_request(
-        self,
-        url: str,
-    ) -> str | int:
+    def _xml_request(self, url: str) -> Union[str, int]:
         '''
-        Send an XML request to the device
-        Handles checking the response
+        Send an XML request to the device and handle the response.
 
         Args:
-            url (str): The URL to send the request to
-                Example: "/?type=op&cmd=<show><system></system></show>"
+            url (str): The URL to send the request to.
 
         Returns:
-            str: The response body
-            int: The response code if an error occurred
+            str: The response body if successful.
+            int: The response code if an error occurred.
         '''
+        full_url = f"{self.xml_base_url}{url}"
+        try:
+            response = requests.get(full_url, headers=self.xml_headers)
+        except (ConnectionError, MaxRetryError, NewConnectionError) as e:
+            print(
+                Fore.RED,
+                "DNS resolution or connection issue\n",
+                Fore.YELLOW,
+                e,
+                Style.RESET_ALL
+            )
+            return 500
+        except Exception as e:
+            print(
+                Fore.RED,
+                f"General error connecting to device: {e}",
+                Style.RESET_ALL
+            )
+            return 500
 
-        # Send the request
-        response = requests.get(
-            f"{self.xml_base_url}{url}",
-            headers=self.xml_headers
-        )
-
-        # Check the response code for errors
         if response.status_code != 200:
             root = ET.fromstring(response.text)
             msg_tag = root.find(".//msg")
-
-            print(
-                Fore.RED,
-                msg_tag.text,
-                Style.RESET_ALL
-            )
-
+            print(Fore.RED, msg_tag.text, Style.RESET_ALL)
             return response.status_code
 
-        # Return the configuration (in XML) as a string
         return response.text
 
-    def get_config(
-        self
-    ) -> str:
+    def get_config(self) -> Union[str, int]:
         '''
-        Get the running configuration of the device
-        This uses the XML API
+        Get the running configuration of the device using the XML API.
 
         Returns:
-            str: The configuration
-                XML format, but returned as a string
+            str: The configuration in XML format as a string.
+            int: The response code if an error occurred.
         '''
+        return self._xml_request("/?type=config&action=show&xpath=/")
 
-        config = self._xml_request("/?type=config&action=show&xpath=/")
-        return config
-
-    def get_device(
-        self,
-    ) -> Tuple[str, str, str, str] | int:
+    def get_device(self) -> Union[Tuple[str, str, str], int]:
         '''
-        Get the device basics
-            Serial number, model, PANOS version
-        This uses the XML API
+        Get the device basics using the XML API.
 
         Returns:
-            Tuple:
-                str: The model of the device
-                str: The serial number of the device
-                str: The software version
-            int: The response code if an error occurred
+            Tuple[str, str, str]:
+                The model, serial number, and software version of the device.
+            int: The response code if an error occurred.
         '''
-
-        # Build the request
-        url = (
-            f"{self.xml_base_url}/?type=op"
-            "&cmd=<show><system><info></info></system></show>"
+        response = self._xml_request(
+            "/?type=op&cmd=<show><system><info></info></system></show>"
         )
+        if isinstance(response, int):
+            return response
 
-        # Send the request
-        try:
-            response = requests.get(
-                url,
-                headers=self.xml_headers
-            )
+        root = ET.fromstring(response)
+        model = root.find(".//model").text
+        serial = root.find(".//serial").text
+        version = root.find(".//sw-version").text
 
-        except (ConnectionError, MaxRetryError, NewConnectionError) as e:
-            print(
-                Fore.RED,
-                "DNS resolution or connection issue\n",
-                Fore.YELLOW,
-                e,
-                Style.RESET_ALL
-            )
-            return 500
+        return model, serial, version
 
-        except Exception as e:
-            print(
-                Fore.RED,
-                f"General error connecting to device: {e}",
-                Style.RESET_ALL
-            )
-            return 500
-
-        # Check the response code for errors
-        if response.status_code != 200:
-            root = ET.fromstring(response.text)
-            msg_tag = root.find(".//msg")
-
-            print(
-                Fore.RED,
-                msg_tag.text,
-                Style.RESET_ALL
-            )
-
-            return response.status_code
-
-        # Extract the model and serial number
-        root = ET.fromstring(response.text)
-        serial = root.find(".//serial")
-        model = root.find(".//model")
-        version = root.find(".//sw-version")
-
-        # Return as a tuple
-        return model.text, serial.text, version.text
-
-    def get_ha(
-        self,
-    ) -> bool | Tuple[bool, str, str, str] | int:
+    def get_ha(self) -> Union[bool, Tuple[bool, str, str, str], int]:
         '''
-        Get high availability details
-        This uses the XML API
+        Get high availability details using the XML API.
 
         Returns:
-            bool: Whether the device is enabled
-                Returns False if HA is disabled
-            Tuple:
-                bool: Whether the device is enabled
-                str: The local state of the device
-                str: The peer state of the device
-                str: The peer serial number
-            int: The response code if an error occurred
+            bool:
+                Whether the device is enabled (False if HA is disabled).
+            Tuple[bool, str, str, str]:
+                Whether the device is enabled, local state,
+                    peer state, and peer serial number.
+            int:
+                The response code if an error occurred.
         '''
-
-        # Build the request
-        url = (
-            f"{self.xml_base_url}/?type=op"
-            "&cmd=<show><high-availability><state>"
-            "</state></high-availability></show>"
+        response = self._xml_request(
+            "/?type=op&cmd=<show>"
+            "<high-availability>"
+            "<state></state>"
+            "</high-availability>"
+            "</show>"
         )
+        if isinstance(response, int):
+            return response
 
-        # Send the request
-        try:
-            response = requests.get(
-                url,
-                headers=self.xml_headers
-            )
+        root = ET.fromstring(response)
+        enabled = root.find(".//enabled").text == 'yes'
+        if not enabled:
+            return False
 
-        except (ConnectionError, MaxRetryError, NewConnectionError) as e:
-            print(
-                Fore.RED,
-                "DNS resolution or connection issue\n",
-                Fore.YELLOW,
-                e,
-                Style.RESET_ALL
-            )
-            return 500
+        local_state = root.find(".//state").text
+        peer_state = root.find(".//peer-info/state").text
+        peer_serial = root.find(".//peer-info/serial-num").text
 
-        except Exception as e:
-            print(
-                Fore.RED,
-                f"General error connecting to device: {e}",
-                Style.RESET_ALL
-            )
-            return 500
+        return enabled, local_state, peer_state, peer_serial
 
-        # Check the response code for errors
-        if response.status_code != 200:
-            root = ET.fromstring(response.text)
-            msg_tag = root.find(".//msg")
+    def get_gp_sessions(self) -> Union[list, int]:
+        '''
+        Get active Global Protect sessions using the XML API.
 
-            print(
-                Fore.RED,
-                msg_tag.text,
-                Style.RESET_ALL
-            )
+        Returns:
+            list of dicts: The active sessions.
+            int: The response code if an error occurred.
+        '''
+        response = self._xml_request(
+            "/?type=op&cmd=<show>"
+            "<global-protect-gateway>"
+            "<current-user/>"
+            "</global-protect-gateway>"
+            "</show>"
+        )
+        if isinstance(response, int):
+            return response
 
-            return response.status_code
+        root = ET.fromstring(response)
+        results = root.find(".//result")
 
-        # Extract the HA state
-        root = ET.fromstring(response.text)
-        enabled = root.find(".//enabled")
+        session_list = []
+        for gp_session in results:
+            session = {
+                'username': gp_session.find(".//username").text,
+                'primary-username': gp_session.find(
+                    ".//primary-username"
+                ).text,
+                'source-region': gp_session.find(".//source-region").text,
+                'computer': gp_session.find(".//computer").text,
+                'client': gp_session.find(".//client").text,
+                'vpn-type': gp_session.find(".//vpn-type").text,
+                'host-id': gp_session.find(".//host-id").text,
+                'app-version': gp_session.find(".//app-version").text,
+                'virtual-ip': gp_session.find(".//virtual-ip").text,
+                'public-ip': gp_session.find(".//public-ip").text,
+                'tunnel-type': gp_session.find(".//tunnel-type").text,
+                'login-time': gp_session.find(".//login-time").text,
+            }
+            session_list.append(session)
 
-        # Check if HA is enabled
-        if enabled.text == 'yes':
-            enabled = True
-        else:
-            enabled = False
-            return enabled
-
-        # Extract the peer IP and state
-        local_state = root.find(".//state")
-        peer_state = root.find(".//peer-info/state")
-        peer_serial = root.find(".//peer-info/serial-num")
-
-        # Return as a tuple
-        return enabled, local_state.text, peer_state.text, peer_serial.text
+        return session_list
 
     def get_tags(
         self
@@ -650,125 +593,6 @@ class DeviceApi:
 
         qos_rules = self._rest_request("/Policies/QoSRules")
         return qos_rules
-
-    def get_gp_sessions(
-        self,
-    ) -> list | int:
-        '''
-        Get active Global Protect sessions
-        This uses the XML API
-
-        Returns:
-            list of dicts: The active sessions
-                username (str): The username of the session (UPN format)
-                primary-username (str): The primary username of the session
-                source-region (str): The source country of the session
-                computer (str): The computer name
-                client (str): The client Operating System
-                vpn-type (str): The VPN type (eg, device-level)
-                host-id (str): The host ID
-                app-version (str): The GP app version
-                virtual-ip (str): The virtual IP address (internal address)
-                public-ip (str): The public IP address
-                tunnel-type (str): The tunnel type (eg, ESP)
-                login-time (str): The login time of the session
-        '''
-
-        # Build the request
-        url = (
-            f"{self.xml_base_url}/?type=op&cmd="
-            "<show><global-protect-gateway>"
-            "<current-user/>"
-            "</global-protect-gateway></show>"
-        )
-
-        # Send the request
-        try:
-            response = requests.get(
-                url,
-                headers=self.xml_headers
-            )
-
-        except (ConnectionError, MaxRetryError, NewConnectionError) as e:
-            print(
-                Fore.RED,
-                "DNS resolution or connection issue\n",
-                Fore.YELLOW,
-                e,
-                Style.RESET_ALL
-            )
-            return 500
-
-        except Exception as e:
-            print(
-                Fore.RED,
-                f"General error connecting to device: {e}",
-                Style.RESET_ALL
-            )
-            return 500
-
-        # Check the response code for errors
-        if response.status_code != 200:
-            root = ET.fromstring(response.text)
-            msg_tag = root.find(".//msg")
-
-            print(
-                Fore.RED,
-                msg_tag.text,
-                Style.RESET_ALL
-            )
-
-            return response.status_code
-
-        # Parse the XML response
-        root = ET.fromstring(response.text)
-        results = root.find(".//result")
-
-        # Convert the XML to a list of dictionaries
-        session_list = []
-        for gp_session in results:
-            session = {}
-
-            username = gp_session.find(".//username")
-            session['username'] = username.text
-
-            primary_username = gp_session.find(".//primary-username")
-            session['primary-username'] = primary_username.text
-
-            source_region = gp_session.find(".//source-region")
-            session['source-region'] = source_region.text
-
-            computer = gp_session.find(".//computer")
-            session['computer'] = computer.text
-
-            client = gp_session.find(".//client")
-            session['client'] = client.text
-
-            vpn_type = gp_session.find(".//vpn-type")
-            session['vpn-type'] = vpn_type.text
-
-            host_id = gp_session.find(".//host-id")
-            session['host-id'] = host_id.text
-
-            app_version = gp_session.find(".//app-version")
-            session['app-version'] = app_version.text
-
-            virtual_ip = gp_session.find(".//virtual-ip")
-            session['virtual-ip'] = virtual_ip.text
-
-            public_ip = gp_session.find(".//public-ip")
-            session['public-ip'] = public_ip.text
-
-            tunnel_type = gp_session.find(".//tunnel-type")
-            session['tunnel-type'] = tunnel_type.text
-
-            login_time = gp_session.find(".//login-time")
-            session['login-time'] = login_time.text
-
-            session_list.append(session)
-
-        # Return the list of dictionaries
-        return session_list
 
 
 if __name__ == '__main__':

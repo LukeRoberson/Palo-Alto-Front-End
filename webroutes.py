@@ -71,6 +71,7 @@ class BaseView(MethodView):
 
         return render_template(
             self.template_name,
+            debug_mode=config.web_debug,
             **self.get_context_data(*args, **kwargs)
         )
 

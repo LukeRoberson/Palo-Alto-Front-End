@@ -28,7 +28,19 @@ html, body {
     width: 100%;
     z-index: 1000;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
+}
+
+.debug-icon {
+    color: red;
+    font-size: 32px;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+.header-title {
+    flex-grow: 1;
+    text-align: center;
 }
 
 /* Body offset to account for fixed header */

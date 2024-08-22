@@ -71,14 +71,14 @@ document.querySelectorAll('.device-download-button').forEach(button => {    // A
     button.addEventListener('click', downloadDeviceConfig);
 });
 
-document.addEventListener('DOMContentLoaded', function() {                  // Attach event listener to each collapsible header
+document.addEventListener('DOMContentLoaded', function () {                  // Attach event listener to each collapsible header
     var collapsibleHeaders = document.querySelectorAll('.collapsible-header');
-    collapsibleHeaders.forEach(function(header) {
+    collapsibleHeaders.forEach(function (header) {
         header.addEventListener('click', toggleCollapsibleContent);
     });
 });
 
-document.getElementById('confirmDelete').addEventListener('click', function() {     // Event listener for the 'Delete' button inside the confirm modal
+document.getElementById('confirmDelete').addEventListener('click', function () {     // Event listener for the 'Delete' button inside the confirm modal
     const objectId = this.getAttribute('data-object-id');
     const deleteUrl = this.getAttribute('data-delete-url');
 
@@ -86,7 +86,7 @@ document.getElementById('confirmDelete').addEventListener('click', function() { 
     closeConfirmModal();
 });
 
-document.getElementById('confirmCancel').addEventListener('click', function() {     // Event listener for the 'Cancel' button inside the confirm modal
+document.getElementById('confirmCancel').addEventListener('click', function () {     // Event listener for the 'Cancel' button inside the confirm modal
     closeConfirmModal();
 });
 
@@ -115,38 +115,33 @@ function handleSubmitButtonClick(event, url, buttonElement) {
     // Collect data from the form
     const formData = new FormData(form);
 
-    // Before submitting the form, log formData for debugging
-    for (let [key, value] of formData.entries()) {
-        console.log(key, value);
-    }
-
     // POST the form data to the specified URL
     fetch(url, {
         method: 'POST',
         body: formData,
     })
-    .then(response => response.json())
-    .then(data => {
-        // Hide loading spinner when the response is received
-        document.getElementById('loadingSpinner').style.display = 'none';
+        .then(response => response.json())
+        .then(data => {
+            // Hide loading spinner when the response is received
+            document.getElementById('loadingSpinner').style.display = 'none';
 
-        // Check the 'result' field and display the message with appropriate color
-        if (data.result === 'Success') {
-            showNotification(data.message, 'Success');
+            // Check the 'result' field and display the message with appropriate color
+            if (data.result === 'Success') {
+                showNotification(data.message, 'Success');
 
-            // Delay a little, then reload the page
-            setTimeout(() => {
-                location.reload();
-            }, 1000);
-        } else if (data.result === 'Failure') {
-            showNotification(data.message, 'Failure');
-        }
-    })
-    .catch(error => {
-        // Hide loading spinner when the response is received
-        document.getElementById('loadingSpinner').style.display = 'none';
-        console.error('Error:', error)
-    });
+                // Delay a little, then reload the page
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else if (data.result === 'Failure') {
+                showNotification(data.message, 'Failure');
+            }
+        })
+        .catch(error => {
+            // Hide loading spinner when the response is received
+            document.getElementById('loadingSpinner').style.display = 'none';
+            console.error('Error:', error)
+        });
 
     // Close the open modal
     devModal.style.display = "none";
@@ -170,7 +165,6 @@ function refreshPageAndReload() {
 
             // Check if the response is OK and reload the page
             if (response.ok) {
-                console.log('Device list fetched successfully');
                 setTimeout(() => {
                     location.reload();
                 }, 1000);
@@ -200,7 +194,7 @@ function openModal(modal) {
             const dropdown = document.getElementById('siteMember');
             dropdown.innerHTML = '';
             dropdown.add(new Option("Select a site", ""));
-            
+
             // Populate dropdown with sites
             data.forEach(site => {
                 const option = new Option(site['site_name'], site['site_id']);
@@ -233,7 +227,7 @@ function closeModal() {
 function setupDeleteButton(selector, deleteUrl) {
     // Attach event listener to each delete button
     document.querySelectorAll(selector).forEach(button => {
-        button.addEventListener('click', function(event) {
+        button.addEventListener('click', function (event) {
             // Get the objectId from the button's data-id attribute (the thing we want to delete)
             var objectId = event.currentTarget.getAttribute(`data-id`);
 
@@ -286,30 +280,30 @@ function handleDelete(deleteUrl, objectId) {
         },
         body: JSON.stringify({ objectId }),
     })
-    .then(response => response.json())
-    .then(data => {
-        // Hide loading spinner when the response is received
-        document.getElementById('loadingSpinner').style.display = 'none';
+        .then(response => response.json())
+        .then(data => {
+            // Hide loading spinner when the response is received
+            document.getElementById('loadingSpinner').style.display = 'none';
 
-        // Check the 'result' field and display the message with appropriate color
-        if (data.result === 'Success') {
-            // Display a success message
-            showNotification(data.message, 'Success');
+            // Check the 'result' field and display the message with appropriate color
+            if (data.result === 'Success') {
+                // Display a success message
+                showNotification(data.message, 'Success');
 
-            // Delay a little, then reload the page
-            setTimeout(() => {
-                location.reload();
-            }, 1000);
-        } else if (data.result === 'Failure') {
-            // Failure message if needed
-            showNotification(data.message, 'Failure');
-        }
-    })
-    .catch(error => {
-        // Hide loading spinner when the response is received
-        document.getElementById('loadingSpinner').style.display = 'none';
-        console.error('Error:', error);
-    });
+                // Delay a little, then reload the page
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else if (data.result === 'Failure') {
+                // Failure message if needed
+                showNotification(data.message, 'Failure');
+            }
+        })
+        .catch(error => {
+            // Hide loading spinner when the response is received
+            document.getElementById('loadingSpinner').style.display = 'none';
+            console.error('Error:', error);
+        });
 }
 
 
@@ -325,11 +319,10 @@ function openSiteEditModal(event) {
     // Select the input fields by their name attribute
     const siteEditIdInput = document.querySelector('input[name="siteEditId"]');
     const siteEditNameInput = document.querySelector('input[name="siteEditName"]');
-    
+
     // Populate the input fields with siteId and siteName
     siteEditIdInput.value = siteId;
     siteEditNameInput.value = siteName;
-    console.log(siteEditIdInput.value, siteEditNameInput.value);
 
     // Display the modal
     siteEditModal.style.display = "block";
@@ -346,20 +339,20 @@ function openSiteEditModal(event) {
 function openDeviceEditModal(event) {
     // Get the site list, for use with adding devices
     fetch('/site_list')
-    .then(response => response.json())
-    .then(data => {
-        // Get the dropdown item, and clear it first
-        const dropdown = document.getElementById('siteMemberEdit');
-        dropdown.innerHTML = '';
-        dropdown.add(new Option("Select a site", ""));
-        
-        // Populate dropdown with sites
-        data.forEach(site => {
-            const option = new Option(site['site_name'], site['site_id']);
-            dropdown.add(option);
-        });
-    })
-    .catch(error => console.error(error));
+        .then(response => response.json())
+        .then(data => {
+            // Get the dropdown item, and clear it first
+            const dropdown = document.getElementById('siteMemberEdit');
+            dropdown.innerHTML = '';
+            dropdown.add(new Option("Select a site", ""));
+
+            // Populate dropdown with sites
+            data.forEach(site => {
+                const option = new Option(site['site_name'], site['site_id']);
+                dropdown.add(option);
+            });
+        })
+        .catch(error => console.error(error));
 
     // Directly use event.currentTarget to get the device attributes
     var deviceId = event.currentTarget.getAttribute('data-id');
@@ -376,7 +369,7 @@ function openDeviceEditModal(event) {
 
     // Select the dropdown element
     const dropdown = document.getElementById('siteMemberEdit');
-    
+
     // Populate the input fields
     deviceEditIdInput.value = deviceId;
     deviceEditNameInput.value = deviceName;
@@ -388,7 +381,6 @@ function openDeviceEditModal(event) {
     setTimeout(() => {
         Array.from(dropdown.options).forEach(option => {
             if (option.value === deviceSite) {
-                console.log('Found site:', option.value, option.text);
                 option.selected = true;
             }
         });
@@ -407,7 +399,7 @@ function openDeviceEditModal(event) {
 function downloadDeviceConfig(event) {
     // Get the device ID from the button's data-id attribute
     var deviceId = event.currentTarget.getAttribute('data-id');
-    
+
     // POST to the download_config endpoint with the deviceId
     fetch('/download_config', {
         method: 'POST',
@@ -417,38 +409,38 @@ function downloadDeviceConfig(event) {
         body: JSON.stringify({ deviceId }),
     })
 
-    // Extract the filename from the custom header and trigger the download
-    .then(response => {
-        const filename = response.headers.get('X-Filename') || 'default_filename.xml';
-        return response.blob().then(blob => ({ blob, filename }));
-    })
+        // Extract the filename from the custom header and trigger the download
+        .then(response => {
+            const filename = response.headers.get('X-Filename') || 'default_filename.xml';
+            return response.blob().then(blob => ({ blob, filename }));
+        })
 
-    // Create a URL for the blob and trigger the download
-    .then(({ blob, filename }) => {
-        // Create a new URL for the blob
-        const url = window.URL.createObjectURL(blob);
+        // Create a URL for the blob and trigger the download
+        .then(({ blob, filename }) => {
+            // Create a new URL for the blob
+            const url = window.URL.createObjectURL(blob);
 
-        // Create a temporary anchor element
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
+            // Create a temporary anchor element
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
 
-        // Use the filename from the header
-        a.download = filename;
+            // Use the filename from the header
+            a.download = filename;
 
-        // Append the anchor to the document
-        document.body.appendChild(a);
+            // Append the anchor to the document
+            document.body.appendChild(a);
 
-        // Trigger the download by simulating a click on the anchor
-        a.click();
+            // Trigger the download by simulating a click on the anchor
+            a.click();
 
-        // Clean up by revoking the object URL and removing the anchor
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-    })
+            // Clean up by revoking the object URL and removing the anchor
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        })
 
-    // Log any errors to the console
-    .catch(error => console.error('Error:', error));
+        // Log any errors to the console
+        .catch(error => console.error('Error:', error));
 }
 
 
@@ -462,7 +454,7 @@ function toggleCollapsibleContent(event) {
     var cardsToToggle = document.querySelectorAll('.' + cardType);
 
     // Toggle the visibility of the corresponding cards
-    cardsToToggle.forEach(function(card) {
+    cardsToToggle.forEach(function (card) {
         card.classList.toggle('collapsible-content');
     });
 

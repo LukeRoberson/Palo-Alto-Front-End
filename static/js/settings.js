@@ -5,12 +5,11 @@
 */
 
 
-// Event listners for the forms
+// Event listners for the forms and buttons
 attachButtonClickListener('saveAzure', '/save_azure');
 attachButtonClickListener('saveSql', '/save_sql');
 attachButtonClickListener('testSql', '/test_sql');
 attachButtonClickListener('saveWeb', '/save_web');
-
 
 
 /**
