@@ -53,7 +53,7 @@ else:
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if config.web_debug is False:
+        if config.web_debug is True:
             return f(*args, **kwargs)
         if 'user' not in session:
             return redirect(url_for('azure.login', next=request.url))
