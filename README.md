@@ -35,6 +35,7 @@ To push the container to docker hub:
 3. Enter token as the password
 4. 'docker push <USERNAME>/<repository>:<tag>'
 
+
 # Configuration
 
 ## General Configuration

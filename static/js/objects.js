@@ -4,6 +4,8 @@
 
     There are usually two dropdowns in the UI, each with a different hover color.
     The dropdowns are populated with the same list of devices fetched from the server.
+
+    Add refresh buttons to each dropdown to update the list of items when clicked.
 */
 
 // Lists of items that are fetched from the server
@@ -40,6 +42,34 @@ fetch('/device_list')
         populateDropdownWithData('#serviceGroupDropdownB', 'w3-hover-green', devices, 'serviceGroupAccordionB');
     })
     .catch(error => console.error('Error:', error));
+
+
+/**
+ * Register event listeners for the refresh buttons
+ * 
+ * @param {*} buttonId          - The ID of the button to add the event listener to
+ * @param {*} accordionId       - The ID of the accordion to refresh when the button is clicked
+ */
+function registerRefreshButtonListener(buttonId, accordionId, functionName) {
+    document.getElementById(buttonId).addEventListener('click', function () {
+        const deviceId = document.getElementById(accordionId).dataset.deviceId;
+        functionName(deviceId, accordionId);
+    });
+}
+
+// Register event listeners for both buttons
+registerRefreshButtonListener('refreshButtonTagA', 'tagAccordionA', updateTagsTable);
+registerRefreshButtonListener('refreshButtonTagB', 'tagAccordionB', updateTagsTable);
+registerRefreshButtonListener('refreshButtonAddressesA', 'addressAccordionA', updateAddressesTable);
+registerRefreshButtonListener('refreshButtonAddressesB', 'addressAccordionB', updateAddressesTable);
+registerRefreshButtonListener('refreshButtonAddressGroupsA', 'addressGroupAccordionA', updateAddressGroupsTable);
+registerRefreshButtonListener('refreshButtonAddressGroupsB', 'addressGroupAccordionB', updateAddressGroupsTable);
+registerRefreshButtonListener('refreshButtonApplicationsA', 'applicationGroupAccordionA', updateApplicationGroupsTable);
+registerRefreshButtonListener('refreshButtonApplicationsB', 'applicationGroupAccordionB', updateApplicationGroupsTable);
+registerRefreshButtonListener('refreshButtonServicesA', 'serviceAccordionA', updateServicesTable);
+registerRefreshButtonListener('refreshButtonServicesB', 'serviceAccordionB', updateServicesTable);
+registerRefreshButtonListener('refreshButtonServiceGroupsA', 'serviceGroupAccordionA', updateServiceGroupsTable);
+registerRefreshButtonListener('refreshButtonServiceGroupsB', 'serviceGroupAccordionB', updateServiceGroupsTable);
 
 
 /**
@@ -130,6 +160,7 @@ function updateTagsTable(deviceId, divId) {
 
     // Clear any existing content in the div
     divElement.innerHTML = '';
+    divElement.dataset.deviceId = deviceId;
 
     // API call to fetch tags for the selected device
     fetch(`/get_tags?id=${encodeURIComponent(deviceId)}`)
@@ -217,6 +248,7 @@ function updateAddressesTable(deviceId, divId) {
 
     // Clear any existing content in the div
     divElement.innerHTML = '';
+    divElement.dataset.deviceId = deviceId;
 
     // API call to fetch addresses for the selected device
     fetch(`/get_address_objects?id=${encodeURIComponent(deviceId)}`)
@@ -305,6 +337,7 @@ function updateAddressGroupsTable(deviceId, divId) {
 
     // Clear any existing content in the div
     divElement.innerHTML = '';
+    divElement.dataset.deviceId = deviceId;
 
     // API call to fetch address groups for the selected device
     fetch(`/get_address_groups?id=${encodeURIComponent(deviceId)}`)
@@ -335,7 +368,6 @@ function updateAddressGroupsTable(deviceId, divId) {
                 listDiv.style = 'overflow-x: auto;';
 
                 // Table
-                console.log(address)
                 const table = document.createElement('table');
                 table.className = 'w3-table indented-table';
                 addChildTableItem(table, 'Address', address.static.member.join(", "));
@@ -394,6 +426,7 @@ function updateApplicationGroupsTable(deviceId, divId) {
 
     // Clear any existing content in the div
     divElement.innerHTML = '';
+    divElement.dataset.deviceId = deviceId;
 
     // API call to fetch application groups for the selected device
     fetch(`/get_application_groups?id=${encodeURIComponent(deviceId)}`)
@@ -478,6 +511,7 @@ function updateServicesTable(deviceId, divId) {
 
     // Clear any existing content in the div
     divElement.innerHTML = '';
+    divElement.dataset.deviceId = deviceId;
 
     // API call to fetch service objects for the selected device
     fetch(`/get_service_objects?id=${encodeURIComponent(deviceId)}`)
@@ -566,6 +600,7 @@ function updateServiceGroupsTable(deviceId, divId) {
 
     // Clear any existing content in the div
     divElement.innerHTML = '';
+    divElement.dataset.deviceId = deviceId;
 
     // API call to fetch service groups for the selected device
     fetch(`/get_service_groups?id=${encodeURIComponent(deviceId)}`)

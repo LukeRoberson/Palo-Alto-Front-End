@@ -4,6 +4,8 @@
 
     There are usually two dropdowns in the UI, each with a different hover color.
     The dropdowns are populated with the same list of devices fetched from the server.
+
+    Add refresh buttons to each page to update the tables with the latest data.
 */
 
 // Lists of items that are fetched from the server
@@ -28,6 +30,30 @@ fetch('/device_list')
         populateDropdownWithData('#qosDropdownB', 'w3-hover-green', devices, 'qosAccordionB');
     })
     .catch(error => console.error('Error:', error));
+
+
+/**
+ * Register event listeners for the refresh buttons
+ * 
+ * @param {*} buttonId          - The ID of the button to add the event listener to
+ * @param {*} accordionId       - The ID of the accordion to refresh when the button is clicked
+ */
+function registerRefreshButtonListener(buttonId, accordionId, functionName) {
+    document.getElementById(buttonId).addEventListener('click', function () {
+        const deviceId = document.getElementById(accordionId).dataset.deviceId;
+        functionName(deviceId, accordionId);
+    });
+}
+
+
+// Register event listeners for both buttons
+registerRefreshButtonListener('refreshButtonNatA', 'natAccordionA', updateNatTable);
+registerRefreshButtonListener('refreshButtonNatB', 'natAccordionB', updateNatTable);
+registerRefreshButtonListener('refreshButtonSecurityA', 'securityAccordionA', updateSecurityTable);
+registerRefreshButtonListener('refreshButtonSecurityB', 'securityAccordionB', updateSecurityTable);
+registerRefreshButtonListener('refreshButtonQosA', 'qosAccordionA', updateQosTable);
+registerRefreshButtonListener('refreshButtonQosB', 'qosAccordionB', updateQosTable);
+
 
 
 /**
@@ -120,6 +146,7 @@ function updateNatTable(deviceId, divId) {
 
     // Clear any existing content in the div
     divElement.innerHTML = '';
+    divElement.dataset.deviceId = deviceId;
 
     // API call to fetch NAT policies for the selected device
     fetch(`/get_nat_policies?id=${encodeURIComponent(deviceId)}`)
@@ -224,6 +251,7 @@ function updateSecurityTable(deviceId, divId) {
 
     // Clear any existing content in the div
     divElement.innerHTML = '';
+    divElement.dataset.deviceId = deviceId;
 
     // API call to fetch security policies for the selected device
     fetch(`/get_security_policies?id=${encodeURIComponent(deviceId)}`)
@@ -338,6 +366,7 @@ function updateQosTable(deviceId, divId) {
 
     // Clear any existing content in the div
     divElement.innerHTML = '';
+    divElement.dataset.deviceId = deviceId;
 
     // API call to fetch QoS policies for the selected device
     fetch(`/get_qos_policies?id=${encodeURIComponent(deviceId)}`)

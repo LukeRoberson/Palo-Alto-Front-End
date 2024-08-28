@@ -5,7 +5,7 @@ Specifically, to authenticate with Azure AD and retrieve the access token
 
 from settings import config
 import msal
-from flask import Blueprint, redirect, request, session, url_for, jsonify
+from flask import Blueprint, redirect, request, session, url_for
 import uuid
 from functools import wraps
 from colorama import Fore, Style
@@ -86,6 +86,7 @@ def authorized():
 
     # Collect the code from the response
     code = request.args.get('code')
+    print(f"Callback Code: {code}")
 
     # The callback contains a code
     if code:
@@ -96,29 +97,9 @@ def authorized():
             redirect_uri=url_for('azure.authorized', _external=True)
         )
 
-        # Handle errors in the response
-        if 'error' in result:
-            return jsonify(result)
-
         # Get the access token
         if 'access_token' in result:
-            id_token = result.get('id_token_claims')
-            session['user'] = {
-                'name': id_token.get('name'),
-                'preferred_username': id_token.get('preferred_username'),
-                'email': id_token.get('email'),
-                'roles': id_token.get('roles'),
-                'oid': id_token.get('oid'),
-            }
-
-            print(Fore.GREEN)
-            print(f"User {session['user']['name']} logged in")
-            print(f"Roles: {session['user']['roles']}")
-            print(f"OID: {session['user']['oid']}")
-            print(f"Email: {session['user']['email']}")
-            print(f"Pref Username: {session['user']['preferred_username']}")
-            print(Style.RESET_ALL)
-
+            session['user'] = result.get('id_token_claims')
             return redirect(url_for('web.index'))
 
         # Return an error if the access token is not found

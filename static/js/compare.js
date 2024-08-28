@@ -45,6 +45,9 @@ function setupComparison(listAId, listBId, listA, listB, sort = true) {
         listB.sort((a, b) => a.name.localeCompare(b.name));
     }
     highlightDifferences(listA, listB, listAContainer, listBContainer);
+
+    // Show a notification that the comparison is complete
+    showNotification('Comparison complete', 'Success');
 }
 
 
