@@ -1029,7 +1029,21 @@ class GetAddressesView(MethodView):
         for address in raw_addresses:
             entry = {}
             entry["name"] = address['@name']
-            entry["addr"] = address.get('ip-netmask', 'No IP')
+
+            if 'ip-netmask' in address:
+                entry["addr"] = address['ip-netmask']
+            elif 'ip-range' in address:
+                entry["addr"] = address['ip-range']
+            elif 'fqdn' in address:
+                entry["addr"] = address['fqdn']
+            else:
+                entry["addr"] = 'No IP'
+                print(
+                    Fore.RED,
+                    f'No IP for object {entry['name']}',
+                    Style.RESET_ALL
+                )
+
             entry["description"] = address.get('description', 'No description')
             entry["tag"] = address.get('tag', 'No tag')
             address_list.append(entry)
@@ -1112,7 +1126,7 @@ class GetAddressGroupsView(MethodView):
             entry["name"] = address_group['@name']
             entry["static"] = address_group.get('static', 'None')
             entry["description"] = address_group.get('description', 'None')
-            entry["tag"] = address_group.get('tag', 'No tags')
+            entry["tag"] = address_group.get('tag', {'member': ['No tags']})
             address_group_list.append(entry)
 
         # Sort the address groups by name

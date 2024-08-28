@@ -335,6 +335,7 @@ function updateAddressGroupsTable(deviceId, divId) {
                 listDiv.style = 'overflow-x: auto;';
 
                 // Table
+                console.log(address)
                 const table = document.createElement('table');
                 table.className = 'w3-table indented-table';
                 addChildTableItem(table, 'Address', address.static.member.join(", "));

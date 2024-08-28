@@ -27,7 +27,7 @@
  * @param {*} listB         The second list of objects
  * @param {*} sort          Whether to sort the lists alphabetically (good for objects, bad for policies)
  */
-function setupComparison(listAId, listBId, listA, listB, sort=true) {
+function setupComparison(listAId, listBId, listA, listB, sort = true) {
     // Get the two parent containers
     let listAContainer = document.getElementById(listAId);
     let listBContainer = document.getElementById(listBId);
@@ -77,7 +77,7 @@ function addChildTableItem(tableName, heading, value) {
     if (value && typeof value === 'object' && value.member && Array.isArray(value.member)) {
         // Handle cases where 'value' is an array containing 'member' as a property
         cell.textContent = value.member ? value.member.join(', ') : "None";
-        
+
     } else if (value && typeof value === 'object' && value["static-ip"] && typeof value["static-ip"] === 'object') {
         // Correctly handle 'static-ip' as an object, not an array
         let bidirNat = value?.["static-ip"]?.["bi-directional"] ?? "None";
@@ -117,11 +117,11 @@ function compareAndAppend(listA, listB, listAContainer, listBContainer) {
 
             // Create objects for the missing elements
             const sanitizedId = sanitizeId(listA[index].name);
-            const parentDiv = createElement('div', {id: listAContainer.id + '_' + sanitizedId});
+            const parentDiv = createElement('div', { id: listAContainer.id + '_' + sanitizedId });
             const button = createButton(listA[index], listAContainer, sanitizedId);
             const listDiv = createDiv(listAContainer, sanitizedId);
             listDiv.style = 'overflow-x: auto;';
-            const table = createElement('table', {className: 'w3-table indented-table'});
+            const table = createElement('table', { className: 'w3-table indented-table' });
 
             // Add the missing elements to the list div
             Object.entries(listA[index]).forEach(([key, value]) => {
@@ -144,10 +144,10 @@ function compareAndAppend(listA, listB, listAContainer, listBContainer) {
 
             // Create objects for the missing elements
             const sanitizedId = sanitizeId(listB[index].name);
-            const parentDiv = createElement('div', {id: listBContainer.id + '_' + sanitizedId});
+            const parentDiv = createElement('div', { id: listBContainer.id + '_' + sanitizedId });
             const button = createButton(listB[index], listBContainer, sanitizedId);
             const listDiv = createDiv(listBContainer, sanitizedId);
-            const table = createElement('table', {className: 'w3-table indented-table'});
+            const table = createElement('table', { className: 'w3-table indented-table' });
 
             // Add the missing elements to the list div
             Object.entries(listB[index]).forEach(([key, value]) => {
@@ -170,10 +170,10 @@ function compareAndAppend(listA, listB, listAContainer, listBContainer) {
 
             // Create objects for the missing elements
             const sanitizedId = sanitizeId(listA[index].name);
-            const parentDiv = createElement('div', {id: listBContainer.id + '_' + sanitizedId});
+            const parentDiv = createElement('div', { id: listBContainer.id + '_' + sanitizedId });
             const button = createButton(listA[index], listBContainer, sanitizedId);
             const listDiv = createDiv(listBContainer, sanitizedId);
-            const table = createElement('table', {className: 'w3-table indented-table'});
+            const table = createElement('table', { className: 'w3-table indented-table' });
 
             // Add the missing elements to the list div
             Object.entries(listA[index]).forEach(([key, value]) => {
@@ -196,10 +196,10 @@ function compareAndAppend(listA, listB, listAContainer, listBContainer) {
 
             // Create objects for the missing elements
             const sanitizedId = sanitizeId(listB[index].name);
-            const parentDiv = createElement('div', {id: listAContainer.id + '_' + sanitizedId});
+            const parentDiv = createElement('div', { id: listAContainer.id + '_' + sanitizedId });
             const button = createButton(listB[index], listAContainer, sanitizedId);
             const listDiv = createDiv(listAContainer, sanitizedId);
-            const table = createElement('table', {className: 'w3-table indented-table'});
+            const table = createElement('table', { className: 'w3-table indented-table' });
 
             // Add the missing elements to the list div
             Object.entries(listB[index]).forEach(([key, value]) => {
@@ -240,7 +240,7 @@ function sanitizeId(name) {
  */
 function createElement(tag, properties = {}) {
     const element = document.createElement(tag);
-    
+
     // Create the element with the given properties
     Object.entries(properties).forEach(([key, value]) => element[key] = value);
     return element;
@@ -255,12 +255,12 @@ function createElement(tag, properties = {}) {
  * @param {*} sanitizedId 
  * @returns 
  */
-function createButton (element, listContainer, sanitizedId) {
+function createButton(element, listContainer, sanitizedId) {
     const button = document.createElement('button');
     button.className = 'w3-button w3-block w3-left-align';
     button.textContent = element.name;
     button.classList.add('highlight-missing');
-    button.onclick = function() { expandList(listContainer.id + '_list_' + sanitizedId) };
+    button.onclick = function () { expandList(listContainer.id + '_list_' + sanitizedId) };
 
     return button;
 }
@@ -293,7 +293,7 @@ function createDiv(container, sanitizedId) {
 function sortDivsByIdSuffix(parentSelector) {
     // Select the parent container
     const parent = document.querySelector(parentSelector);
-    
+
     // Ensure the parent exists to avoid errors
     if (!parent) {
         console.error('Parent selector not found:', parentSelector);
@@ -302,7 +302,7 @@ function sortDivsByIdSuffix(parentSelector) {
 
     // Get all divs as an array
     const divsArray = Array.from(parent.querySelectorAll(':scope > div'));
-    
+
     // Sort the array based on the suffix of the 'id' attribute, safely handling missing attributes
     divsArray.sort((a, b) => {
         // Extract the part of the id after the underscore
@@ -310,7 +310,7 @@ function sortDivsByIdSuffix(parentSelector) {
         const idB = b.id.split('_')[1] || "";
         return idA.localeCompare(idB);
     });
-    
+
     // Re-append the divs in sorted order
     divsArray.forEach(div => {
         parent.appendChild(div);
@@ -343,7 +343,11 @@ function highlightDifferences(listA, listB, containerA, containerB) {
             buttonB.classList.add('highlight-different');
 
             // Check if there is an item elsewhere in listB that matches itemA and is not at the same index
-            const matchingIndexB = listB.findIndex((item, index) => index !== listA.indexOf(itemA) && !areObjectsDifferent(item.name, itemA.name));
+            const matchingIndexB = listB.findIndex((item, index) => {
+                const itemAIndex = listA.indexOf(itemA);
+                const namesAreDifferent = item.name !== itemA.name;
+                return index !== itemAIndex && !namesAreDifferent;
+            });
             if (matchingIndexB !== -1) {
                 const iconB = document.createElement('i');
                 iconB.className = 'fa-solid fa-arrows-up-down';
@@ -353,7 +357,11 @@ function highlightDifferences(listA, listB, containerA, containerB) {
             }
 
             // Similarly, check if there is an item elsewhere in listA that matches itemB and is not at the same index
-            const matchingIndexA = listA.findIndex((item, index) => index !== listB.indexOf(itemB) && !areObjectsDifferent(item.name, itemB.name));
+            const matchingIndexA = listA.findIndex((item, index) => {
+                const itemBIndex = listB.indexOf(itemB);
+                const namesAreDifferent = item.name !== itemB.name;
+                return index !== itemBIndex && !namesAreDifferent;
+            });
             if (matchingIndexA !== -1) {
                 const iconA = document.createElement('i');
                 iconA.className = 'fa-solid fa-arrows-up-down';
@@ -375,22 +383,31 @@ function highlightDifferences(listA, listB, containerA, containerB) {
  * @returns             True if the objects are deeply equal, false otherwise
  */
 function areObjectsDeeplyEqual(obj1, obj2) {
+    // Quick check, if they are exactly the same
     if (obj1 === obj2) {
         return true;
     }
+
+    // Check types and null values
     if (typeof obj1 !== 'object' || typeof obj2 !== 'object' || obj1 == null || obj2 == null) {
         return false;
     }
+
+    // Quick check, do they have the same number of keys
     const keys1 = Object.keys(obj1);
     const keys2 = Object.keys(obj2);
     if (keys1.length !== keys2.length) {
         return false;
     }
+
+    // Check each key in obj1, and compare the values
     for (let key of keys1) {
         if (!keys2.includes(key) || !areObjectsDeeplyEqual(obj1[key], obj2[key])) {
             return false;
         }
     }
+
+    // If we get this far, the objects are deeply equal
     return true;
 }
 
@@ -416,6 +433,7 @@ function areObjectsDifferent(obj1, obj2) {
         // Use the deep equality check for both array and non-array values
         const value1 = obj1[key];
         const value2 = obj2[key];
+        // console.log(value1, value2);
         if (!areObjectsDeeplyEqual(value1, value2)) {
             return true;
         }
