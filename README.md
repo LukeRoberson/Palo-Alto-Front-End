@@ -6,6 +6,7 @@ A web front end to simplify some aspects of Palo Alto firewall management
 
 - Python 3.10 or later
 - Modules are contained in requirements.txt
+- Note, uwsgi is needed in production, and only installs in Linux
 
 ## Containers
 
