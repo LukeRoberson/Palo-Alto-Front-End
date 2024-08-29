@@ -59,42 +59,42 @@ else:
         Style.RESET_ALL
     )
 
+# Load sites and devices
+if config.config_exists and config.config_valid:
+    site_manager.get_sites()
+    device_manager.get_devices()
+    debug = config.web_debug
+    host_ip = config.web_ip
+
+# Create a default route for when the config file is missing
+else:
+    print(
+        Fore.YELLOW,
+        'Config problems - Cannot load sites and devices',
+        Style.RESET_ALL
+    )
+    debug = True
+    host_ip = '0.0.0.0'
+
+    @app.route('/')
+    def error():
+        return 'Error: Could not load config file'
+
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return 'Error: Could not load config file', 404
+
+# Start the web server
+if config.web_ssl:
+    certs = (
+        'certificates/cert.pem',
+        'certificates/key.pem',
+    )
+else:
+    certs = None
+
 
 if __name__ == '__main__':
-    # Load sites and devices
-    if config.config_exists and config.config_valid:
-        site_manager.get_sites()
-        device_manager.get_devices()
-        debug = config.web_debug
-        host_ip = config.web_ip
-
-    # Create a default route for when the config file is missing
-    else:
-        print(
-            Fore.YELLOW,
-            'Config problems - Cannot load sites and devices',
-            Style.RESET_ALL
-        )
-        debug = True
-        host_ip = '0.0.0.0'
-
-        @app.route('/')
-        def error():
-            return 'Error: Could not load config file'
-
-        @app.errorhandler(404)
-        def page_not_found(e):
-            return 'Error: Could not load config file', 404
-
-    # Start the web server
-    if config.web_ssl:
-        certs = (
-            'certificates/cert.pem',
-            'certificates/key.pem',
-        )
-    else:
-        certs = None
-
     app.run(
         host=host_ip,
         debug=debug,

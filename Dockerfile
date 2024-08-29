@@ -14,12 +14,6 @@ RUN pip install -r requirements.txt
 # Copy the rest of the application code
 COPY . .
 
-# Expose the port on which the app will run
-EXPOSE 5000
-
 # uWSGI configuration
-# CMD ["uwsgi", \
-#     "--ini", "uwsgi.ini"]
-
-# Define the command to run the application
-CMD ["python", "main.py"]
+CMD ["uwsgi", \
+    "--ini", "uwsgi.ini"]

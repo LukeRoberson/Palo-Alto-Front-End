@@ -67,7 +67,12 @@ To set this up, create an environment variable called **api_master_pw**, and add
 
 This is protected by the local operating system, so is secure.
 
-# Known Issues
+# Production Deployment
 
-- Switching between light and dark mode sometimes needs a refresh to apply correctly
-- The navbar does not stay 'shrunk' when changing pages
+In production, this should be run in this way:
+    - Containerized deployment using Docker Compose
+    - Internal network for containers to communicate
+    - NGINX container in front of this app
+    - uWSGI on the app container
+    - SSL on NGINX, not on the app
+    - App not directly accessible from anywhere but NGINX
