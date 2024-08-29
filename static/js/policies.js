@@ -147,6 +147,7 @@ function updateNatTable(deviceId, divId) {
     // Clear any existing content in the div
     divElement.innerHTML = '';
     divElement.dataset.deviceId = deviceId;
+    clearLines()
 
     // API call to fetch NAT policies for the selected device
     fetch(`/get_nat_policies?id=${encodeURIComponent(deviceId)}`)
@@ -168,7 +169,12 @@ function updateNatTable(deviceId, divId) {
                 const button = document.createElement('button');
                 button.className = 'w3-button w3-block w3-left-align';
                 button.textContent = policy.name;
-                button.onclick = function () { expandList(divId + '_list_' + sanitizedId) };
+                button.onclick = function () {
+                    const listA = divId.includes('natAccordionA') ? natListA : natListB;
+                    const listB = divId.includes('natAccordionA') ? natListB : natListA;
+                    expandList(divId + '_list_' + sanitizedId)
+                    adjustLines(listA, listB, 'natAccordionA', 'natAccordionB');
+                };
 
                 // Create list div
                 const listDiv = document.createElement('div');
@@ -252,6 +258,7 @@ function updateSecurityTable(deviceId, divId) {
     // Clear any existing content in the div
     divElement.innerHTML = '';
     divElement.dataset.deviceId = deviceId;
+    clearLines()
 
     // API call to fetch security policies for the selected device
     fetch(`/get_security_policies?id=${encodeURIComponent(deviceId)}`)
@@ -273,7 +280,12 @@ function updateSecurityTable(deviceId, divId) {
                 const button = document.createElement('button');
                 button.className = 'w3-button w3-block w3-left-align';
                 button.textContent = policy.name;
-                button.onclick = function () { expandList(divId + '_list_' + sanitizedId) };
+                button.onclick = function () {
+                    const listA = divId.includes('securityAccordionA') ? securityListA : securityListB;
+                    const listB = divId.includes('securityAccordionA') ? securityListB : securityListA;
+                    expandList(divId + '_list_' + sanitizedId);
+                    adjustLines(listA, listB, 'securityAccordionA', 'securityAccordionB');
+                };
 
                 // Create list div
                 const listDiv = document.createElement('div');
@@ -367,6 +379,7 @@ function updateQosTable(deviceId, divId) {
     // Clear any existing content in the div
     divElement.innerHTML = '';
     divElement.dataset.deviceId = deviceId;
+    clearLines()
 
     // API call to fetch QoS policies for the selected device
     fetch(`/get_qos_policies?id=${encodeURIComponent(deviceId)}`)
@@ -388,7 +401,12 @@ function updateQosTable(deviceId, divId) {
                 const button = document.createElement('button');
                 button.className = 'w3-button w3-block w3-left-align';
                 button.textContent = policy.name;
-                button.onclick = function () { expandList(divId + '_list_' + sanitizedId) };
+                button.onclick = function () {
+                    const listA = divId.includes('qosAccordionA') ? qosListA : qosListB;
+                    const listB = divId.includes('qosAccordionA') ? qosListB : qosListA;
+                    expandList(divId + '_list_' + sanitizedId);
+                    adjustLines(listA, listB, 'qosAccordionA', 'qosAccordionB');
+                };
 
                 // Create list div
                 const listDiv = document.createElement('div');

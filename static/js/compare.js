@@ -15,7 +15,18 @@
     Now the lists will align, so they are compared for differences
         The lists are compared for differences, and the buttons are highlighted in yellow
         The properties of the objects are compared, not just the name
+        Arrows are drawn between buttons that are in different positions, but are the same object
 */
+
+
+// Update SVG dimensions on window resize
+window.addEventListener('resize', function () {
+    setSvgDimensions();
+    clearLines();
+});
+
+// Clear lines on navigation
+window.addEventListener('beforeunload', clearLines);
 
 
 /**
@@ -263,8 +274,7 @@ function createButton(element, listContainer, sanitizedId) {
     button.className = 'w3-button w3-block w3-left-align';
     button.textContent = element.name;
     button.classList.add('highlight-missing');
-    button.onclick = function () { expandList(listContainer.id + '_list_' + sanitizedId) };
-
+    button.onclick = () => expandList(listContainer.id + '_list_' + sanitizedId);
     return button;
 }
 
@@ -331,6 +341,9 @@ function sortDivsByIdSuffix(parentSelector) {
  * @param {*} containerB 
  */
 function highlightDifferences(listA, listB, containerA, containerB) {
+    // Ensure the SVG is the correct size for the window (in case we need to draw lines)
+    setSvgDimensions();
+
     // Loop through the first list
     listA.forEach((itemA, index) => {
         // The corresponding item in the second list (to compare to)
@@ -357,9 +370,20 @@ function highlightDifferences(listA, listB, containerA, containerB) {
                 iconB.style.color = 'blue';
                 iconB.style.marginRight = '10px';
                 buttonB.insertBefore(iconB, buttonB.firstChild);
+
+                // When the two items are in different positions, draw an arrow to connect them
+                const matchingButtonB = containerB.querySelector(`#${containerB.id}_${sanitizeId(listB[matchingIndexB].name)} button`);
+                const offsetA = getOffset(buttonA);
+                const offsetB = getOffset(matchingButtonB);
+                const x1 = offsetA.left + buttonA.offsetWidth - buttonA.offsetHeight / 4;
+                const y1 = offsetA.top + buttonA.offsetHeight / 2;
+                const x2 = offsetB.left + buttonB.offsetHeight / 4;
+                const y2 = offsetB.top + buttonB.offsetHeight / 2;
+                drawLine(x1, y1, x2, y2, 'green');
             }
 
             // Similarly, check if there is an item elsewhere in listA that matches itemB and is not at the same index
+            // Don't need to draw an arrow a second time
             const matchingIndexA = listA.findIndex((item, index) => {
                 const itemBIndex = listB.indexOf(itemB);
                 const namesAreDifferent = item.name !== itemB.name;
@@ -374,6 +398,171 @@ function highlightDifferences(listA, listB, containerA, containerB) {
             }
         }
     });
+}
+
+
+/**
+ * Set the dimensions of an SVG element to match the window size
+ * The SVG has a limited area in which it can draw, and we want it to be the full screen
+ * So, as a screen is updated with more or less items, the SVG should be updated to match
+ */
+function setSvgDimensions() {
+    // Get the SVG element
+    const svg = document.getElementById('lines-svg');
+
+    // Handle errors if it can't be found
+    if (!svg) {
+        console.error(`SVG element not found.`);
+        return;
+    }
+
+    // Get the width and height of the window
+    const width = Math.max(document.documentElement.scrollWidth, document.documentElement.clientWidth);
+    const height = Math.max(document.documentElement.scrollHeight, document.documentElement.clientHeight);
+
+    // Set the width and height of the SVG element
+    svg.setAttribute('width', width);
+    svg.setAttribute('height', height);
+}
+
+
+/**
+ * Update the comparison arrows under certain conditions
+ *      - Window resize
+ *      - Expanding an item in the list
+ * 
+ * @param {HTMLElement} listA
+ * @param {HTMLElement} listB
+ * @param {String} containerA
+ * @param {String} containerB
+ */
+function adjustLines(listA, listB, containerA, containerB) {
+    // Clear existing lines
+    clearLines();
+    setSvgDimensions();
+
+    // Recalculate and redraw lines
+    listA.forEach((itemA, indexA) => {
+        const buttonA = document.querySelector(`#${containerA}_${sanitizeId(itemA.name)}`);
+        const matchingIndexB = listB.findIndex((itemB, indexB) => {
+            return indexB !== indexA && itemB.name === itemA.name;
+        });
+        if (matchingIndexB !== -1) {
+            const buttonB = document.querySelector(`#${containerB}_${sanitizeId(listB[matchingIndexB].name)}`);
+            const offsetA = getOffset(buttonA);
+            const offsetB = getOffset(buttonB);
+            const x1 = offsetA.left + buttonA.offsetWidth - buttonA.offsetHeight / 4;
+            const y1 = offsetA.top + buttonA.offsetHeight / 2;
+            const x2 = offsetB.left + buttonB.offsetHeight / 4;
+            const y2 = offsetB.top + buttonB.offsetHeight / 2;
+            drawLine(x1, y1, x2, y2, 'green');
+        }
+    });
+}
+
+
+/**
+ * Clear all lines from the SVG element
+ * Eg, when navigating to a new page
+ */
+function clearLines() {
+    const lines = document.querySelectorAll('line'); // Assuming lines are drawn using <line> elements
+    lines.forEach(line => line.remove());
+}
+
+
+/**
+ * Draws an arrow on the screen using the SVG element (in base.html)
+ * This is used to connect two buttons that are in different positions on the screen
+ * 
+ * This contains three parts:
+ *     - A line connecting the two buttons
+ *     - A circle at the start of the line
+ *     - An arrow at the end of the line
+ * 
+ * https://www.w3schools.com/graphics/svg_line.asp
+ * https://www.w3schools.com/graphics/svg_marker.asp
+ * 
+ * @param {Number} x1           - The x-coordinate of the start of the line
+ * @param {Number} y1           - The y-coordinate of the start of the line
+ * @param {Number} x2           - The x-coordinate of the end of the line
+ * @param {Number} y2           - The y-coordinate of the end of the line
+ * @param {String} colour       - The colour of the line, circle, and arrow
+ */
+function drawLine(x1, y1, x2, y2, colour) {
+    // The SVG element in the HTML
+    const svg = document.getElementById('lines-svg');
+
+    // The DEFS element for adding markers (start and ending arrows)
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    svg.appendChild(defs);
+
+    // Create the marker for the circle
+    const markerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+    markerCircle.setAttribute('id', 'circle');
+    markerCircle.setAttribute('markerWidth', '10');
+    markerCircle.setAttribute('markerHeight', '10');
+    markerCircle.setAttribute('refX', '5');
+    markerCircle.setAttribute('refY', '5');
+
+    // Create the circle path
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', '5');
+    circle.setAttribute('cy', '5');
+    circle.setAttribute('r', '3');
+    circle.setAttribute('fill', colour);
+
+    // Create the marker for the arrow
+    const markerArrow = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+    markerArrow.setAttribute('id', 'arrow');
+    markerArrow.setAttribute('markerWidth', '10');
+    markerArrow.setAttribute('markerHeight', '10');
+    markerArrow.setAttribute('refX', '9');
+    markerArrow.setAttribute('refY', '3');
+    markerArrow.setAttribute('orient', 'auto');
+    markerArrow.setAttribute('markerUnits', 'strokeWidth');
+
+    // Create the arrow path
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', 'M0,0 L0,6 L9,3 z');
+    path.setAttribute('fill', colour);
+
+    // Append the markers to the defs element
+    markerCircle.appendChild(circle);
+    defs.appendChild(markerCircle);
+    markerArrow.appendChild(path);
+    defs.appendChild(markerArrow);
+
+    // The LINE element for the line itself
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', x1);
+    line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2);
+    line.setAttribute('y2', y2);
+    line.setAttribute('stroke', colour);
+    line.setAttribute('stroke-width', '2');
+    line.setAttribute('marker-start', 'url(#circle)');
+    line.setAttribute('marker-end', 'url(#arrow)');
+    svg.appendChild(line);
+}
+
+
+/**
+ * Gets coordinates of an element on the screen
+ * Used for drawing lines between buttons
+ * 
+ * @param {HTMLElement} element - The element to get the coordinates of
+ * @returns {Array}             - The x and y coordinates of the element
+ */
+function getOffset(element) {
+    // Treat it as a rectangle, and get the top-left corner
+    const rect = element.getBoundingClientRect();
+
+    // Return top-left corner as X and Y coordinates
+    return {
+        left: rect.left + window.scrollX,
+        top: rect.top + window.scrollY
+    };
 }
 
 

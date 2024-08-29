@@ -5,8 +5,7 @@
 *.cer
 *.key
 *.pem
-config_yaml.txt
 config.yaml
+config_yaml.txt
 api-test.py
 module_updates.txt
-config.yaml

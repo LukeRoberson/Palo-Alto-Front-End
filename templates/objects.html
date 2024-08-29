@@ -35,12 +35,36 @@
     }
 
     // Event listeners for navigation items
-    document.getElementById('nav-tags').addEventListener('click', () => showContent('tags-content'));
-    document.getElementById('nav-addresses').addEventListener('click', () => showContent('addresses-content'));
-    document.getElementById('nav-addressGroups').addEventListener('click', () => showContent('addressGroups-content'));
-    document.getElementById('nav-applicationGroups').addEventListener('click', () => showContent('applications-content'));
-    document.getElementById('nav-services').addEventListener('click', () => showContent('services-content'));
-    document.getElementById('nav-serviceGroups').addEventListener('click', () => showContent('serviceGroup-content'));
+    document.getElementById('nav-tags').addEventListener('click', function () {
+        clearLines();
+        setSvgDimensions();
+        showContent('tags-content');
+    });
+    document.getElementById('nav-addresses').addEventListener('click', function () {
+        clearLines();
+        setSvgDimensions();
+        showContent('addresses-content');
+    });
+    document.getElementById('nav-addressGroups').addEventListener('click', function () {
+        clearLines();
+        setSvgDimensions();
+        showContent('addressGroups-content');
+    });
+    document.getElementById('nav-applicationGroups').addEventListener('click', function () {
+        clearLines();
+        setSvgDimensions();
+        showContent('applications-content');
+    });
+    document.getElementById('nav-services').addEventListener('click', function () {
+        clearLines();
+        setSvgDimensions();
+        showContent('services-content');
+    });
+    document.getElementById('nav-serviceGroups').addEventListener('click', function () {
+        clearLines();
+        setSvgDimensions();
+        showContent('serviceGroup-content');
+    });
 </script>
 
 <!-- Event handlers for comparing objects -->
