@@ -50,12 +50,14 @@ This is also available on the settings page. However, these need to be set first
 
 HTTPS is required due to the callback during authentication. This means that HTTPS is mandatory on the entire platform (which it should be anyway right?)
 
-To enable this, place two files in the **certificates** directory:
+This can be enabled on a reverse proxy, such as NGINX. If there is no reverse proxy available, SSL can be enabled on the app directly. To do this, place two files in the **certificates** directory:
 
 - cert.pem
 - key.pem
 
 These are base64 encoded private and public keys.
+
+Additionally, set the 'ssl' setting in settings.yaml to 'true'.
 
 ## Password Encryption
 

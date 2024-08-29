@@ -86,6 +86,7 @@ class AppSettings():
         self.web_ip = config['web']['ip']
         self.web_port = config['web']['port']
         self.web_debug = config['web']['debug']
+        self.web_ssl = config['web']['ssl']
 
     def _validate_config(
         self,

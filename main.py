@@ -87,11 +87,16 @@ if __name__ == '__main__':
             return 'Error: Could not load config file', 404
 
     # Start the web server
-    app.run(
-        host=host_ip,
-        debug=debug,
-        ssl_context=(
+    if config.web_ssl:
+        certs = (
             'certificates/cert.pem',
             'certificates/key.pem',
         )
+    else:
+        certs = None
+
+    app.run(
+        host=host_ip,
+        debug=debug,
+        ssl_context=certs,
     )
