@@ -1,0 +1,18 @@
+azure:
+  app-id: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+  app-secret: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  redirect-uri: /getAToken
+  tenant-id: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+sql:
+  auth-type: SQL
+  database: my_sql_db
+  password: encrypted_password_string
+  port: 1433
+  salt: password_salt
+  server: my_sql_server
+  username: MY_DOMAIN\my_username
+web:
+  debug: true
+  ip: 0.0.0.0
+  port: 5000
+  ssl: false
