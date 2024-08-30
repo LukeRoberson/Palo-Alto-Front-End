@@ -130,6 +130,10 @@ class GlobalProtectView(BaseView):
     template_name = 'gp.html'
 
 
+class VpnView(BaseView):
+    template_name = 'vpn.html'
+
+
 class SettingsView(BaseView):
     template_name = 'settings.html'
 
@@ -176,6 +180,11 @@ web_bp.add_url_rule(
 web_bp.add_url_rule(
     '/globalprotect',
     view_func=GlobalProtectView.as_view('gp')
+)
+
+web_bp.add_url_rule(
+    '/vpn',
+    view_func=VpnView.as_view('vpn')
 )
 
 web_bp.add_url_rule(

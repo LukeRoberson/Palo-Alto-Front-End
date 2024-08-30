@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="w3-container">
+    <header class="w3-container">
+        <h2>VPN Tunnels</h2>
+    </header>
+
+    <div class="w3-container w3-padding-16" id="vpnContainer">
+        <div class="w3-card">
+            <!-- Dynamic Content goes here -->
+        </div>
+    </div>
+
+    <br><br>
+</div>
+
+<script src="{{ url_for('static', filename='js/vpn.js') }}"></script>
+
+{% endblock %}

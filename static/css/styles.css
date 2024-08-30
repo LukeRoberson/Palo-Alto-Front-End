@@ -86,6 +86,12 @@ button.highlight-missing {
     color: var(--highlight-missing-color);
 }
 
+/* Disabled items */
+button.highlight-disabled {
+    background-color: lightgray;
+    color: darkgray;
+}
+
 /* Collapsible content */
 .collapsible-content {
     display: none;

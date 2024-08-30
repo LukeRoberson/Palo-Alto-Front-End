@@ -334,6 +334,47 @@ class DeviceApi:
 
         return session_list
 
+    def get_vpn_tunnels(self) -> Union[list, int]:
+        '''
+        Get VPN tunnels using the XML API.
+
+        Returns:
+            list of dicts: The active sessions.
+            int: The response code if an error occurred.
+        '''
+        response = self._xml_request(
+            "/?type=op&cmd=<show>"
+            "<vpn>"
+            "<flow>"
+            "</flow>"
+            "</vpn>"
+            "</show>"
+        )
+        if isinstance(response, int):
+            return response
+
+        root = ET.fromstring(response)
+        results = root.find(".//result/IPSec")
+
+        tunnel_list = []
+        for vpn in results:
+            tunnel = {
+                'id': vpn.find(".//id").text,
+                'name': vpn.find(".//name").text,
+                'inner-if': vpn.find(".//inner-if").text,
+                'outer-if': vpn.find(".//outer-if").text,
+                'gwid': vpn.find(".//gwid").text,
+                'ipsec-mode': vpn.find(".//ipsec-mode").text,
+                'localip': vpn.find(".//localip").text,
+                'peerip': vpn.find(".//peerip").text,
+                'state': vpn.find(".//state").text,
+                'monitor': vpn.find(".//mon").text,
+                'owner': vpn.find(".//owner").text,
+            }
+            tunnel_list.append(tunnel)
+
+        return tunnel_list
+
     def get_tags(
         self
     ) -> list:

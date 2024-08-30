@@ -86,6 +86,7 @@ function populateDropdownWithData(selector, hoverColorClass, devices, divId) {
         // Add click event listener to each link
         link.addEventListener('click', function () {
             button.textContent = device.device_name;
+            button.innerHTML += ' <i class="fa fa-caret-down"></i>';
 
             // Fetch tags for the selected device using device_id and update the specified table
             if (divId.includes('tag')) updateTagsTable(device.device_id, divId);
@@ -286,6 +287,11 @@ function updateSecurityTable(deviceId, divId) {
                     expandList(divId + '_list_' + sanitizedId);
                     adjustLines(listA, listB, 'securityAccordionA', 'securityAccordionB');
                 };
+
+                if (policy.disabled == 'yes') {
+                    button.innerHTML += ' <i class="fa fa-ban" style="color: red;"></i>';
+                    button.className += ' highlight-disabled';
+                }
 
                 // Create list div
                 const listDiv = document.createElement('div');

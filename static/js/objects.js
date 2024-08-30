@@ -102,6 +102,8 @@ function populateDropdownWithData(selector, hoverColorClass, devices, divId) {
         // Add click event listener to each link
         link.addEventListener('click', function () {
             button.textContent = device.device_name;
+            button.innerHTML += ' <i class="fa fa-caret-down"></i>';
+
 
             // Fetch tags for the selected device using device_id and update the specified table
             if (divId.includes('tagAccordion')) updateTagsTable(device.device_id, divId);

@@ -1709,6 +1709,65 @@ class GetGPSessionsView(MethodView):
         return jsonify(session_list)
 
 
+class GetVpnView(MethodView):
+    '''
+    GetVpnView class to get VPN tunnels for a device.
+
+    Methods:
+        get: Get method to get the VPN tunnels for a device.
+    '''
+
+    @ login_required
+    def get(
+        self,
+        config: AppSettings,
+        device_manager: DeviceManager,
+    ) -> jsonify:
+        '''
+        Get method to get VPN tunnels for a device.
+
+        Args:
+            config (AppSettings): The application settings object.
+
+        Returns:
+            jsonify: The VPN status for the device.
+        '''
+
+        # Get the VPN tunnels from the device
+        device_id = request.args.get('id')
+        for device in device_manager.device_list:
+            if str(device.id) == device_id:
+                hostname = device.hostname
+                username = device.username
+                password = device.decrypted_pw
+                break
+
+        api_pass = base64.b64encode(f'{username}:{password}'.encode()).decode()
+
+        # Create the device object
+        device_api = DeviceApi(
+            hostname=hostname,
+            xml_key=api_pass,
+        )
+
+        # Get the VPN tunnels
+        vpn_list = []
+        vpn_tunnels = device_api.get_vpn_tunnels()
+        for vpn in vpn_tunnels:
+            entry = {}
+            entry["firewall"] = device.hostname
+            entry["name"] = vpn.get('name', 'None')
+            entry["status"] = vpn.get('state', 'None')
+            entry["inner_if"] = vpn.get('inner-if', 'None')
+            entry["outer_if"] = vpn.get('outer-if', 'None')
+            entry["local_ip"] = vpn.get('localip', 'None')
+            entry["peer_ip"] = vpn.get('peerip', 'None')
+            vpn_list.append(entry)
+
+        # Return the VPN tunnels as JSON
+        return jsonify(vpn_list)
+
+
 # Register views
 api_bp.add_url_rule(
     '/save_azure',
@@ -1851,5 +1910,11 @@ api_bp.add_url_rule(
 api_bp.add_url_rule(
     '/get_gp_sessions',
     view_func=GetGPSessionsView.as_view('get_gp_sessions'),
+    defaults={'config': config, 'device_manager': device_manager}
+)
+
+api_bp.add_url_rule(
+    '/get_vpn_tunnels',
+    view_func=GetVpnView.as_view('get_vpn_tunnels'),
     defaults={'config': config, 'device_manager': device_manager}
 )
