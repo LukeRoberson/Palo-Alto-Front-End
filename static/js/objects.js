@@ -549,9 +549,13 @@ function updateServicesTable(deviceId, divId) {
                 listDiv.style = 'overflow-x: auto;';
 
                 // Table
+                const protocolType = Object.keys(service.protocol)[0];
+                const protocolPort = service.protocol[protocolType]['port'];
+
                 const table = document.createElement('table');
                 table.className = 'w3-table indented-table';
-                addChildTableItem(table, 'Protocol', service.protocol);
+                addChildTableItem(table, 'Protocol', protocolType);
+                addChildTableItem(table, 'Port', protocolPort);
                 addChildTableItem(table, 'Description', service.description);
                 addChildTableItem(table, 'Tag', service.tag.member.join(", "));
                 listDiv.appendChild(table);
