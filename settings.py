@@ -164,12 +164,15 @@ class AppSettings():
             self.config_valid = False
             return
 
-        # Check that 'debug', 'ip', and 'port' all exist in the web section
-        if not all(key in config['web'] for key in ['debug', 'ip', 'port']):
+        # Check that 'debug', 'ip', 'port', and 'ssl
+        #   all exist in the web section
+        if not all(
+            key in config['web'] for key in ['debug', 'ip', 'port', 'ssl']
+        ):
             print(
                 Fore.RED,
                 "Config: All parameters need to exist in the web section:\n",
-                "'debug', 'ip', and 'port'",
+                "'debug', 'ip', 'port', and 'ssl'",
                 Style.RESET_ALL
             )
             self.config_valid = False
@@ -201,7 +204,7 @@ class AppSettings():
                 'redirect-uri': self.redirect_uri,
                 'tenant-id': self.azure_tenant,
                 'app-id': self.azure_app,
-                'app-secret': self.azure_secret
+                'app-secret': self.azure_secret,
             },
             'sql': {
                 'server': self.sql_server,
@@ -210,12 +213,13 @@ class AppSettings():
                 'auth-type': self.sql_auth_type,
                 'username': self.sql_username,
                 'password': self.sql_password,
-                'salt': self.sql_salt
+                'salt': self.sql_salt,
             },
             'web': {
                 'ip': self.web_ip,
                 'port': self.web_port,
-                'debug': self.web_debug
+                'debug': self.web_debug,
+                'ssl': self.web_ssl,
             }
         }
 

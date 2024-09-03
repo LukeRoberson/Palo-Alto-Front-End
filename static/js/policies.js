@@ -189,8 +189,12 @@ function updateNatTable(deviceId, divId) {
                 table.className = 'w3-table indented-table';
                 let bidirNat = policy.source_trans?.["static-ip"]?.["bi-directional"] ?? "None";
                 let sourceTransIp = policy.source_trans?.["static-ip"]?.["translated-address"] ?? "None";
+                let snat_dynamic = policy?.source_trans?.["dynamic-ip-and-port"]?.["translated-address"]?.['member'].join(", ");
 
-                addChildTableItem(table, 'Source Translation', sourceTransIp + "\nBidirectional: " + bidirNat);
+                addChildTableItem(table, 'SNAT Static Trans:', sourceTransIp);
+                addChildTableItem(table, 'SNAT Bidirectional:', bidirNat);
+                addChildTableItem(table, 'SNAT Dynamic Trans:', snat_dynamic ? snat_dynamic : "None");
+                addChildTableItem(table, 'DNAT Translation', policy.dest_trans['translated-address'] ? policy.dest_trans['translated-address'] : "None");
                 addChildTableItem(table, 'Dest Zone', policy.to.member ? policy.to.member.join(", ") : "None");
                 addChildTableItem(table, 'Src Zone', policy.from.member ? policy.from.member.join(", ") : "None");
                 addChildTableItem(table, 'Source Address', policy.source.member ? policy.source.member.join(", ") : "None");
@@ -199,6 +203,7 @@ function updateNatTable(deviceId, divId) {
                 addChildTableItem(table, 'Description', policy.description ? policy.description : "None");
                 addChildTableItem(table, 'Tags', policy.tag.member ? policy.tag.member.join(", ") : "None");
                 addChildTableItem(table, 'Tag Group', policy.tag_group ? policy.tag_group : "None");
+                addChildTableItem(table, 'Disabled', policy.disabled ? policy.disabled : "None");
 
                 listDiv.appendChild(table);
 

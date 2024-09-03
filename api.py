@@ -507,7 +507,7 @@ class DeviceApi:
         Get NAT policies from the device
             REST API, /Policies/NATRules
 
-        Returns (this can change based on the NAT rule type):
+        Returns (fields are not guaranteed to be present):
             list: The NAT rules
                 @name (str): The name of the address
                 @uuid (str): The UUID of the address
@@ -518,7 +518,10 @@ class DeviceApi:
                         bi-directional (str): The bi-directional of the NAT
                             (yes or no)
                         translated-address (str): The translated address
-                            of the NAT
+                    dynamic-ip-and-port (dict): The dynamic IP and port
+                        translated-address (str): The translated address
+                destination-translation (dict): The destination translation
+                    translated-address (str): The translated address of the NAT
                 to (dict): The 'to' of the NAT
                     member (list): The members of the NAT
                 from (dict): The 'from' of the NAT
@@ -532,9 +535,12 @@ class DeviceApi:
                     member (list): The tags of the NAT
                 group-tag (str): The group tag of the NAT
                 description (str): The description of the NAT
+                disabled (str): The disabled of the NAT
+                    'yes' if disabled, not present if enabled
         '''
 
         nat_rules = self._rest_request("/Policies/NATRules")
+
         return nat_rules
 
     def get_security_policies(
@@ -584,56 +590,6 @@ class DeviceApi:
 
         security_rules = self._rest_request("/Policies/SecurityRules")
         return security_rules
-
-    def get_qos_policies(
-        self
-    ) -> list:
-        '''
-        Get QoS policies from the device
-            REST API, /Policies/QoSRules
-
-        Returns:
-            list: The QoS rules
-                @name (str): The name of the address
-                @uuid (str): The UUID of the address
-                @location (str): The location of the address
-                @vsys (str): The vsys of the address
-                from (dict): The 'from' of the QoS rule
-                    member (list): The members of the QoS rule
-                to (dict): The 'to' of the QoS rule
-                    member (list): The members of the QoS rule
-                source (dict): The source of the QoS rule
-                    member (list): The members of the QoS rule
-                destination (dict): The destination of the QoS rule
-                    member (list): The members of the QoS rule (may be 'any')
-                source-user (dict): The source user of the QoS rule
-                    member (list): The members of the QoS rule
-                category (dict): The category of the QoS rule
-                    member (list): The members of the QoS rule
-                service (dict): The service of the QoS rule
-                    member (list): The members of the QoS rule
-                application (dict): The application of the QoS rule
-                    member (list): The members of the QoS rule
-                action (str): The action of the QoS rule
-                    class (str): The class of the QoS rule
-                dscp-tos (dict): The DSCP TOS of the QoS rule
-                    codepoints (dict): The codepoints of the QoS rule
-                        entry (list): The entries of the QoS rule
-                            @name (str): The name of the address
-                            name (dict): The name of the address
-                                codepoint (str): The codepoint of the address
-                description (str): The description of the address
-                source-hip (dict): The source HIP of the QoS rule
-                    member (list): The members of the QoS rule
-                destination-hip (dict): The destination HIP of the QoS rule
-                    member (list): The members of the QoS rule
-                tag (dict): The tag of the QoS rule
-                    member (list): The tags of the QoS rule
-                group-tag (str): The group tag of the QoS rule
-        '''
-
-        qos_rules = self._rest_request("/Policies/QoSRules")
-        return qos_rules
 
 
 if __name__ == '__main__':

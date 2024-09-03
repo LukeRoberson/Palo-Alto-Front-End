@@ -43,51 +43,68 @@ from azure import login_required
 api_bp = Blueprint('api', __name__)
 
 
-class SaveAzureView(MethodView):
+class AzureView(MethodView):
     '''
-    SaveAzure class to save the Azure settings from the settings page.
+    Azure class for managing Azure settings and connection
 
-    Methods:
-        post: Post method to save the Azure settings from the settings page.
+    Methods: POST
+
+    Parameters:
+        action (str): The action to perform.
+            save: Save the Azure settings.
     '''
 
     @ login_required
     def post(
         self,
-        config: AppSettings
+        config: AppSettings,
     ) -> jsonify:
         '''
-        Post method to save the Azure settings from the settings page.
+        Handle POST requests for the Azure settings.
 
         Args:
             config (AppSettings): The application settings object.
 
         Returns:
-            jsonify: The result of the save operation.
+            jsonify: The result of the action.
         '''
 
-        # Attempt saving the settings to the config file
-        try:
-            config.azure_tenant = request.form['tenant_id']
-            config.azure_app = request.form['app_id']
-            config.azure_secret = request.form['app_secret']
-            config.redirect_uri = request.form['callback_url']
-            config.write_config()
+        # Get the action parameter from the request
+        parameters = request.args.get('action')
 
-            # If it's all good, return a nice message
-            return jsonify(
-                {
-                    "result": "Success",
-                    "message": "Settings saved"
-                }
-            )
+        # Save the Azure settings
+        if parameters == 'save':
+            # Attempt saving the settings to the config file
+            try:
+                config.azure_tenant = request.form['tenant_id']
+                config.azure_app = request.form['app_id']
+                config.azure_secret = request.form['app_secret']
+                config.redirect_uri = request.form['callback_url']
+                config.write_config()
 
-        # If it failed, return an error message
-        except KeyError as e:
+                # If it's all good, return a nice message
+                return jsonify(
+                    {
+                        "result": "Success",
+                        "message": "Settings saved"
+                    }
+                )
+
+            # If it failed, return an error message
+            except KeyError as e:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": str(e)
+                    }
+                ), 500
+
+        # Unknown or missing action
+        else:
             return jsonify(
                 {
                     "result": "Failure",
-                    "message": str(e)
+                    "message": "Unknown action supplied"
                 }
             ), 500
 
@@ -1446,6 +1463,7 @@ class GetNatPolicyView(MethodView):
             entry = {}
             entry["name"] = policy['@name']
             entry["source_trans"] = policy.get('source-translation', 'None')
+            entry["dest_trans"] = policy.get('destination-translation', 'None')
             entry["to"] = policy.get('to', 'None')
             entry["from"] = policy.get('from', 'None')
             entry["source"] = policy.get('source', 'None')
@@ -1454,6 +1472,7 @@ class GetNatPolicyView(MethodView):
             entry["tag"] = policy.get('tag', 'None')
             entry["tag_group"] = policy.get('group-tag', 'None')
             entry["description"] = policy.get('description', 'None')
+            entry["disabled"] = policy.get('disabled', 'None')
             nat_list.append(entry)
 
         # Return the NAT policies as JSON
@@ -1768,10 +1787,10 @@ class GetVpnView(MethodView):
         return jsonify(vpn_list)
 
 
-# Register views
+# Register Azure view
 api_bp.add_url_rule(
-    '/save_azure',
-    view_func=SaveAzureView.as_view('save_azure'),
+    '/azure',
+    view_func=AzureView.as_view('azure'),
     defaults={'config': config}
 )
 
