@@ -7,7 +7,7 @@
     Get a list of devices that might host Global Protect sessions
     This will ignore passive HA devices
 */
-fetch('/device_list')
+fetch('/api/device?action=list')
     .then(response => response.json())
     .then(devices => {
         // Find the div with the id 'div-gp-devices'
@@ -64,7 +64,7 @@ document.getElementById('gp-session-button').addEventListener('click', function 
     for (const checkbox of checkboxes) {
         const deviceId = checkbox.getAttribute('data-device-id');
         const deviceName = checkbox.getAttribute('data-device-name');
-        const url = new URL('/get_gp_sessions', window.location.origin);
+        const url = new URL('/api/vpn?type=gp', window.location.origin);
         url.searchParams.append('id', deviceId);
 
         // Skip if the device ID is null (this sometimes happens in dark mode; Magic!)

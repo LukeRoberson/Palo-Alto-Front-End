@@ -1,6 +1,6 @@
 /*
     Populate the dropdown with the list of available devices
-    Uses the /device_list endpoint to fetch the list of devices from the server.
+    Uses the /api/device endpoint to fetch the list of devices from the server.
 
     There are usually two dropdowns in the UI, each with a different hover color.
     The dropdowns are populated with the same list of devices fetched from the server.
@@ -19,7 +19,7 @@ let qosListB = [];
 
 // Fetch the device list once and populate dropdowns for all subpages
 // The two lists use different hover colors
-fetch('/device_list')
+fetch('/api/device?action=list')
     .then(response => response.json())
     .then(devices => {
         populateDropdownWithData('#natDropdownA', 'w3-hover-blue', devices, 'natAccordionA');
@@ -151,7 +151,7 @@ function updateNatTable(deviceId, divId) {
     clearLines()
 
     // API call to fetch NAT policies for the selected device
-    fetch(`/get_nat_policies?id=${encodeURIComponent(deviceId)}`)
+    fetch(`/api/policies?type=nat&id=${encodeURIComponent(deviceId)}`)
         .then(response => response.json())
         .then(natPolicies => {
             // The div element to populate with the list of groups
@@ -267,7 +267,7 @@ function updateSecurityTable(deviceId, divId) {
     clearLines()
 
     // API call to fetch security policies for the selected device
-    fetch(`/get_security_policies?id=${encodeURIComponent(deviceId)}`)
+    fetch(`/api/policies?type=security&id=${encodeURIComponent(deviceId)}`)
         .then(response => response.json())
         .then(securityPolicies => {
             // The div element to populate with the list of groups
@@ -393,7 +393,7 @@ function updateQosTable(deviceId, divId) {
     clearLines()
 
     // API call to fetch QoS policies for the selected device
-    fetch(`/get_qos_policies?id=${encodeURIComponent(deviceId)}`)
+    fetch(`/api/policies?type=qos&id=${encodeURIComponent(deviceId)}`)
         .then(response => response.json())
         .then(qosPolicies => {
             // The div element to populate with the list of groups

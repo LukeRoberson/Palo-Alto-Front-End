@@ -6,7 +6,7 @@
 /*
     Get a list of active devices and create cards for them
 */
-fetch('/device_list')
+fetch('/api/device?action=list')
     .then(response => response.json())
     .then(devices => {
         // Find the div with the id 'div-gp-devices'
@@ -21,7 +21,7 @@ fetch('/device_list')
             }
 
             // API call
-            const url = new URL('/get_vpn_tunnels', window.location.origin);
+            const url = new URL('/api/vpn?type=ipsec', window.location.origin);
             url.searchParams.append('id', device.device_id);
             fetch(url, {
                 method: 'GET',

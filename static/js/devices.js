@@ -43,20 +43,20 @@ for (var i = 0; i < closeButtons.length; i++) {                             // '
     closeButtons[i].onclick = closeModal;
 }
 
-setupDeleteButton('.site-delete-button', '/delete_site');                   // Delete site buttons
-setupDeleteButton('.device-delete-button', '/delete_device');               // Delete device buttons
+setupDeleteButton('.site-delete-button', '/api/site?action=delete');        // Delete site buttons
+setupDeleteButton('.device-delete-button', '/api/device?action=delete');               // Delete device buttons
 
 siteSubmitBtn.addEventListener(                                             // Add site submit button
-    'click', (event) => handleSubmitButtonClick(event, '/add_site', siteSubmitBtn)
+    'click', (event) => handleSubmitButtonClick(event, '/api/site?action=add', siteSubmitBtn)
 );
 siteEditSubmitBtn.addEventListener(                                         // Edit site submit button
-    'click', (event) => handleSubmitButtonClick(event, '/update_site', siteEditSubmitBtn)
+    'click', (event) => handleSubmitButtonClick(event, '/api/site?action=update', siteEditSubmitBtn)
 );
 deviceSubmitBtn.addEventListener(                                           // Add device submit button
-    'click', (event) => handleSubmitButtonClick(event, '/add_device', deviceSubmitBtn)
+    'click', (event) => handleSubmitButtonClick(event, '/api/device?action=add', deviceSubmitBtn)
 );
 deviceEditSubmitBtn.addEventListener(                                       // Edit device submit button
-    'click', (event) => handleSubmitButtonClick(event, '/update_device', deviceEditSubmitBtn)
+    'click', (event) => handleSubmitButtonClick(event, '/api/device?action=update', deviceEditSubmitBtn)
 );
 
 document.querySelectorAll('.site-edit-button').forEach(button => {          // Site edit button (open modal)
@@ -158,7 +158,7 @@ function refreshPageAndReload() {
     document.getElementById('loadingSpinner').style.display = 'block';
 
     // Call the refresh_dev_site endpoint to refresh the device list
-    fetch('/refresh_dev_site')
+    fetch('/api/site?action=refresh')
         .then(response => {
             // Hide loading spinner when the response is received
             document.getElementById('loadingSpinner').style.display = 'none';
@@ -187,7 +187,7 @@ function refreshPageAndReload() {
  */
 function openModal(modal) {
     // Get the site list, for use with adding devices
-    fetch('/site_list')
+    fetch('/api/site?action=list')
         .then(response => response.json())
         .then(data => {
             // Get the dropdown item, and clear it first
@@ -338,7 +338,7 @@ function openSiteEditModal(event) {
  */
 function openDeviceEditModal(event) {
     // Get the site list, for use with adding devices
-    fetch('/site_list')
+    fetch('/api/site?action=list')
         .then(response => response.json())
         .then(data => {
             // Get the dropdown item, and clear it first
@@ -393,7 +393,7 @@ function openDeviceEditModal(event) {
 
 /** 
  * Download configuration files for devices
- * Calls the /download_config endpoint to get the configuration file
+ * Calls the /api/device endpoint to get the configuration file
  * @param {*} event
  */
 function downloadDeviceConfig(event) {
@@ -401,7 +401,7 @@ function downloadDeviceConfig(event) {
     var deviceId = event.currentTarget.getAttribute('data-id');
 
     // POST to the download_config endpoint with the deviceId
-    fetch('/download_config', {
+    fetch('/api/device?action=download', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

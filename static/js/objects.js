@@ -1,6 +1,6 @@
 /*
     Populate the dropdown with the list of available devices
-    Uses the /device_list endpoint to fetch the list of devices from the server.
+    Uses the /device endpoint to fetch the list of devices from the server.
 
     There are usually two dropdowns in the UI, each with a different hover color.
     The dropdowns are populated with the same list of devices fetched from the server.
@@ -25,7 +25,7 @@ let serviceGroupListB = [];
 
 // Fetch the device list once and populate dropdowns for all subpages
 // The two lists use different hover colors
-fetch('/device_list')
+fetch('/api/device?action=list')
     .then(response => response.json())
     .then(devices => {
         populateDropdownWithData('#tagDropdownA', 'w3-hover-blue', devices, 'tagAccordionA');
@@ -166,7 +166,7 @@ function updateTagsTable(deviceId, divId) {
     clearLines()
 
     // API call to fetch tags for the selected device
-    fetch(`/get_tags?id=${encodeURIComponent(deviceId)}`)
+    fetch(`/api/objects?object=tags&id=${encodeURIComponent(deviceId)}`)
         .then(response => response.json())
         .then(tags => {
             // The div element to populate with the list of addresses
@@ -255,7 +255,7 @@ function updateAddressesTable(deviceId, divId) {
     clearLines()
 
     // API call to fetch addresses for the selected device
-    fetch(`/get_address_objects?id=${encodeURIComponent(deviceId)}`)
+    fetch(`/api/objects?object=addresses&id=${encodeURIComponent(deviceId)}`)
         .then(response => response.json())
         .then(addresses => {
             // The div element to populate with the list of addresses
@@ -345,7 +345,7 @@ function updateAddressGroupsTable(deviceId, divId) {
     clearLines()
 
     // API call to fetch address groups for the selected device
-    fetch(`/get_address_groups?id=${encodeURIComponent(deviceId)}`)
+    fetch(`/api/objects?object=address_groups&id=${encodeURIComponent(deviceId)}`)
         .then(response => response.json())
         .then(addresses => {
             // The div element to populate with the list of address groups
@@ -435,7 +435,7 @@ function updateApplicationGroupsTable(deviceId, divId) {
     clearLines()
 
     // API call to fetch application groups for the selected device
-    fetch(`/get_application_groups?id=${encodeURIComponent(deviceId)}`)
+    fetch(`/api/objects?object=app_groups&id=${encodeURIComponent(deviceId)}`)
         .then(response => response.json())
         .then(appGroups => {
             // The div element to populate with the list of application groups
@@ -521,7 +521,7 @@ function updateServicesTable(deviceId, divId) {
     clearLines()
 
     // API call to fetch service objects for the selected device
-    fetch(`/get_service_objects?id=${encodeURIComponent(deviceId)}`)
+    fetch(`/api/objects?object=services&id=${encodeURIComponent(deviceId)}`)
         .then(response => response.json())
         .then(services => {
             // The div element to populate with the list of addresses
@@ -611,7 +611,7 @@ function updateServiceGroupsTable(deviceId, divId) {
     clearLines()
 
     // API call to fetch service groups for the selected device
-    fetch(`/get_service_groups?id=${encodeURIComponent(deviceId)}`)
+    fetch(`/api/objects?object=service_groups&id=${encodeURIComponent(deviceId)}`)
         .then(response => response.json())
         .then(serviceGroups => {
             // The div element to populate with the list of groups

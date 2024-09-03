@@ -6,10 +6,10 @@
 
 
 // Event listners for the forms and buttons
-attachButtonClickListener('saveAzure', '/azure?action=save');
-attachButtonClickListener('saveSql', '/save_sql');
-attachButtonClickListener('testSql', '/test_sql');
-attachButtonClickListener('saveWeb', '/save_web');
+attachButtonClickListener('saveAzure', '/api/azure?action=save');
+attachButtonClickListener('saveSql', '/api/sql?action=save');
+attachButtonClickListener('testSql', '/api/sql?action=test');
+attachButtonClickListener('saveWeb', '/api/web?action=save');
 
 
 /**
