@@ -122,114 +122,135 @@ function addChildTableItem(tableName, heading, value) {
 function compareAndAppend(listA, listB, listAContainer, listBContainer) {
     let index = 0;
 
+    // Function to create and append elements
+    function createAndAppendElements(list, container, index) {
+        const sanitizedId = sanitizeId(list[index].name);
+        const parentDiv = createElement('div', { id: container.id + '_' + sanitizedId });
+        parentDiv.style.display = 'flex';
+        parentDiv.style.alignItems = 'center';
+
+        const button = createFixedButton(list[index], container, sanitizedId);
+        const listDiv = createDiv(container, sanitizedId);
+        listDiv.style = 'overflow-x: auto;';
+        const table = createElement('table', { className: 'w3-table indented-table' });
+
+        // Add the missing elements to the list div
+        Object.entries(list[index]).forEach(([key, value]) => {
+            addChildTableItem(table, key, value);
+        });
+
+        // Create a plus icon button element
+        const addButton = document.createElement('button');
+        addButton.className = 'add-button';
+        addButton.title = 'Add missing object';
+
+        const plusIcon = document.createElement('i');
+        plusIcon.className = 'fa fa-plus';
+
+        addButton.appendChild(plusIcon);
+
+        // Append the list and button to the parent div
+        listDiv.appendChild(table);
+        parentDiv.append(button, addButton, listDiv);
+
+        // Insert the parent div into the container at the correct index
+        let referenceNode = container.children[index] || null;
+        container.insertBefore(parentDiv, referenceNode);
+
+        // Add event listener to the add button
+        addButton.addEventListener('click', (function (currentIndex, currentItem) {
+            return function () {
+                // Display a notification that the feature is not yet supported
+                if (!parentDiv.id.includes('tag')) {
+                    showNotification('Adding objects is not yet supported here', 'Failure');
+                } else {
+                    showNotification('Adding tag...', 'Success');
+                    const targetDevice = container.dataset.deviceId;
+
+                    addTagToDevice(targetDevice, currentItem);
+                }
+            };
+        })(index, list[index]));
+    }
     // Loop as long as there are items in either list
     while (listA.length > index || listB.length > index) {
         // Handle getting to the end of listA while listB still has items
         if (listA[index] === undefined) {
-            // Add the missing item to the end of the list
             listA.push(listB[index]);
-
-            // Create objects for the missing elements
-            const sanitizedId = sanitizeId(listA[index].name);
-            const parentDiv = createElement('div', { id: listAContainer.id + '_' + sanitizedId });
-            const button = createButton(listA[index], listAContainer, sanitizedId);
-            const listDiv = createDiv(listAContainer, sanitizedId);
-            listDiv.style = 'overflow-x: auto;';
-            const table = createElement('table', { className: 'w3-table indented-table' });
-
-            // Add the missing elements to the list div
-            Object.entries(listA[index]).forEach(([key, value]) => {
-                addChildTableItem(table, key, value);
-            });
-
-            // Append the list and button to the parent div
-            listDiv.appendChild(table);
-            parentDiv.append(button, listDiv);
-
-            // Insert the parent div into the second container at the correct index
-            let referenceNode = listAContainer.children[index] || null;
-            listAContainer.insertBefore(parentDiv, referenceNode);
+            createAndAppendElements(listA, listAContainer, index);
         }
 
         // Handle getting to the end of listB while listA still has items
         if (listB[index] === undefined) {
-            // Add the missing item to the end of the list
             listB.push(listA[index]);
-
-            // Create objects for the missing elements
-            const sanitizedId = sanitizeId(listB[index].name);
-            const parentDiv = createElement('div', { id: listBContainer.id + '_' + sanitizedId });
-            const button = createButton(listB[index], listBContainer, sanitizedId);
-            const listDiv = createDiv(listBContainer, sanitizedId);
-            const table = createElement('table', { className: 'w3-table indented-table' });
-
-            // Add the missing elements to the list div
-            Object.entries(listB[index]).forEach(([key, value]) => {
-                addChildTableItem(table, key, value);
-            });
-
-            // Append the list and button to the parent div
-            listDiv.appendChild(table);
-            parentDiv.append(button, listDiv);
-
-            // Insert the parent div into the second container at the correct index
-            let referenceNode = listBContainer.children[index] || null;
-            listBContainer.insertBefore(parentDiv, referenceNode);
+            createAndAppendElements(listB, listBContainer, index);
         }
 
         // Check if the ListA item is anywhere in ListB
         if (!listB.some(item => item.name.toLowerCase() === listA[index].name.toLowerCase())) {
-            // Add to the list (in the same index as the first list)
             listB.splice(index, 0, listA[index]);
-
-            // Create objects for the missing elements
-            const sanitizedId = sanitizeId(listA[index].name);
-            const parentDiv = createElement('div', { id: listBContainer.id + '_' + sanitizedId });
-            const button = createButton(listA[index], listBContainer, sanitizedId);
-            const listDiv = createDiv(listBContainer, sanitizedId);
-            const table = createElement('table', { className: 'w3-table indented-table' });
-
-            // Add the missing elements to the list div
-            Object.entries(listA[index]).forEach(([key, value]) => {
-                addChildTableItem(table, key, value);
-            });
-
-            // Append the list and button to the parent div
-            listDiv.appendChild(table);
-            parentDiv.append(button, listDiv);
-
-            // Insert the parent div into the second container at the correct index
-            let referenceNode = listBContainer.children[index] || null;
-            listBContainer.insertBefore(parentDiv, referenceNode);
+            createAndAppendElements(listA, listBContainer, index);
         }
 
         // Check if the ListB item is anywhere in ListA
         if (!listA.some(item => item.name.toLowerCase() === listB[index].name.toLowerCase())) {
-            // Add to the list (in the same index as the first list)
             listA.splice(index, 0, listB[index]);
-
-            // Create objects for the missing elements
-            const sanitizedId = sanitizeId(listB[index].name);
-            const parentDiv = createElement('div', { id: listAContainer.id + '_' + sanitizedId });
-            const button = createButton(listB[index], listAContainer, sanitizedId);
-            const listDiv = createDiv(listAContainer, sanitizedId);
-            const table = createElement('table', { className: 'w3-table indented-table' });
-
-            // Add the missing elements to the list div
-            Object.entries(listB[index]).forEach(([key, value]) => {
-                addChildTableItem(table, key, value);
-            });
-
-            // Append the list and button to the parent div
-            listDiv.appendChild(table);
-            parentDiv.append(button, listDiv);
-
-            // Insert the parent div into the second container at the correct index
-            let referenceNode = listAContainer.children[index] || null;
-            listAContainer.insertBefore(parentDiv, referenceNode);
+            createAndAppendElements(listB, listAContainer, index);
         }
 
         index++;
+    }
+}
+
+
+async function addTagToDevice(targetDevice, item) {
+    try {
+        // Show loading spinner
+        document.getElementById('loadingSpinner').style.display = 'block';
+
+        // API call to check that the target is not passive (HA)
+        const response = await fetch('/api/device?action=list&id=' + targetDevice);
+        const data = await response.json();
+
+        if (data['ha_state'] === 'passive') {
+            showNotification('Cannot add tags to a passive device', 'Failure');
+            document.getElementById('loadingSpinner').style.display = 'none';
+
+        } else {
+            // API call to add the tag to the device
+            const tag_data = {
+                "name": item['name'],
+                "comment": item['description'],
+            };
+
+            // If the tag has a colour, add it to the tag data
+            if (item['colour'] !== 'no colour') {
+                tag_data['colour'] = item['colour'];
+            };
+
+            // API call to add the tag to the device
+            const tagResponse = await fetch('/api/objects?object=tags&action=create&id=' + targetDevice, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(tag_data)
+            });
+
+            if (!tagResponse.ok) {
+                throw new Error(`HTTP error! status: ${tagResponse.status}`);
+            }
+
+            const tagResult = await tagResponse.json();
+            showNotification('Tag added, remember to commit', 'Success');
+            document.getElementById('loadingSpinner').style.display = 'none';
+
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Failed to add tag', 'Failure');
+        document.getElementById('loadingSpinner').style.display = 'none';
+
     }
 }
 
@@ -275,6 +296,15 @@ function createButton(element, listContainer, sanitizedId) {
     button.textContent = element.name;
     button.classList.add('highlight-missing');
     button.onclick = () => expandList(listContainer.id + '_list_' + sanitizedId);
+    return button;
+}
+
+
+function createFixedButton(element) {
+    const button = document.createElement('button');
+    button.className = 'w3-button w3-block w3-left-align';
+    button.textContent = element.name;
+    button.classList.add('highlight-missing');
     return button;
 }
 

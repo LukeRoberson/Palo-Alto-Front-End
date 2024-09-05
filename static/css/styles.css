@@ -114,3 +114,26 @@ button.highlight-disabled {
     transition: none !important;
     animation: none !important;
 }
+
+.add-button {
+    background-color: #4CAF50;                        /* Green background */
+    border: none;                                       /* Remove borders */
+    color: white;                                     /* White text */
+    padding: 5px 20px;                                  /* Some padding */
+    text-align: center;                                 /* Centered text */
+    text-decoration: none;                              /* Remove underline */
+    display: inline-block;                              /* Make the container inline-block */
+    font-size: 16px;                                    /* Increase font size */
+    margin: 0px 4px;                                    /* Some margin */
+    cursor: pointer;                                    /* Pointer/hand icon */
+    border-radius: 2px;
+    transition: background-color 0.3s;                  /* Smooth transition */
+}
+
+.add-button:hover {
+    background-color: #45a049;                        /* Darker green on hover */
+}
+
+.add-button i {
+    margin-right: 5px;                                  /* Add some space between icon and text */
+}

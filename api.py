@@ -394,6 +394,57 @@ class DeviceApi:
         tags = self._rest_request("/Objects/Tags")
         return tags
 
+    def create_tag(
+        self,
+        name: str,
+        colour: str,
+        comment: str,
+    ) -> None:
+        '''
+        Add a tag to the device
+            REST API, /Objects/Tags
+
+        Returns:
+            None
+        '''
+
+        url = '/Objects/Tags'
+
+        body = {
+            "entry": {
+                "@name": name,
+                "comments": comment
+            }
+        }
+
+        # Add the colour if it is not 'no colour' or None
+        if colour is not None and colour != 'no colour':
+            body['color'] = colour
+
+        # The name in the params must be the same as the name in the tag
+        self.params['name'] = name
+
+        # Send the request
+        response = requests.post(
+            f"{self.rest_base_url}{url}",
+            headers=self.rest_headers,
+            params=self.params,
+            json=body,
+        )
+
+        # Check the response code for errors
+        if response.status_code != 200:
+            print(
+                Fore.RED,
+                response.status_code,
+                Style.RESET_ALL
+            )
+
+            return response.status_code
+
+        # Return the body of the response
+        return response.json()
+
     def get_addresses(
         self
     ) -> list:

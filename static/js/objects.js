@@ -72,6 +72,33 @@ registerRefreshButtonListener('refreshButtonServiceGroupsA', 'serviceGroupAccord
 registerRefreshButtonListener('refreshButtonServiceGroupsB', 'serviceGroupAccordionB', updateServiceGroupsTable);
 
 
+// Button to create a tag - TESTING
+document.getElementById('tagCreate').addEventListener('click', function () {
+    const data = {
+        name: 'TestTag',
+        comment: 'TestTagComment',
+        colour: 'color14'
+    };
+    deviceId = "6bf26c6f-6fc1-4715-8f34-734250ace0b3"
+
+    // API call to fetch tags for the selected device
+    fetch(`/api/objects?object=tags&action=create&id=${encodeURIComponent(deviceId)}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+});
+
+
 /**
  * Populate the dropdown with the provided list of devices
  * This is run when a dropdown is clicked and the list is fetched from the device

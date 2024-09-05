@@ -408,12 +408,11 @@ class SiteView(MethodView):
         elif parameters == 'refresh':
             # Refresh the site and device list
             site_manager.get_sites()
-            device_manager.get_devices()
 
             return jsonify(
                 {
                     "result": "Success",
-                    "message": "Sites and devices refreshed"
+                    "message": "Site list refreshed"
                 }
             )
 
@@ -545,6 +544,7 @@ class DeviceView(MethodView):
     GET Parameters:
         action (str): The action to perform.
             list: List all devices in the database.
+            refresh: Refresh the device list.
 
     POST Parameters:
         action (str): The action to perform.
@@ -588,8 +588,42 @@ class DeviceView(MethodView):
                 }
                 device_list.append(device_info)
 
-            # Return the list of device names as JSON
-            return jsonify(device_list)
+            # Get the 'id' parameter from the request if there is one
+            device = request.args.get('id')
+
+            # If there is no device parameter, return the device list
+            if device is None:
+                return jsonify(device_list)
+
+            # If there is a device parameter, return the device entry
+            device_entry = None
+            for entry in device_list:
+                print(entry)
+                if str(entry['device_id']) == device:
+                    device_entry = entry
+
+            if device_entry is not None:
+                # Return the device entry as JSON
+                return jsonify(device_entry)
+            else:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Device id not found"
+                    }
+                ), 500
+
+        # Refresh the device list
+        elif parameters == 'refresh':
+            # Refresh the site and device list
+            device_manager.get_devices()
+
+            return jsonify(
+                {
+                    "result": "Success",
+                    "message": "Device list refreshed"
+                }
+            )
 
         # Unknown or missing action
         else:
@@ -836,9 +870,9 @@ class ObjectsView(MethodView):
     '''
     Objects class to manage tags, addresses, etc
 
-    Methods: GET
+    Methods: GET, POST
 
-    Parameters:
+    GET Parameters:
         object (str): The object type to get.
             tags: Get the tags for a device.
             addresses: Get the addresses for a device.
@@ -846,6 +880,12 @@ class ObjectsView(MethodView):
             app_groups: Get the application groups for a device.
             services: Get the services for a device.
             service_groups: Get the service groups for a device.
+
+    POST Parameters:
+        object (str): The object type to get.
+            tags: Get the tags for a device.
+        action (str): The action to perform.
+            create: Add a device to the database.
     '''
 
     @ login_required
@@ -1253,6 +1293,68 @@ class ObjectsView(MethodView):
                     "message": "Unknown object type supplied"
                 }
             ), 500
+
+    def post(
+        self,
+        config: AppSettings,
+    ) -> jsonify:
+        '''
+        Handle POST requests for the object settings.
+        '''
+
+        # Get the object type from the request
+        object_type = request.args.get('object')
+
+        # Get the action parameter from the request
+        action = request.args.get('action')
+
+        if object_type == 'tags' and action == 'create':
+            # Get device information
+            device = request.args.get('id')
+            sql_server = config.sql_server
+            sql_database = config.sql_database
+            table = 'devices'
+
+            # Read the device details from the database
+            with SqlServer(
+                server=sql_server,
+                database=sql_database,
+                table=table,
+                config=config,
+            ) as sql:
+                output = sql.read(
+                    field='id',
+                    value=device,
+                )
+
+            # Return a failure message if the database read failed
+            if not output:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Problems reading from the database"
+                    }
+                ), 500
+
+            # Extract the details from the SQL output
+            hostname = output[0][1]
+            token = output[0][9]
+
+            # Create the device object
+            device_api = DeviceApi(
+                hostname=hostname,
+                rest_key=token,
+                version='v11.0'
+            )
+
+            data = request.json
+            result = device_api.create_tag(
+                name=data.get('name'),
+                colour=data.get('colour'),
+                comment=data.get('comment')
+            )
+
+            return jsonify(result)
 
 
 class PolicyView(MethodView):

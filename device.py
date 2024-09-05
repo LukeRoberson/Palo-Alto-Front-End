@@ -647,7 +647,7 @@ class DeviceManager():
         return len(self.device_list)
 
     def get_devices(
-        self
+        self,
     ) -> None:
         '''
         Get all Palo Alto devices from the database
@@ -699,7 +699,7 @@ class DeviceManager():
         # Assign devices to sites
         self._site_assignment()
 
-        # Find A pairs
+        # Find HA pairs
         self._ha_pairs()
 
     def add_device(

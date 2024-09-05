@@ -76,3 +76,56 @@ In production, this should be run in this way:
     - uWSGI on the app container
     - SSL on NGINX, not on the app
     - App not directly accessible from anywhere but NGINX
+
+
+# General Notes
+
+## Tag Colours
+
+Tags have a string such as 'color1' which refers to a real colour. There are 41 usable colours ('color18' is not usable for unknown reasons).
+
+
+| Colour String | Colour         | Web Colour |
+| ------------- | -------------- | ---------- |
+| color1        | Red            | #CD383F    |
+| color2        | Green          | #72A392    |
+| color3        | Blue           | #6BA2B9    |
+| color4        | Yellow         | #EBD722    |
+| color5        | Copper         | #C27D2A    |
+| color6        | Orange         | #F6851F    |
+| color7        | Purple         | #7D3953    |
+| color8        | Grey           | #5B6F7B    |
+| color9        | Light Green    | #C9D6A6    |
+| color10       | Cyan           | #8AD3DF    |
+| color11       | Light Grey     | #EDEEEE    |
+| color12       | Blue Grey      | #80A1B6    |
+| color13       | Lime           | #A7C439    |
+| color14       | Black          | #000000    |
+| color15       | Gold           | #FFC425    |
+| color16       | Brown          | #918A75    |
+| color17       | Olive          | #97A822    |
+| color18       | INVALID        |            |
+| color19       | Maroon         | #C32148    |
+| color20       | Red-Orange     | #FF681F    |
+| color21       | Yellow-Orange  | #FFAE42    |
+| color22       | Forest Green   | #5FA777    |
+| color23       | Turquoise Blue | #6CDAE7    |
+| color24       | Azure Blue     | #4997D0    |
+| color25       | Cerulean Blue  | #339ACC    |
+| color26       | Midnight Blue  | #00468C    |
+| color27       | Medium Blue    | #4570E6    |
+| color28       | Cobalt Blue    | #8C90C8    |
+| color29       | Violet Blue    | #766EC8    |
+| color30       | Blue Violet    | #6456B7    |
+| color31       | Medium Violet  | #8F47B3    |
+| color32       | Medium Rose    | #D96CBE    |
+| color33       | Lavender       | #BF8FCC    |
+| color34       | Orchid         | #E29CD2    |
+| color35       | Thistle        | #EBB0D7    |
+| color36       | Peach          | #FFCBA4    |
+| color37       | Salmon         | #FF91A4    |
+| color38       | Magenta        | #F653A6    |
+| color39       | Red Violet     | #BB3385    |
+| color40       | Mahogany       | #CA3435    |
+| color41       | Burnt Sienna   | #AB6744    |
+| color42       | Chestnut       | #B94E48    |
