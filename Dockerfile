@@ -1,7 +1,13 @@
 # Use the official Python image from the Docker Hub
-# Cannot use 'slim' and 'alpine' images as they do not have the necessary libraries for uWSGI
-FROM python:3.12
+FROM python:3.12.5-slim
 LABEL maintainer="Luke Robertson <lrobertson@lakemac.nsw.gov.au>"
+
+# Manage packages for security
+RUN apt-get update
+RUN apt-get upgrade -y
+
+# Install the necessary system libraries for uWSGI (required for slim and alpine images)
+RUN apt-get install build-essential -y
 
 # Create non-root user with no password
 RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser

@@ -20,6 +20,7 @@ from flask import (
     Blueprint,
     render_template,
     request,
+    session,
 )
 
 from flask.views import MethodView
@@ -91,10 +92,24 @@ class IndexView(BaseView):
     template_name = 'index.html'
 
     def get_context_data(self, *args, **kwargs):
+        # Collect user information, if in debug mode use a default user
+        if config.web_debug:
+            user = 'N/A - Debug Mode'
+            user_name = 'N/A - Debug Mode'
+            groups = 'N/A - Debug Mode'
+        else:
+            user = session['user']['name']
+            user_name = session['user']['preferred_username']
+            groups = session['groups']
+
         return {
             'flask_version': version("flask"),
             'ip_address': request.remote_addr,
-            'os_version': platform.platform()
+            'os_version': platform.platform(),
+            'python_version': platform.python_version(),
+            'user': user,
+            'user_name': user_name,
+            'groups': groups,
         }
 
 

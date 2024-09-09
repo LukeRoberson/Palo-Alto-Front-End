@@ -101,7 +101,65 @@
 </div>
 <br>
 
+<div class="w3-container" name="Master Password">
+    <div class="w3-container">
+        <h2>Master Password</h2>
+    </div>
+    <div class="alert alert-warning" role="alert">
+        <strong>Warning!</strong>
+        <p>The master password is used to encrypt and decrypt passwords and API keys stored in the database.</p>
+        <p>If the master password is lost, a new one will need to be set. All devices will need to have secure
+            credentials
+            added again, so they're encrypted with the new master password</p>
+        <br>
+        <p>Resetting the master password below will decrypt credentials with the current Master PW, and reencrypt with
+            the
+            new Master PW</p>
+        <p>If you do this, make sure you update the environment variable</p>
+        <p>
+            <button id="resetMasterPw" class="w3-button w3-red w3-padding w3-round" type="submit">Reset Master
+                Password</button>
+        </p>
+    </div>
+</div>
+
+<!-- Master PW Modal -->
+<div id="pwModal" class="w3-modal">
+    <div class="w3-modal-content w3-card w3-animate-zoom" style="max-width:600px">
+        <div class="w3-center"><br>
+            <span onclick="document.getElementById('pwModal').style.display='none'"
+                class="w3-button w3-xlarge w3-hover-red w3-display-topright" title="Close Modal">&times;</span>
+            <h3>Reset Master Password</h3>
+        </div>
+
+        <div class="w3-container w3-border-top w3-padding-16">
+            <p>This is the new master password. Proceeding will reencrypt device details in the database</p>
+            <p><strong>Copy it and store it in a safe place. It will not be retrievable again</strong></p>
+            <br>
+            <div class="w3-center">
+                <div class="input-group">
+                    <input id="masterPassword" class="w3-input w3-border" type="text" name="master_password" readonly>
+                    <button onclick="copyToClipboard()" class="w3-button w3-small w3-round w3-blue" title="Copy"><i
+                            class="fa fa-copy"></i></button>
+                </div>
+                <br>
+            </div>
+
+            <p>Remember to update enviroment variable settings.</p>
+
+            <div class="w3-center">
+                <button onclick="document.getElementById('pwModal').style.display='none'" type="button"
+                    class="w3-button w3-red">Cancel</button>
+                <button id="saveMasterPw" type="button" class="w3-button w3-green">Proceed</button>
+            </div>
+        </div>
+    </div>
+</div>
+<br>
+
 <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+
+<!-- Set the SQL dropdown values -->
 <script>
     // Set SQL Authentication value; 'Windows Integrated' or 'SQL'
     const sqlAuthValue = "{{ sql_auth }}";
@@ -141,6 +199,32 @@
             sqlPass.style.display = "none";
         }
     });
+</script>
+
+<!-- Master password scripts -->
+<script>
+    function copyToClipboard() {
+        const input = document.querySelector('input[name="master_password"]');
+        input.select();
+        input.setSelectionRange(0, 99999); // For mobile devices
+        document.execCommand("copy");
+    }
+
+    // function generateRandomString(length) {
+    //     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    //     let result = '';
+    //     const charactersLength = characters.length;
+    //     for (let i = 0; i < length; i++) {
+    //         result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    //     }
+    //     return result;
+    // }
+
+    // document.addEventListener('DOMContentLoaded', (event) => {
+    //     const randomString = generateRandomString(64);
+    //     const input = document.getElementById('masterPassword');
+    //     input.value = randomString;
+    // });
 </script>
 
 {% endblock %}

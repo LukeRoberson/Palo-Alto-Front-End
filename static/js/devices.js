@@ -17,21 +17,21 @@
 */
 
 // Get modals as variables
-var devModal = document.getElementById("deviceModal");                      // Add device modal
-var siteModal = document.getElementById("siteModal");                       // Add site modal
-var devEditModal = document.getElementById("deviceEditModal");              // Edit device modal
-var siteEditModal = document.getElementById("siteEditModal");               // Edit site modal
+let devModal = document.getElementById("deviceModal");                      // Add device modal
+let siteModal = document.getElementById("siteModal");                       // Add site modal
+let devEditModal = document.getElementById("deviceEditModal");              // Edit device modal
+let siteEditModal = document.getElementById("siteEditModal");               // Edit site modal
 
 // Get all buttons as variables
-var siteBtn = document.getElementById("add_site");                          // Add site button
-var devBtn = document.getElementById("add_device");                         // Add device button
-var siteRefreshBtn = document.getElementById("refresh_site");               // Refresh site list button
-var devRefreshBtn = document.getElementById("refresh_device");              // Refresh device list button
-var closeButtons = document.getElementsByClassName("close");                // Regular close buttons
-var siteSubmitBtn = document.getElementById("siteSubmit");                  // Submit button in 'add site' modal
-var siteEditSubmitBtn = document.getElementById("siteEditSubmit");          // Submit button in 'edit site' modal
-var deviceSubmitBtn = document.getElementById("deviceSubmit");              // Submit button in 'add device' modal
-var deviceEditSubmitBtn = document.getElementById("deviceEditSubmit");      // Submit button in 'edit device' modal
+let siteBtn = document.getElementById("add_site");                          // Add site button
+let devBtn = document.getElementById("add_device");                         // Add device button
+let siteRefreshBtn = document.getElementById("refresh_site");               // Refresh site list button
+let devRefreshBtn = document.getElementById("refresh_device");              // Refresh device list button
+let closeButtons = document.getElementsByClassName("close");                // Regular close buttons
+let siteSubmitBtn = document.getElementById("siteSubmit");                  // Submit button in 'add site' modal
+let siteEditSubmitBtn = document.getElementById("siteEditSubmit");          // Submit button in 'edit site' modal
+let deviceSubmitBtn = document.getElementById("deviceSubmit");              // Submit button in 'add device' modal
+let deviceEditSubmitBtn = document.getElementById("deviceEditSubmit");      // Submit button in 'edit device' modal
 
 // Event listeners
 devBtn.addEventListener('click', () => openModal(devModal));                // Add device button
@@ -39,7 +39,7 @@ siteBtn.addEventListener('click', () => openModal(siteModal));              // A
 devRefreshBtn.addEventListener('click', refreshPageAndReload);              // Refresh device list button
 siteRefreshBtn.addEventListener('click', refreshPageAndReload);             // Refresh site list button
 
-for (var i = 0; i < closeButtons.length; i++) {                             // 'x' close buttons
+for (let i = 0; i < closeButtons.length; i++) {                             // 'x' close buttons
     closeButtons[i].onclick = closeModal;
 }
 
@@ -72,7 +72,7 @@ document.querySelectorAll('.device-download-button').forEach(button => {    // A
 });
 
 document.addEventListener('DOMContentLoaded', function () {                  // Attach event listener to each collapsible header
-    var collapsibleHeaders = document.querySelectorAll('.collapsible-header');
+    let collapsibleHeaders = document.querySelectorAll('.collapsible-header');
     collapsibleHeaders.forEach(function (header) {
         header.addEventListener('click', toggleCollapsibleContent);
     });
@@ -214,7 +214,7 @@ function openModal(modal) {
  */
 function closeModal() {
     // Get the parent element of the close button and hide it
-    var modal = this.parentElement.parentElement;
+    let modal = this.parentElement.parentElement;
     modal.style.display = "none";
 }
 
@@ -229,7 +229,7 @@ function setupDeleteButton(selector, deleteUrl) {
     document.querySelectorAll(selector).forEach(button => {
         button.addEventListener('click', function (event) {
             // Get the objectId from the button's data-id attribute (the thing we want to delete)
-            var objectId = event.currentTarget.getAttribute(`data-id`);
+            let objectId = event.currentTarget.getAttribute(`data-id`);
 
             // Show the confirmation modal
             showConfirmModal(objectId, deleteUrl);
@@ -313,8 +313,8 @@ function handleDelete(deleteUrl, objectId) {
  */
 function openSiteEditModal(event) {
     // Directly use event.currentTarget to get the 'data-site-id' and 'data-site-name'
-    var siteId = event.currentTarget.getAttribute('data-id');
-    var siteName = event.currentTarget.getAttribute('data-site-name');
+    let siteId = event.currentTarget.getAttribute('data-id');
+    let siteName = event.currentTarget.getAttribute('data-site-name');
 
     // Select the input fields by their name attribute
     const siteEditIdInput = document.querySelector('input[name="siteEditId"]');
@@ -355,11 +355,11 @@ function openDeviceEditModal(event) {
         .catch(error => console.error(error));
 
     // Directly use event.currentTarget to get the device attributes
-    var deviceId = event.currentTarget.getAttribute('data-id');
-    var deviceName = event.currentTarget.getAttribute('data-device-name');
-    var deviceHostname = event.currentTarget.getAttribute('data-device-hostname');
-    var deviceKey = event.currentTarget.getAttribute('data-device-key');
-    var deviceSite = event.currentTarget.getAttribute('data-device-site');
+    let deviceId = event.currentTarget.getAttribute('data-id');
+    let deviceName = event.currentTarget.getAttribute('data-device-name');
+    let deviceHostname = event.currentTarget.getAttribute('data-device-hostname');
+    let deviceKey = event.currentTarget.getAttribute('data-device-key');
+    let deviceSite = event.currentTarget.getAttribute('data-device-site');
 
     // Select the input fields
     const deviceEditIdInput = document.querySelector('input[name="deviceEditId"]');
@@ -398,7 +398,7 @@ function openDeviceEditModal(event) {
  */
 function downloadDeviceConfig(event) {
     // Get the device ID from the button's data-id attribute
-    var deviceId = event.currentTarget.getAttribute('data-id');
+    let deviceId = event.currentTarget.getAttribute('data-id');
 
     // POST to the download_config endpoint with the deviceId
     fetch('/api/device?action=download', {
@@ -450,8 +450,8 @@ function downloadDeviceConfig(event) {
  */
 function toggleCollapsibleContent(event) {
     // Determine the type of cards to toggle based on the header clicked
-    var cardType = this.getAttribute('data-card-type');
-    var cardsToToggle = document.querySelectorAll('.' + cardType);
+    let cardType = this.getAttribute('data-card-type');
+    let cardsToToggle = document.querySelectorAll('.' + cardType);
 
     // Toggle the visibility of the corresponding cards
     cardsToToggle.forEach(function (card) {
@@ -459,7 +459,7 @@ function toggleCollapsibleContent(event) {
     });
 
     // Toggle the rotation of the icon within the clicked header
-    var collapseIcon = this.querySelector('.collapse-icon');
+    let collapseIcon = this.querySelector('.collapse-icon');
     if (collapseIcon) {
         collapseIcon.classList.toggle('rotate-icon');
     }

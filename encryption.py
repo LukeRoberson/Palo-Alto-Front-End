@@ -177,6 +177,7 @@ class CryptoSecret:
     def encrypt(
         self,
         password: str,
+        master_pw=None,
     ) -> Tuple[str, str]:
         '''
         Encrypts a password using AES256 encryption
@@ -184,6 +185,10 @@ class CryptoSecret:
         Args:
             password : str
                 The password to encrypt
+            master_pw : str
+                The master password to use for encryption
+                Normally this comes from an environment variable
+                However, a specific master password can be passed in
 
         Returns:
             encrypted_message : str
@@ -191,6 +196,10 @@ class CryptoSecret:
             salt : str
                 The salt used to encrypt the password
         '''
+
+        # Override the master password if one is passed in
+        if master_pw is not None:
+            self.master = master_pw
 
         # Define a salt and generate a key
         salt = os.urandom(16)

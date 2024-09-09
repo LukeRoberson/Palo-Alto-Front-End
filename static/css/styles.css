@@ -137,3 +137,15 @@ button.highlight-disabled {
 .add-button i {
     margin-right: 5px;                                  /* Add some space between icon and text */
 }
+
+/* Copy icon next to text boxes */
+.input-group {
+    display: flex;
+    align-items: center;
+}
+.input-group input {
+    flex: 1;
+}
+.input-group button {
+    margin-left: 10px;
+}

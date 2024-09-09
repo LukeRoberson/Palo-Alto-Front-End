@@ -12,6 +12,7 @@ from settings import config
 from colorama import Fore, Style
 import uuid
 import base64
+import os
 
 
 class Site:
@@ -272,6 +273,91 @@ class Device:
         # Update the DB
         if type(details) is not int or type(ha) is not int:
             self._update_db()
+
+    def reset_password(
+        self,
+        password: str,
+    ) -> bool:
+        '''
+        Reencrypt the password for the device
+            This is done when the master password is changed
+
+        Args:
+            password (str): The new master password
+                This is used to encrypt the password in the DB
+
+        Returns:
+            bool: True if successful, otherwise False
+        '''
+
+        # Update details
+        self.get_details()
+
+        # Encrypt with new master password
+        print(f"Encrypting password for device '{self.name}'")
+        print(f"Decrypted PW: {self.decrypted_pw}")
+        print(f'old master pw: {os.getenv('api_master_pw')}')
+        print(f'new master pw: {password}')
+
+        try:
+            with CryptoSecret() as encryptor:
+                encrypted = encryptor.encrypt(
+                    password=self.decrypted_pw,
+                    master_pw=password,
+                )
+                self.password_encoded = encrypted[0].decode()
+                self.salt_encoded = base64.urlsafe_b64encode(
+                    encrypted[1]
+                ).decode()
+
+        except Exception as e:
+            print(
+                Fore.RED,
+                f"Could not encrypt password for device '{self.name}'.",
+                Style.RESET_ALL
+            )
+            print(e)
+            return False
+
+        # Update the database with password and salt
+        with SqlServer(
+            server=config.sql_server,
+            database=config.sql_database,
+            table='devices',
+            config=config,
+        ) as sql:
+            try:
+                sql.update(
+                    field='id',
+                    value=self.id,
+                    body={
+                        'friendly_name': self.name,
+                        'name': self.hostname,
+                        'site': self.site,
+                        'token': self.key,
+                        'username': self.username,
+                        'secret': self.password_encoded,
+                        'salt': self.salt_encoded,
+                    }
+                )
+
+            except Exception as e:
+                print(
+                    Fore.RED,
+                    "Could not update device in the database.",
+                    Style.RESET_ALL,
+                    e,
+                )
+                return False
+
+        print(
+            Fore.GREEN,
+            f'Resetting password for device {self.name}',
+            f'Encrypted PW: {self.password_encoded}',
+            f'Salt: {self.salt_encoded}',
+            Style.RESET_ALL
+        )
+        return True
 
     def _update_db(
         self,
@@ -598,10 +684,12 @@ class DeviceManager():
     Methods:
         __init__: Constructor for DeviceManager class
         __len__: Returns the number of devices
+        __iter__: Iterate through the device list
         get_devices: Get all devices from the database
         add_device: Add a new device to the database
         delete_device: Delete a device from the database
         update_device: Update a device in the database
+        reset_password: Reset the password for a device
         _new_uuid: Generate a new UUID for a device
         _site_assignment: Assign devices to sites
         _ha_pairs: Find devices that are paired in an HA configuration
@@ -645,6 +733,31 @@ class DeviceManager():
         '''
 
         return len(self.device_list)
+
+    def __iter__(
+        self,
+    ) -> Device:
+        '''
+        Iterate through the device list
+        '''
+
+        self._index = 0
+        return self
+
+    def __next__(
+        self,
+    ) -> Device:
+        '''
+        Get the next device in the list
+        '''
+
+        if self._index < len(self.device_list):
+            device = self.device_list[self._index]
+            self._index += 1
+            return device
+
+        else:
+            raise StopIteration
 
     def get_devices(
         self,
@@ -814,8 +927,6 @@ class DeviceManager():
             )
 
         if result:
-            # Refresh the device list
-            # self.get_devices()
             return new_device
 
         else:

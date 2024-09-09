@@ -100,6 +100,7 @@ def authorized():
         # Get the access token
         if 'access_token' in result:
             session['user'] = result.get('id_token_claims')
+            session['groups'] = result.get('id_token_claims').get('groups', [])
             return redirect(url_for('web.index'))
 
         # Return an error if the access token is not found

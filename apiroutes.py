@@ -29,6 +29,7 @@ import base64
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from colorama import Fore, Style
+import os
 
 from device import DeviceManager, SiteManager, device_manager, site_manager
 from settings import AppSettings, config
@@ -552,6 +553,7 @@ class DeviceView(MethodView):
             delete: Delete a device from the database.
             update: Update a device in the database.
             download: Download the device configuration.
+            reset: Reset the encryption for devices.
     '''
 
     @ login_required
@@ -653,6 +655,7 @@ class DeviceView(MethodView):
         # Get the action parameter from the request
         parameters = request.args.get('action')
 
+        # Add device to the database
         if parameters == 'add':
             # Get the device and the password from the form
             device_name = request.form['deviceName']
@@ -855,6 +858,73 @@ class DeviceView(MethodView):
             )
             response.headers['X-Filename'] = filename
             return response
+
+        # Reset encryption for devices
+        elif parameters == 'reset':
+            # Get the master password from the request body
+            master_password = request.json['password']
+
+            print(f"Existing master password: {os.getenv('api_master_pw')}")
+            print(f"New master password: {master_password}")
+
+            # Loop through device list
+            for device in device_manager.device_list:
+                result = device.reset_password(password=master_password)
+                if not result:
+                    return jsonify(
+                        {
+                            "result": "Failure",
+                            "message": "Failed resetting device password"
+                        }
+                    ), 500
+
+            # Decrypt SQL password (from config)
+            with CryptoSecret() as decryptor:
+                real_pw = decryptor.decrypt(
+                    secret=config.sql_password,
+                    salt=base64.urlsafe_b64decode(
+                        config.sql_salt.encode()
+                    )
+                )
+
+            # Encrypt SQL password
+            try:
+                with CryptoSecret() as encryptor:
+                    encrypted = encryptor.encrypt(
+                        password=real_pw,
+                        master_pw=master_password,
+                    )
+                    password_encoded = encrypted[0].decode()
+                    salt_encoded = base64.urlsafe_b64encode(encrypted[1]).decode()
+
+            except Exception as e:
+                print(
+                    Fore.RED,
+                    "Could not encrypt SQL password",
+                    Style.RESET_ALL
+                )
+                print(e)
+
+            # Update SQL PW in config object
+            print(
+                Fore.CYAN,
+                "Updating SQL password in config.yaml",
+                Style.RESET_ALL
+            )
+            config.sql_password = password_encoded
+            config.sql_salt = salt_encoded
+            config.write_config()
+
+            # Update environnment variable
+            os.environ['api_master_pw'] = master_password
+
+            # Return a success message if the device was updated
+            return jsonify(
+                {
+                    "result": "Success",
+                    "message": "Master Password has been changed"
+                }
+            )
 
         # Unknown or missing action
         else:
