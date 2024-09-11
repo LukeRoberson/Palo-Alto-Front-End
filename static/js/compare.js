@@ -652,10 +652,37 @@ function areObjectsDifferent(obj1, obj2) {
             continue;
         }
 
+        // When members are included, these are list of FW objects like services or addresses
+        if (key == "members") {
+            // Convert strings to arrays (in lowercase and trimmed) then to sets for comparison
+            const array1 = Array.isArray(obj1[key]) ? obj1[key] : obj1[key].split(',');
+            const array2 = Array.isArray(obj2[key]) ? obj2[key] : obj2[key].split(',');
+            const array1Processed = array1.map(item => item.trim().toLowerCase());
+            const array2Processed = array2.map(item => item.trim().toLowerCase());
+            const set1 = new Set(array1Processed);
+            const set2 = new Set(array2Processed);
+
+            // Check if the set sizes are different
+            if (set1.size !== set2.size) {
+                console.log('Failed match; different sizes', array1Processed, array2Processed);
+                return true;
+            }
+
+            // Check if the set items are different
+            for (let item of set1) {
+                if (!set2.has(item)) {
+                    console.log('Failed match; members', array1Processed, array2Processed);
+                    return true;
+                }
+            }
+
+            // Otherwise, the arrays match
+            return false;
+        }
+
         // Use the deep equality check for both array and non-array values
         const value1 = obj1[key];
         const value2 = obj2[key];
-        // console.log(value1, value2);
         if (!areObjectsDeeplyEqual(value1, value2)) {
             return true;
         }

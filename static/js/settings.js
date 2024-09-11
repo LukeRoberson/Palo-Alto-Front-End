@@ -68,6 +68,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
                     // Hide loading spinner and modal
                     document.getElementById('loadingSpinner').style.display = 'none';
                     pwModal.style.display = "none";
+                    alert('Please remember to save the new master password, and update config.yaml\n\n' + masterPassword);
                 });
         });
     } else {

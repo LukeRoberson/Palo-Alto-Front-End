@@ -895,7 +895,9 @@ class DeviceView(MethodView):
                         master_pw=master_password,
                     )
                     password_encoded = encrypted[0].decode()
-                    salt_encoded = base64.urlsafe_b64encode(encrypted[1]).decode()
+                    salt_encoded = base64.urlsafe_b64encode(
+                        encrypted[1]
+                    ).decode()
 
             except Exception as e:
                 print(
@@ -1522,7 +1524,7 @@ class PolicyView(MethodView):
                 entry["tag"] = policy.get('tag', 'None')
                 entry["tag_group"] = policy.get('group-tag', 'None')
                 entry["description"] = policy.get('description', 'None')
-                entry["disabled"] = policy.get('disabled', 'None')
+                entry["disabled"] = policy.get('disabled', 'no')
                 nat_list.append(entry)
 
             # Return the NAT policies as JSON
@@ -1587,9 +1589,9 @@ class PolicyView(MethodView):
                 entry["action"] = rule.get('action', 'None')
                 entry["type"] = rule.get('rule-tupe', 'None')
                 entry["log"] = rule.get('log-setting', 'None')
-                entry["log_start"] = rule.get('log-start', 'None')
-                entry["log_end"] = rule.get('log-end', 'None')
-                entry["disabled"] = rule.get('disabled', 'None')
+                entry["log_start"] = rule.get('log-start', 'no')
+                entry["log_end"] = rule.get('log-end', 'no')
+                entry["disabled"] = rule.get('disabled', 'no')
                 entry["tag"] = rule.get('tag', 'None')
                 entry["tag_group"] = rule.get('group-tag', 'None')
                 entry["description"] = rule.get('description', 'None')
