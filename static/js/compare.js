@@ -653,12 +653,33 @@ function areObjectsDifferent(obj1, obj2) {
         }
 
         // When members are included, these are list of FW objects like services or addresses
-        if (key == "members") {
-            // Convert strings to arrays (in lowercase and trimmed) then to sets for comparison
-            const array1 = Array.isArray(obj1[key]) ? obj1[key] : obj1[key].split(',');
-            const array2 = Array.isArray(obj2[key]) ? obj2[key] : obj2[key].split(',');
+        if (key == "members" || key == "source") {
+            // Convert strings and objects to arrays
+            let array1, array2;
+
+            if (typeof obj1[key] == 'string') {
+                array1 = obj1[key].split(',');
+            } else {
+                array1 = [obj1[key]];
+            }
+
+            if (typeof obj2[key] == 'string') {
+                array2 = obj2[key].split(',');
+            } else {
+                array2 = [obj2[key]];
+            }
+
+            // If this is a list with a member property, use that
+            if (array1.some(item => item.hasOwnProperty('member'))) {
+                array1 = array1[0].member;
+                array2 = array2[0].member;
+            }
+
+            // Ignore leading/trailing whitespace and case
             const array1Processed = array1.map(item => item.trim().toLowerCase());
             const array2Processed = array2.map(item => item.trim().toLowerCase());
+
+            // Use a set, to compare the arrays ignoring order
             const set1 = new Set(array1Processed);
             const set2 = new Set(array2Processed);
 
