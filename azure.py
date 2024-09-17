@@ -21,6 +21,9 @@ REDIRECT_PATH = None
 SCOPE = None
 msal_app = None
 
+# Admins group
+ADMIN_GROUP = 'Network Admins'
+
 if config.config_exists and config.config_valid:
     CLIENT_ID = config.azure_app
     CLIENT_SECRET = config.azure_secret
@@ -57,6 +60,8 @@ def login_required(f):
             return f(*args, **kwargs)
         if 'user' not in session:
             return redirect(url_for('azure.login', next=request.url))
+        if 'groups' not in session or ADMIN_GROUP not in session['groups']:
+            return redirect(url_for('web.unauthorized'))
         return f(*args, **kwargs)
     return decorated_function
 

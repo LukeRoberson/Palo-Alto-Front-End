@@ -113,6 +113,11 @@ class IndexView(BaseView):
         }
 
 
+class UnauthorizedView(MethodView):
+    def get(self):
+        return render_template('unauthorized.html')
+
+
 class DevicesView(BaseView):
     template_name = 'devices.html'
 
@@ -174,6 +179,11 @@ class SettingsView(BaseView):
 web_bp.add_url_rule(
     '/',
     view_func=IndexView.as_view('index')
+)
+
+web_bp.add_url_rule(
+    '/unauthorized',
+    view_func=UnauthorizedView.as_view('unauthorized')
 )
 
 web_bp.add_url_rule(
