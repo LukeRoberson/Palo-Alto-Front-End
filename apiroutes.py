@@ -34,7 +34,9 @@ from device import DeviceManager, SiteManager, device_manager, site_manager
 from settings import AppSettings, config
 from sql import SqlServer
 from encryption import CryptoSecret
+
 from pa_api import DeviceApi as PaDeviceApi
+from junos_api import DeviceApi as JunosDeviceApi
 
 from azure import login_required
 
@@ -815,6 +817,7 @@ class DeviceView(MethodView):
 
             # Parse the device details
             hostname = output[0][1]
+            vendor = output[0][3]
             username = output[0][6]
             password = output[0][7]
             salt = output[0][8]
@@ -831,23 +834,52 @@ class DeviceView(MethodView):
             ).decode()
 
             # Connect to the API
-            my_device = PaDeviceApi(
-                hostname=hostname,
-                xml_key=api_pass,
-            )
+            if vendor == 'paloalto':
+                my_device = PaDeviceApi(
+                    hostname=hostname,
+                    xml_key=api_pass,
+                )
 
-            # Download the device configuration, return as a file
-            dev_config = my_device.get_config()
-            filename = (
-                f"{hostname}_{datetime.now().strftime('%Y%m%d%H%M%S')}.xml"
-            )
-            print(f"downloading {filename}")
-            response = Response(dev_config, mimetype='text/xml')
-            response.headers['Content-Disposition'] = (
-                f'attachment; filename="{filename}"'
-            )
-            response.headers['X-Filename'] = filename
-            return response
+                # Download the device configuration, return as a file
+                dev_config = my_device.get_config()
+                filename = (
+                    f"{hostname}_{datetime.now().strftime('%Y%m%d%H%M%S')}.xml"
+                )
+                print(f"downloading {filename}")
+                response = Response(dev_config, mimetype='text/xml')
+                response.headers['Content-Disposition'] = (
+                    f'attachment; filename="{filename}"'
+                )
+                response.headers['X-Filename'] = filename
+                return response
+
+            elif vendor == 'juniper':
+                my_device = JunosDeviceApi(
+                    hostname=hostname,
+                    username=username,
+                    password=real_pw,
+                )
+
+                # Download the device configuration, return as a file
+                dev_config = my_device.get_config()
+                filename = (
+                    f"{hostname}_{datetime.now().strftime('%Y%m%d%H%M%S')}.txt"
+                )
+                print(f"downloading {filename}")
+                response = Response(dev_config, mimetype='text/plain')
+                response.headers['Content-Disposition'] = (
+                    f'attachment; filename="{filename}"'
+                )
+                response.headers['X-Filename'] = filename
+                return response
+
+            else:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Unknown vendor"
+                    }
+                ), 500
 
         # Reset encryption for devices
         elif parameters == 'reset':

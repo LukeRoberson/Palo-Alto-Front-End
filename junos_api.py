@@ -29,6 +29,7 @@ from jnpr.junos.exception import (
 )
 from typing import Union, Tuple
 from colorama import Fore, Style
+from lxml import etree
 
 
 class DeviceApi:
@@ -178,3 +179,32 @@ class DeviceApi:
         peer_serial = None
 
         return enabled, local_state, peer_state, peer_serial
+
+    def get_config(
+        self
+    ) -> Union[str, int]:
+        '''
+        Get the running configuration of the device
+
+        Returns:
+            str: The configuration
+            int: The response code if an error occurred.
+        '''
+
+        # Get the committed config
+        dev_config = self.device.rpc.get_config(
+            options={
+                'database': 'committed',
+                'format': 'set'
+            }
+        )
+
+        # Cleanup the config
+        cleaned = etree.tostring(dev_config, encoding='unicode')
+        cleaned = cleaned.replace('<configuration-set>', '')
+        cleaned = cleaned.replace('</configuration-set>', '')
+        cleaned = "\n".join(
+            [line for line in cleaned.splitlines() if line.strip()]
+        )
+
+        return cleaned

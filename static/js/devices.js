@@ -400,6 +400,9 @@ function downloadDeviceConfig(event) {
     // Get the device ID from the button's data-id attribute
     let deviceId = event.currentTarget.getAttribute('data-id');
 
+    // Show loading spinner
+    document.getElementById('loadingSpinner').style.display = 'block';
+
     // POST to the download_config endpoint with the deviceId
     fetch('/api/device?action=download', {
         method: 'POST',
@@ -437,10 +440,16 @@ function downloadDeviceConfig(event) {
             // Clean up by revoking the object URL and removing the anchor
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
+
+            // Hide loading spinner when the response is received
+            document.getElementById('loadingSpinner').style.display = 'none';
         })
 
         // Log any errors to the console
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+            console.error('Error:', error)
+            document.getElementById('loadingSpinner').style.display = 'none';
+        });
 }
 
 
