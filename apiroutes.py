@@ -26,7 +26,6 @@ from flask import (
 from flask.views import MethodView
 
 import base64
-import xml.etree.ElementTree as ET
 from datetime import datetime
 from colorama import Fore, Style
 import os
@@ -35,7 +34,7 @@ from device import DeviceManager, SiteManager, device_manager, site_manager
 from settings import AppSettings, config
 from sql import SqlServer
 from encryption import CryptoSecret
-from pa_api import DeviceApi
+from pa_api import DeviceApi as PaDeviceApi
 
 from azure import login_required
 
@@ -832,30 +831,18 @@ class DeviceView(MethodView):
             ).decode()
 
             # Connect to the API
-            my_device = DeviceApi(
+            my_device = PaDeviceApi(
                 hostname=hostname,
                 xml_key=api_pass,
             )
 
-            # Get the XML data, and clean it up (the API adds extra XML tags)
-            xml_config = my_device.get_config()
-            root = ET.fromstring(xml_config)
-            result_content = root.find('.//config')
-            if result_content is not None:
-                cleaned_xml = ET.tostring(
-                    result_content,
-                    encoding='unicode',
-                    method='xml'
-                )
-            else:
-                cleaned_xml = ''
-
-            # Return the cleaned XML as a file download
+            # Download the device configuration, return as a file
+            dev_config = my_device.get_config()
             filename = (
                 f"{hostname}_{datetime.now().strftime('%Y%m%d%H%M%S')}.xml"
             )
             print(f"downloading {filename}")
-            response = Response(cleaned_xml, mimetype='text/xml')
+            response = Response(dev_config, mimetype='text/xml')
             response.headers['Content-Disposition'] = (
                 f'attachment; filename="{filename}"'
             )
@@ -1015,7 +1002,7 @@ class ObjectsView(MethodView):
             token = output[0][9]
 
             # Create the device object
-            my_device = DeviceApi(
+            my_device = PaDeviceApi(
                 hostname=hostname,
                 rest_key=token,
                 version='v11.0'
@@ -1076,7 +1063,7 @@ class ObjectsView(MethodView):
             token = output[0][9]
 
             # Create the device object
-            device_api = DeviceApi(
+            device_api = PaDeviceApi(
                 hostname=hostname,
                 rest_key=token,
                 version='v11.0'
@@ -1152,7 +1139,7 @@ class ObjectsView(MethodView):
             token = output[0][9]
 
             # Create the device object
-            device_api = DeviceApi(
+            device_api = PaDeviceApi(
                 hostname=hostname,
                 rest_key=token,
                 version='v11.0'
@@ -1214,7 +1201,7 @@ class ObjectsView(MethodView):
             token = output[0][9]
 
             # Create the device object
-            device_api = DeviceApi(
+            device_api = PaDeviceApi(
                 hostname=hostname,
                 rest_key=token,
                 version='v11.0'
@@ -1274,7 +1261,7 @@ class ObjectsView(MethodView):
             token = output[0][9]
 
             # Create the device object
-            device_api = DeviceApi(
+            device_api = PaDeviceApi(
                 hostname=hostname,
                 rest_key=token,
                 version='v11.0'
@@ -1336,7 +1323,7 @@ class ObjectsView(MethodView):
             token = output[0][9]
 
             # Create the device object
-            device_api = DeviceApi(
+            device_api = PaDeviceApi(
                 hostname=hostname,
                 rest_key=token,
                 version='v11.0'
@@ -1416,7 +1403,7 @@ class ObjectsView(MethodView):
             token = output[0][9]
 
             # Create the device object
-            device_api = DeviceApi(
+            device_api = PaDeviceApi(
                 hostname=hostname,
                 rest_key=token,
                 version='v11.0'
@@ -1497,7 +1484,7 @@ class PolicyView(MethodView):
             token = output[0][9]
 
             # Create the device object
-            device_api = DeviceApi(
+            device_api = PaDeviceApi(
                 hostname=hostname,
                 rest_key=token,
                 version='v11.0'
@@ -1567,7 +1554,7 @@ class PolicyView(MethodView):
             token = output[0][9]
 
             # Create the device object
-            device_api = DeviceApi(
+            device_api = PaDeviceApi(
                 hostname=hostname,
                 rest_key=token,
                 version='v11.0'
@@ -1637,7 +1624,7 @@ class PolicyView(MethodView):
             token = output[0][9]
 
             # Create the device object
-            device_api = DeviceApi(
+            device_api = PaDeviceApi(
                 hostname=hostname,
                 rest_key=token,
                 version='v11.0'
@@ -1727,7 +1714,7 @@ class VpnView(MethodView):
             ).decode()
 
             # Create the device object
-            device_api = DeviceApi(
+            device_api = PaDeviceApi(
                 hostname=hostname,
                 xml_key=api_pass,
             )
@@ -1775,7 +1762,7 @@ class VpnView(MethodView):
             ).decode()
 
             # Create the device object
-            device_api = DeviceApi(
+            device_api = PaDeviceApi(
                 hostname=hostname,
                 xml_key=api_pass,
             )

@@ -184,7 +184,10 @@ class DeviceApi:
         # Return the body of the response
         return response.json()['result']['entry']
 
-    def _xml_request(self, url: str) -> Union[str, int]:
+    def _xml_request(
+        self,
+        url: str
+    ) -> Union[str, int]:
         '''
         Send an XML request to the device and handle the response.
 
@@ -195,6 +198,7 @@ class DeviceApi:
             str: The response body if successful.
             int: The response code if an error occurred.
         '''
+
         full_url = f"{self.xml_base_url}{url}"
         try:
             response = requests.get(full_url, headers=self.xml_headers)
@@ -223,7 +227,9 @@ class DeviceApi:
 
         return response.text
 
-    def get_config(self) -> Union[str, int]:
+    def get_config(
+        self
+    ) -> Union[str, int]:
         '''
         Get the running configuration of the device using the XML API.
 
@@ -231,7 +237,28 @@ class DeviceApi:
             str: The configuration in XML format as a string.
             int: The response code if an error occurred.
         '''
-        return self._xml_request("/?type=config&action=show&xpath=/")
+
+        # Send an XML request
+        xml_config = self._xml_request("/?type=config&action=show&xpath=/")
+
+        # If we get an error code, return it
+        if isinstance(xml_config, int):
+            print("Error getting the configuration")
+            return xml_config
+
+        # Clean the XML to remove the outer tags
+        root = ET.fromstring(xml_config)
+        result_content = root.find('.//config')
+        if result_content is not None:
+            cleaned_xml = ET.tostring(
+                result_content,
+                encoding='unicode',
+                method='xml'
+            )
+        else:
+            cleaned_xml = ''
+
+        return cleaned_xml
 
     def get_device(
         self
