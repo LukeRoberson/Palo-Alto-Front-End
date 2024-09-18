@@ -25,7 +25,7 @@ Example:
 """
 
 
-from flask import Flask, render_template
+from flask import Flask
 import os
 from colorama import Fore, Style
 
@@ -92,11 +92,6 @@ if config.web_ssl:
     )
 else:
     certs = None
-
-
-# @app.route('/unauthorized')
-# def unauthorized():
-#     return render_template('unauthorized.html')
 
 
 if __name__ == '__main__':

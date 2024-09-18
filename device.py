@@ -10,6 +10,7 @@ from encryption import CryptoSecret
 from settings import config
 
 from colorama import Fore, Style
+import concurrent.futures
 import uuid
 import base64
 import os
@@ -759,6 +760,39 @@ class DeviceManager():
         else:
             raise StopIteration
 
+    def _create_device(
+        self,
+        device: tuple,
+        config: AppSettings,
+    ) -> Device:
+        '''
+        Create a new Device object from a tuple
+        This is used in multithreading
+
+        Args:
+            device (tuple): A tuple of device details
+            config (AppSettings): Application settings
+
+        Returns:
+            Device: A new Device object
+        '''
+
+        this_device = Device(
+            id=device[0],
+            hostname=device[1],
+            site=device[2],
+            key=device[9],
+            username=device[6],
+            password=device[7],
+            salt=device[8],
+            name=device[10],
+            serial=device[11],
+            ha_partner_serial=device[12],
+            config=config,
+        )
+        this_device.get_details()
+        return this_device
+
     def get_devices(
         self,
     ) -> None:
@@ -790,24 +824,33 @@ class DeviceManager():
         # Create a list of Device objects
         #   Iterate through the device list in SQL output
         self.device_list = []
-        for device in output:
-            # Create a new device object, and add to the list
-            this_device = Device(
-                id=device[0],
-                hostname=device[1],
-                site=device[2],
-                key=device[9],
-                username=device[6],
-                password=device[7],
-                salt=device[8],
-                name=device[10],
-                serial=device[11],
-                ha_partner_serial=device[12],
-                config=self.config,
-            )
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = [
+                executor.submit(
+                    self._create_device, device, self.config
+                ) for device in output
+            ]
+            for future in concurrent.futures.as_completed(futures):
+                self.device_list.append(future.result())
 
-            self.device_list.append(this_device)
-            this_device.get_details()
+        # for device in output:
+        #     # Create a new device object, and add to the list
+        #     this_device = Device(
+        #         id=device[0],
+        #         hostname=device[1],
+        #         site=device[2],
+        #         key=device[9],
+        #         username=device[6],
+        #         password=device[7],
+        #         salt=device[8],
+        #         name=device[10],
+        #         serial=device[11],
+        #         ha_partner_serial=device[12],
+        #         config=self.config,
+        #     )
+
+        #     self.device_list.append(this_device)
+        #     this_device.get_details()
 
         # Assign devices to sites
         self._site_assignment()
