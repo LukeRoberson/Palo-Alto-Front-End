@@ -30,12 +30,10 @@ import requests
 from requests.exceptions import ConnectionError
 from urllib3.exceptions import MaxRetryError, NewConnectionError
 from types import TracebackType
-from typing import Optional, Type, Union
+from typing import Optional, Type, Union, Tuple
 
 from colorama import Fore, Style
 import xml.etree.ElementTree as ET
-
-from typing import Tuple
 
 
 class DeviceApi:
@@ -235,7 +233,9 @@ class DeviceApi:
         '''
         return self._xml_request("/?type=config&action=show&xpath=/")
 
-    def get_device(self) -> Union[Tuple[str, str, str], int]:
+    def get_device(
+        self
+    ) -> Union[Tuple[str, str, str], int]:
         '''
         Get the device basics using the XML API.
 
@@ -244,6 +244,7 @@ class DeviceApi:
                 The model, serial number, and software version of the device.
             int: The response code if an error occurred.
         '''
+
         response = self._xml_request(
             "/?type=op&cmd=<show><system><info></info></system></show>"
         )
@@ -257,7 +258,9 @@ class DeviceApi:
 
         return model, serial, version
 
-    def get_ha(self) -> Union[bool, Tuple[bool, str, str, str], int]:
+    def get_ha(
+        self
+    ) -> Union[bool, Tuple[bool, str, str, str], int]:
         '''
         Get high availability details using the XML API.
 
@@ -270,6 +273,7 @@ class DeviceApi:
             int:
                 The response code if an error occurred.
         '''
+
         response = self._xml_request(
             "/?type=op&cmd=<show>"
             "<high-availability>"

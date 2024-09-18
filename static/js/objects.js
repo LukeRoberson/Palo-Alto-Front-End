@@ -93,29 +93,31 @@ function populateDropdownWithData(selector, hoverColorClass, devices, divId) {
 
     // Populate the dropdown with the list of devices
     devices.forEach(device => {
-        // Create a new link element for each device
-        const link = document.createElement('a');
-        link.href = '#';
-        link.className = `w3-bar-item w3-button ${hoverColorClass} text`;
-        link.textContent = device.device_name;
+        if (device.vendor == 'paloalto') {
+            // Create a new link element for each device
+            const link = document.createElement('a');
+            link.href = '#';
+            link.className = `w3-bar-item w3-button ${hoverColorClass} text`;
+            link.textContent = device.device_name;
 
-        // Add click event listener to each link
-        link.addEventListener('click', function () {
-            button.textContent = device.device_name;
-            button.innerHTML += ' <i class="fa fa-caret-down"></i>';
+            // Add click event listener to each link
+            link.addEventListener('click', function () {
+                button.textContent = device.device_name;
+                button.innerHTML += ' <i class="fa fa-caret-down"></i>';
 
 
-            // Fetch tags for the selected device using device_id and update the specified table
-            if (divId.includes('tagAccordion')) updateTagsTable(device.device_id, divId);
-            if (divId.includes('addressAccordion')) updateAddressesTable(device.device_id, divId);
-            if (divId.includes('addressGroupAccordion')) updateAddressGroupsTable(device.device_id, divId);
-            if (divId.includes('applicationGroupAccordion')) updateApplicationGroupsTable(device.device_id, divId);
-            if (divId.includes('serviceAccordion')) updateServicesTable(device.device_id, divId);
-            if (divId.includes('serviceGroupAccordion')) updateServiceGroupsTable(device.device_id, divId);
-        });
+                // Fetch tags for the selected device using device_id and update the specified table
+                if (divId.includes('tagAccordion')) updateTagsTable(device.device_id, divId);
+                if (divId.includes('addressAccordion')) updateAddressesTable(device.device_id, divId);
+                if (divId.includes('addressGroupAccordion')) updateAddressGroupsTable(device.device_id, divId);
+                if (divId.includes('applicationGroupAccordion')) updateApplicationGroupsTable(device.device_id, divId);
+                if (divId.includes('serviceAccordion')) updateServicesTable(device.device_id, divId);
+                if (divId.includes('serviceGroupAccordion')) updateServiceGroupsTable(device.device_id, divId);
+            })
 
-        // Append the link to the dropdown
-        dropdown.appendChild(link);
+            // Append the link to the dropdown
+            dropdown.appendChild(link);
+        };
     });
 }
 

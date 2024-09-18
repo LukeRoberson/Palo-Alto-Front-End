@@ -5,9 +5,11 @@ Tracks each of these objects, and contains methods to manage them
 
 from sql import SqlServer
 from settings import AppSettings
-from pa_api import DeviceApi
 from encryption import CryptoSecret
 from settings import config
+
+from pa_api import DeviceApi as PaDeviceApi
+from junos_api import DeviceApi as JunosDeviceApi
 
 from colorama import Fore, Style
 import concurrent.futures
@@ -200,6 +202,7 @@ class Device:
         if output:
             # Extract the details from the SQL output
             hostname = output[0][1]
+            vendor = output[0][3]
             username = output[0][6]
             password = output[0][7]
             salt = output[0][8]
@@ -240,10 +243,17 @@ class Device:
             self.decrypted_pw = real_pw
 
             # Create the device API object
-            dev_api = DeviceApi(
-                hostname=hostname,
-                xml_key=api_pass,
-            )
+            if vendor == 'paloalto':
+                dev_api = PaDeviceApi(
+                    hostname=hostname,
+                    xml_key=api_pass,
+                )
+            elif vendor == 'juniper':
+                dev_api = JunosDeviceApi(
+                    hostname=hostname,
+                    username=username,
+                    password=self.decrypted_pw,
+                )
 
             # Get device details
             details = dev_api.get_device()

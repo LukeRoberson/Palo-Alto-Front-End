@@ -10,6 +10,9 @@
 fetch('/api/device?action=list')
     .then(response => response.json())
     .then(devices => {
+        // Show loading spinner
+        document.getElementById('loadingSpinner').style.display = 'block';
+
         // Find the div with the id 'div-gp-devices'
         const divGpDevices = document.getElementById('div-gp-devices');
 
@@ -17,6 +20,11 @@ fetch('/api/device?action=list')
         for (const device of devices) {
             // Don't include passive devices
             if (device.ha_state === 'passive') {
+                continue;
+            }
+
+            // Only include Palo Alto Networks devices
+            if (device.vendor !== 'paloalto') {
                 continue;
             }
 
@@ -48,8 +56,14 @@ fetch('/api/device?action=list')
             newDiv.appendChild(label);
             divGpDevices.appendChild(newDiv);
         };
+
+        // Hide loading spinner when the response is received
+        document.getElementById('loadingSpinner').style.display = 'none';
     })
-    .catch(error => console.error('Error:', error));
+    .catch(error => {
+        console.error('Error:', error)
+        document.getElementById('loadingSpinner').style.display = 'none';
+    });
 
 
 /* Event listener for the 'Get GP Sessions' button */

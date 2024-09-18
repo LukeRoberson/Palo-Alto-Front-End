@@ -588,7 +588,8 @@ class DeviceView(MethodView):
                 device_info = {
                     "device_id": device.id,
                     "device_name": device.name,
-                    "ha_state": device.ha_local_state
+                    "ha_state": device.ha_local_state,
+                    "vendor": device.vendor,
                 }
                 device_list.append(device_info)
 
