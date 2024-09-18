@@ -23,6 +23,7 @@ msal_app = None
 
 # Admins group
 ADMIN_GROUP = 'Network Admins'
+HELPDESK_GROUP = 'HelpDesk Team'
 
 if config.config_exists and config.config_valid:
     CLIENT_ID = config.azure_app
@@ -52,18 +53,53 @@ else:
     )
 
 
-# Decorator to protect routes with Azure AD login
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if config.web_debug is True:
+# Decorator to protect routes with Azure AD login and group membership checking
+def login_required(groups=None):
+    # If 'groups' is a function, the decorator was used without arguments
+    if callable(groups):
+        # Set the function to 'f' and reset 'groups' to defaults
+        f = groups
+        groups = [ADMIN_GROUP]
+
+        # Return the decorated function
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            # If debug mode is enabled, bypass login and group checks
+            if config.web_debug is True:
+                return f(*args, **kwargs)
+
+            # Check for a valid user session
+            if 'user' not in session:
+                return redirect(url_for('azure.login', next=request.url))
+
+            # Check for group membership
+            if (
+                'groups' not in session
+                or not any(group in session['groups'] for group in groups)
+            ):
+                # If it fails, redirect to the unauthorized page
+                return redirect(url_for('web.unauthorized'))
+
             return f(*args, **kwargs)
-        if 'user' not in session:
-            return redirect(url_for('azure.login', next=request.url))
-        if 'groups' not in session or ADMIN_GROUP not in session['groups']:
-            return redirect(url_for('web.unauthorized'))
-        return f(*args, **kwargs)
-    return decorated_function
+        return decorated_function
+
+    # If 'groups' is a list, and 'f' is the function
+    def decorator(f):
+        # This is the same as above
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if config.web_debug is True:
+                return f(*args, **kwargs)
+            if 'user' not in session:
+                return redirect(url_for('azure.login', next=request.url))
+            if (
+                'groups' not in session
+                or not any(group in session['groups'] for group in groups)
+            ):
+                return redirect(url_for('web.unauthorized'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
 
 
 # Redirection to Azure login page

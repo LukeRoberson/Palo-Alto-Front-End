@@ -36,6 +36,10 @@ from azure import login_required
 # Define a blueprint for the web routes
 web_bp = Blueprint('web', __name__)
 
+# Admins group
+ADMIN_GROUP = 'Network Admins'
+HELPDESK_GROUP = 'HelpDesk Team'
+
 
 class BaseView(MethodView):
     '''
@@ -49,7 +53,7 @@ class BaseView(MethodView):
 
     template_name = None
 
-    @login_required
+    @login_required(groups=[ADMIN_GROUP, HELPDESK_GROUP])
     def get(
         self,
         *args: list,
@@ -157,6 +161,7 @@ class VpnView(BaseView):
 class SettingsView(BaseView):
     template_name = 'settings.html'
 
+    @login_required(groups=[ADMIN_GROUP])
     def get_context_data(self, config: AppSettings, *args, **kwargs):
         return {
             'tenant_id': config.azure_tenant,

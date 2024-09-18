@@ -20,6 +20,11 @@ fetch('/api/device?action=list')
                 continue;
             }
 
+            // Skip non-PA devices
+            if (device.vendor !== 'paloalto') {
+                continue;
+            }
+
             // API call
             const url = new URL('/api/vpn?type=ipsec', window.location.origin);
             url.searchParams.append('id', device.device_id);
