@@ -63,6 +63,8 @@ else:
 if config.config_exists and config.config_valid:
     site_manager.get_sites()
     device_manager.get_devices()
+    print("Sites and devices loaded")
+
     debug = config.web_debug
     host_ip = config.web_ip
 

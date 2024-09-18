@@ -5,7 +5,7 @@ Tracks each of these objects, and contains methods to manage them
 
 from sql import SqlServer
 from settings import AppSettings
-from api import DeviceApi
+from pa_api import DeviceApi
 from encryption import CryptoSecret
 from settings import config
 
@@ -109,6 +109,7 @@ class Device:
         username: str,
         password: str,
         salt: str,
+        vendor: str,
         name: str = '',
         serial: str = '',
         ha_partner_serial: str = '',
@@ -125,6 +126,7 @@ class Device:
             username (str): Username for the device (XML API)
             password (str): Encrypted password for the device (XML API)
             salt (str): Salt for the encrypted (XML API)
+            vendor (str): Vendor of the device
             name (str): Friendly name of the device
             serial (str): Serial number of the device
             ha_partner_serial (str): Serial number of the HA partner
@@ -138,6 +140,7 @@ class Device:
         self.id = id
         self.hostname = hostname
         self.site = site
+        self.vendor = vendor
         self.serial = serial
         self.ha_partner_serial = ha_partner_serial
         self.model = None
@@ -686,6 +689,7 @@ class DeviceManager():
         __init__: Constructor for DeviceManager class
         __len__: Returns the number of devices
         __iter__: Iterate through the device list
+        _create_device: Create a new Device object from a tuple
         get_devices: Get all devices from the database
         add_device: Add a new device to the database
         delete_device: Delete a device from the database
@@ -777,6 +781,7 @@ class DeviceManager():
             Device: A new Device object
         '''
 
+        # Create the device object
         this_device = Device(
             id=device[0],
             hostname=device[1],
@@ -785,12 +790,17 @@ class DeviceManager():
             username=device[6],
             password=device[7],
             salt=device[8],
-            name=device[10],
+            name=device[10] if device[10] is not None else "no-name",
+            vendor=device[3],
             serial=device[11],
             ha_partner_serial=device[12],
             config=config,
         )
+
+        # Collect the device details
         this_device.get_details()
+
+        # Return the device object
         return this_device
 
     def get_devices(
@@ -803,6 +813,7 @@ class DeviceManager():
             Filter: Vendor must be 'paloalto'
         (2) Create class objects for each site
         (3) Append each object to a list
+            This is done in a multithreaded manner
         '''
 
         # Read paloalto devices from the database
@@ -813,8 +824,8 @@ class DeviceManager():
             config=self.config,
         ) as sql:
             output = sql.read(
-                field='vendor',
-                value='paloalto',
+                field='type',
+                value='firewall',
             )
 
         if not output:
@@ -832,25 +843,6 @@ class DeviceManager():
             ]
             for future in concurrent.futures.as_completed(futures):
                 self.device_list.append(future.result())
-
-        # for device in output:
-        #     # Create a new device object, and add to the list
-        #     this_device = Device(
-        #         id=device[0],
-        #         hostname=device[1],
-        #         site=device[2],
-        #         key=device[9],
-        #         username=device[6],
-        #         password=device[7],
-        #         salt=device[8],
-        #         name=device[10],
-        #         serial=device[11],
-        #         ha_partner_serial=device[12],
-        #         config=self.config,
-        #     )
-
-        #     self.device_list.append(this_device)
-        #     this_device.get_details()
 
         # Assign devices to sites
         self._site_assignment()

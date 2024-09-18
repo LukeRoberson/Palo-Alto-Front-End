@@ -35,7 +35,7 @@ from device import DeviceManager, SiteManager, device_manager, site_manager
 from settings import AppSettings, config
 from sql import SqlServer
 from encryption import CryptoSecret
-from api import DeviceApi
+from pa_api import DeviceApi
 
 from azure import login_required
 
@@ -429,6 +429,7 @@ class SiteView(MethodView):
     @ login_required
     def post(
         self,
+        device_manager: DeviceManager,
         site_manager: SiteManager,
     ) -> jsonify:
         '''
@@ -447,6 +448,7 @@ class SiteView(MethodView):
         # Add a site to the database
         if parameters == 'add':
             # Get the site name from the form
+            print(request.form)
             site_name = request.form['siteName']
 
             # Add the site to the database
