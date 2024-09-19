@@ -21,10 +21,7 @@ REDIRECT_PATH = None
 SCOPE = None
 msal_app = None
 
-# Admins group
-ADMIN_GROUP = 'Network Admins'
-HELPDESK_GROUP = 'HelpDesk Team'
-
+# Check configuration settings
 if config.config_exists and config.config_valid:
     CLIENT_ID = config.azure_app
     CLIENT_SECRET = config.azure_secret
@@ -59,7 +56,7 @@ def login_required(groups=None):
     if callable(groups):
         # Set the function to 'f' and reset 'groups' to defaults
         f = groups
-        groups = [ADMIN_GROUP]
+        groups = [config.azure_admin_group]
 
         # Return the decorated function
         @wraps(f)

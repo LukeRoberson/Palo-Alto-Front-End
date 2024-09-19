@@ -6,7 +6,8 @@
             "Fixed light/dark mode suppot to the table on the 'about' page",
             "Fixed style template conflicts",
             "Rebranded as 'Firewall Management'",
-            "Added a changelog to the 'about' page"
+            "Added a changelog to the 'about' page",
+            "Added admin and helpdesk roles to the 'settings' page"
         ]
     },
     {

@@ -82,6 +82,8 @@ class AzureView(MethodView):
                 config.azure_app = request.form['app_id']
                 config.azure_secret = request.form['app_secret']
                 config.redirect_uri = request.form['callback_url']
+                config.azure_admin_group = request.form['admin_group']
+                config.azure_helpdesk_group = request.form['helpdesk_group']
                 config.write_config()
 
                 # If it's all good, return a nice message

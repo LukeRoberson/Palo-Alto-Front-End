@@ -77,6 +77,8 @@ class AppSettings():
         self.azure_tenant = config['azure']['tenant-id']
         self.azure_app = config['azure']['app-id']
         self.azure_secret = config['azure']['app-secret']
+        self.azure_admin_group = config['azure']['admin-group']
+        self.azure_helpdesk_group = config['azure']['helpdesk-group']
 
         # SQL settings
         self.sql_server = config['sql']['server']
@@ -125,7 +127,10 @@ class AppSettings():
             return
 
         # Check that azure config parameters all exist in the azure section
-        params = ['app-id', 'app-secret', 'redirect-uri', 'tenant-id']
+        params = [
+            'app-id', 'app-secret', 'redirect-uri',
+            'tenant-id', 'admin-group', 'helpdesk-group'
+        ]
         if not all(key in config['azure'] for key in params):
             print(
                 Fore.RED,
@@ -213,6 +218,8 @@ class AppSettings():
                 'tenant-id': self.azure_tenant,
                 'app-id': self.azure_app,
                 'app-secret': self.azure_secret,
+                'admin-group': self.azure_admin_group,
+                'helpdesk-group': self.azure_helpdesk_group,
             },
             'sql': {
                 'server': self.sql_server,
