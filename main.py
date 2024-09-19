@@ -21,7 +21,6 @@ Usage:
 
 Example:
     $ python main.py
-
 """
 
 

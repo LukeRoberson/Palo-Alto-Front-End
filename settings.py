@@ -1,10 +1,15 @@
 '''
 Class to track settings
+
+Reads from a YAML file and stores the settings
 '''
 
 
 from yaml import safe_load, safe_dump
 from colorama import Fore, Style
+
+
+VERSION = '1.0-devel'
 
 
 class AppSettings():
@@ -87,6 +92,9 @@ class AppSettings():
         self.web_port = config['web']['port']
         self.web_debug = config['web']['debug']
         self.web_ssl = config['web']['ssl']
+
+        # Version
+        self.version = VERSION
 
     def _validate_config(
         self,

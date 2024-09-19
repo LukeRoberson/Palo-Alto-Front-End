@@ -1,0 +1,19 @@
+[
+    {
+        "version": "1.0",
+        "changes": [
+            "Added version number to 'about' page",
+            "Fixed light/dark mode suppot to the table on the 'about' page",
+            "Fixed style template conflicts",
+            "Rebranded as 'Firewall Management'",
+            "Added a changelog to the 'about' page"
+        ]
+    },
+    {
+        "version": "0.0-beta",
+        "changes": [
+            "Finished beta release",
+            "Support for Palo Alto and SRX firewalls"
+        ]
+    }
+]

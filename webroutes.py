@@ -27,6 +27,7 @@ from flask.views import MethodView
 
 import platform
 from importlib.metadata import version
+import json
 
 from device import DeviceManager, SiteManager, device_manager, site_manager
 from settings import AppSettings, config
@@ -96,6 +97,10 @@ class IndexView(BaseView):
     template_name = 'index.html'
 
     def get_context_data(self, *args, **kwargs):
+        # Get changelog information
+        with open('changelog.json', 'r') as f:
+            changelog = json.load(f)
+
         # Collect user information, if in debug mode use a default user
         if config.web_debug:
             user = 'N/A - Debug Mode'
@@ -107,6 +112,7 @@ class IndexView(BaseView):
             groups = session['groups']
 
         return {
+            'app_version': config.version,
             'flask_version': version("flask"),
             'ip_address': request.remote_addr,
             'os_version': platform.platform(),
@@ -114,6 +120,7 @@ class IndexView(BaseView):
             'user': user,
             'user_name': user_name,
             'groups': groups,
+            'changelog': changelog,
         }
 
 
