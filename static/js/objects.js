@@ -160,7 +160,7 @@ function updateTagsTable(deviceId, divId, vendor) {
     let objectList = [];
 
     // Show loading spinner
-    document.getElementById('tagLoadingSpinner').style.display = 'block';
+    document.getElementById('loadingSpinner').style.display = 'block';
 
     // The div element to populate with the list of addresses
     const divElement = document.getElementById(divId);
@@ -227,12 +227,12 @@ function updateTagsTable(deviceId, divId, vendor) {
             }
 
             // Hide loading spinner when the response is received
-            document.getElementById('tagLoadingSpinner').style.display = 'none';
+            document.getElementById('loadingSpinner').style.display = 'none';
         })
 
         .catch(error => {
             // Hide loading spinner when the response is received
-            document.getElementById('tagLoadingSpinner').style.display = 'none';
+            document.getElementById('loadingSpinner').style.display = 'none';
             console.error('Error fetching tags:', error)
         });
 }
@@ -250,7 +250,7 @@ function updateAddressesTable(deviceId, divId, vendor) {
     let addressList = [];
 
     // Show loading spinner
-    document.getElementById('addressLoadingSpinner').style.display = 'block';
+    document.getElementById('loadingSpinner').style.display = 'block';
 
     // The div element to populate with the list of addresses
     const divElement = document.getElementById(divId);
@@ -270,7 +270,7 @@ function updateAddressesTable(deviceId, divId, vendor) {
 
             // Check that addresses were found
             if (addresses.message && addresses.message == 'No addresses found') {
-                document.getElementById('addressLoadingSpinner').style.display = 'none';
+                document.getElementById('loadingSpinner').style.display = 'none';
                 showNotification('No addresses found for the selected device', 'Failure');
                 return;
             }
@@ -327,11 +327,11 @@ function updateAddressesTable(deviceId, divId, vendor) {
                 addressListB = addressList;
             }
             // Hide loading spinner when the response is received
-            document.getElementById('addressLoadingSpinner').style.display = 'none';
+            document.getElementById('loadingSpinner').style.display = 'none';
 
         })
         .catch(error => {
-            document.getElementById('addressLoadingSpinner').style.display = 'none';
+            document.getElementById('loadingSpinner').style.display = 'none';
             console.error('Error fetching addresses:', error)
         });
 }
@@ -349,7 +349,7 @@ function updateAddressGroupsTable(deviceId, divId, vendor) {
     let addressGroupList = [];
 
     // Show loading spinner
-    document.getElementById('addressGroupLoadingSpinner').style.display = 'block';
+    document.getElementById('loadingSpinner').style.display = 'block';
 
     // The div element to populate with the list of addresses
     const divElement = document.getElementById(divId);
@@ -366,6 +366,13 @@ function updateAddressGroupsTable(deviceId, divId, vendor) {
         .then(addresses => {
             // The div element to populate with the list of address groups
             const divElement = document.getElementById(divId);
+
+            // Check that addresses were found
+            if (addresses.message && addresses.message == 'No address groups found') {
+                document.getElementById('loadingSpinner').style.display = 'none';
+                showNotification('No address groups found for the selected device', 'Failure');
+                return;
+            }
 
             // Populate with the list of address groups
             addresses.forEach(address => {
@@ -391,9 +398,15 @@ function updateAddressGroupsTable(deviceId, divId, vendor) {
                 // Table
                 const table = document.createElement('table');
                 table.className = 'w3-table indented-table';
-                addChildTableItem(table, 'Address', address.static.member.join(", "));
+                if (address.static.member) {                            // Handle different ways the data is returned
+                    addChildTableItem(table, 'Address', address.static.member.join(", "));
+                } else {
+                    addChildTableItem(table, 'Address', address.static.map(item => item.name).join(", "));
+                }
                 addChildTableItem(table, 'Description', address.description);
-                addChildTableItem(table, 'Tag', address.tag.member.join(", "));
+                if (address.tag) {
+                    addChildTableItem(table, 'Tag', address.tag.member.join(", "));     // Tags do not exist on some platforms
+                }
                 listDiv.appendChild(table);
 
                 // Add items to the div element
@@ -404,9 +417,11 @@ function updateAddressGroupsTable(deviceId, divId, vendor) {
                 // Create an array of address groups
                 const addressGroupObject = {
                     name: address.name,
-                    static: address.static.member.join(", "),
+                    static: Array.isArray(address.static)                           // Handle different ways the data is returned
+                        ? address.static.map(item => item.name ? item.name : item).join(", ")
+                        : address.static.member.map(item => item.name ? item.name : item).join(", "),
                     description: address.description,
-                    tag: address.tag.member.join(", "),
+                    ...(address.tag && { tag: address.tag.member.join(", ") }),     // Tags do not exist on some platforms
                 };
                 addressGroupList.push(addressGroupObject);
             });
@@ -418,11 +433,11 @@ function updateAddressGroupsTable(deviceId, divId, vendor) {
             }
 
             // Hide loading spinner when the response is received
-            document.getElementById('addressGroupLoadingSpinner').style.display = 'none';
+            document.getElementById('loadingSpinner').style.display = 'none';
         })
         .catch(error => {
             // Hide loading spinner when the response is received
-            document.getElementById('addressGroupLoadingSpinner').style.display = 'none';
+            document.getElementById('loadingSpinner').style.display = 'none';
             console.error('Error fetching addresses:', error)
         });
 }
@@ -440,7 +455,7 @@ function updateApplicationGroupsTable(deviceId, divId, vendor) {
     let applicationGroupList = [];
 
     // Show loading spinner
-    document.getElementById('applicationsLoadingSpinner').style.display = 'block';
+    document.getElementById('loadingSpinner').style.display = 'block';
 
     // The div element to populate with the list of addresses
     const divElement = document.getElementById(divId);
@@ -457,6 +472,13 @@ function updateApplicationGroupsTable(deviceId, divId, vendor) {
         .then(appGroups => {
             // The div element to populate with the list of application groups
             const divElement = document.getElementById(divId);
+
+            // Check that addresses were found
+            if (appGroups.message && addresses.message == 'No application groups found') {
+                document.getElementById('loadingSpinner').style.display = 'none';
+                showNotification('No application groups found for the selected device', 'Failure');
+                return;
+            }
 
             // Populate with the list of application groups
             appGroups.forEach(appGroup => {
@@ -505,11 +527,11 @@ function updateApplicationGroupsTable(deviceId, divId, vendor) {
             }
 
             // Hide loading spinner when the response is received
-            document.getElementById('applicationsLoadingSpinner').style.display = 'none';
+            document.getElementById('loadingSpinner').style.display = 'none';
         })
         .catch(error => {
             // Hide loading spinner when the response is received
-            document.getElementById('applicationsLoadingSpinner').style.display = 'none';
+            document.getElementById('loadingSpinner').style.display = 'none';
             console.error('Error fetching application groups:', error)
         });
 }
@@ -527,7 +549,7 @@ function updateServicesTable(deviceId, divId, vendor) {
     let serviceList = [];
 
     // Show loading spinner
-    document.getElementById('serviceLoadingSpinner').style.display = 'block';
+    document.getElementById('loadingSpinner').style.display = 'block';
 
     // The div element to populate with the list of addresses
     const divElement = document.getElementById(divId);
@@ -544,6 +566,13 @@ function updateServicesTable(deviceId, divId, vendor) {
         .then(services => {
             // The div element to populate with the list of addresses
             const divElement = document.getElementById(divId);
+
+            // Check that addresses were found
+            if (services.message && addresses.message == 'No services found') {
+                document.getElementById('loadingSpinner').style.display = 'none';
+                showNotification('No services found for the selected device', 'Failure');
+                return;
+            }
 
             // Populate with the list of services
             services.forEach(service => {
@@ -600,11 +629,11 @@ function updateServicesTable(deviceId, divId, vendor) {
             }
 
             // Hide loading spinner when the response is received
-            document.getElementById('serviceLoadingSpinner').style.display = 'none';
+            document.getElementById('loadingSpinner').style.display = 'none';
         })
         .catch(error => {
             // Hide loading spinner when the response is received
-            document.getElementById('serviceLoadingSpinner').style.display = 'none';
+            document.getElementById('loadingSpinner').style.display = 'none';
             console.error('Error fetching services:', error)
         });
 }
@@ -622,7 +651,7 @@ function updateServiceGroupsTable(deviceId, divId, vendor) {
     let serviceGroupList = [];
 
     // Show loading spinner
-    document.getElementById('serviceGroupLoadingSpinner').style.display = 'block';
+    document.getElementById('loadingSpinner').style.display = 'block';
 
     // The div element to populate with the list of addresses
     const divElement = document.getElementById(divId);
@@ -639,6 +668,13 @@ function updateServiceGroupsTable(deviceId, divId, vendor) {
         .then(serviceGroups => {
             // The div element to populate with the list of groups
             const divElement = document.getElementById(divId);
+
+            // Check that addresses were found
+            if (serviceGroups.message && addresses.message == 'No service groups found') {
+                document.getElementById('loadingSpinner').style.display = 'none';
+                showNotification('No service groups found for the selected device', 'Failure');
+                return;
+            }
 
             // Populate with the list of services
             serviceGroups.forEach(group => {
@@ -689,11 +725,11 @@ function updateServiceGroupsTable(deviceId, divId, vendor) {
             }
 
             // Hide loading spinner when the response is received
-            document.getElementById('serviceGroupLoadingSpinner').style.display = 'none';
+            document.getElementById('loadingSpinner').style.display = 'none';
         })
         .catch(error => {
             // Hide loading spinner when the response is received
-            document.getElementById('serviceGroupLoadingSpinner').style.display = 'none';
+            document.getElementById('loadingSpinner').style.display = 'none';
             console.error('Error fetching services:', error)
         });
 }

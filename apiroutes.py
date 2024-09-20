@@ -1236,32 +1236,113 @@ class ObjectsView(MethodView):
             # Extract the details from the SQL output
             hostname = output[0][1]
             token = output[0][9]
+            vendor = output[0][3]
+            username = output[0][6]
+            password = output[0][7]
+            salt = output[0][8]
+
+            # Decrypt the password
+            try:
+                with CryptoSecret() as decryptor:
+                    print(f"Decrypting password for device '{hostname}'.")
+                    # Decrypt the password
+                    real_pw = decryptor.decrypt(
+                        secret=password,
+                        salt=base64.urlsafe_b64decode(salt.encode())
+                    )
+
+            except Exception as e:
+                print(
+                    Fore.RED,
+                    f"Could not decrypt password for device '{hostname}'.",
+                    Style.RESET_ALL
+                )
+                print(e)
+                real_pw = None
 
             # Create the device object
-            device_api = PaDeviceApi(
-                hostname=hostname,
-                rest_key=token,
-                version='v11.0'
-            )
-
-            # The address groups from the device
-            raw_address_groups = device_api.get_address_groups()
-
-            # A cleaned up list of address groups
-            address_group_list = []
-            for address_group in raw_address_groups:
-                entry = {}
-                entry["name"] = address_group['@name']
-                entry["static"] = address_group.get('static', 'None')
-                entry["description"] = address_group.get('description', 'None')
-                entry["tag"] = address_group.get(
-                    'tag',
-                    {'member': ['No tags']}
+            if vendor == 'paloalto':
+                device_api = PaDeviceApi(
+                    hostname=hostname,
+                    rest_key=token,
+                    version='v11.0'
                 )
-                address_group_list.append(entry)
+
+                # The address groups from the device
+                raw_address_groups = device_api.get_address_groups()
+
+                # A cleaned up list of address groups
+                address_group_list = []
+                for address_group in raw_address_groups:
+                    entry = {}
+                    entry["name"] = address_group['@name']
+                    entry["static"] = address_group.get('static', 'None')
+                    entry["description"] = address_group.get(
+                        'description',
+                        'None'
+                    )
+                    entry["tag"] = address_group.get(
+                        'tag',
+                        {'member': ['No tags']}
+                    )
+                    address_group_list.append(entry)
+
+            elif vendor == 'juniper':
+                device_api = JunosDeviceApi(
+                    hostname=hostname,
+                    username=username,
+                    password=real_pw,
+                )
+
+                # The address groups from the device
+                raw_address_groups = device_api.get_address_groups()
+
+                # The address objects from the device
+                raw_addresses = device_api.get_addresses()
+                if raw_addresses is None:
+                    return jsonify(
+                        {
+                            "result": "Success",
+                            "message": "No addresses found"
+                        }
+                    ), 200
+
+                # A cleaned up list of address groups
+                address_group_list = []
+                for address_book in raw_addresses:
+                    if 'address-set' in address_book:
+                        for address in address_book['address-set']:
+                            print(address)
+                            entry = {}
+                            entry["name"] = address['name']
+                            entry["static"] = address.get(
+                                'address',
+                                'None'
+                            )
+                            entry["description"] = address.get(
+                                'description',
+                                'None'
+                            )
+                            address_group_list.append(entry)
+
+            else:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Unknown vendor"
+                    }
+                ), 500
 
             # Sort the address groups by name
-            address_group_list.sort(key=lambda x: x['name'])
+            if address_group_list == []:
+                return jsonify(
+                    {
+                        "result": "Success",
+                        "message": "No address groups found"
+                    }
+                ), 200
+            else:
+                address_group_list.sort(key=lambda x: x['name'])
 
             # Return the address groups as JSON
             return jsonify(address_group_list)
