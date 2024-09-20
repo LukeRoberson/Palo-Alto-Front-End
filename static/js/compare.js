@@ -43,6 +43,11 @@ function setupComparison(listAId, listBId, listA, listB, sort = true) {
     let listAContainer = document.getElementById(listAId);
     let listBContainer = document.getElementById(listBId);
 
+    if (listAContainer.dataset.vendor != listBContainer.dataset.vendor) {
+        showNotification('Cannot compare objects from different vendors', 'Failure');
+        return;
+    }
+
     // Find missing items, update the lists, and sort them
     compareAndAppend(listA, listB, listAContainer, listBContainer);
     if (sort) {

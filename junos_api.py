@@ -40,6 +40,10 @@ class DeviceApi:
         __init__: Initialise the class with the device details
         __enter__: Context manager
         __exit__: Context manager
+        get_device: Get device basics from the device
+        get_ha: Get high availability details
+        get_config: Get the running configuration of the device
+        get_partial_config: Gets a partial configuration based on a path
     '''
 
     def __init__(
@@ -208,3 +212,341 @@ class DeviceApi:
         )
 
         return cleaned
+
+    def get_partial_config(
+        self,
+        path,
+        inherit=True,
+    ):
+        '''
+        Gets a partial configuration based on a path
+        A path must be provided (can't be empty or start with a slash)
+        If inherit is True, inherited configuration is included
+
+        Args:
+            path (str): Path to the configuration to get
+            inherit (bool): Include inherited configuration (default: True)
+
+        Returns:
+            dict: Configuration details
+        '''
+
+        # Input validation
+        if path is None or path == '':
+            print(
+                Fore.RED,
+                'Error: Path not provided',
+                Style.RESET_ALL
+            )
+            return None
+
+        if path[0] == '/':
+            print(
+                Fore.RED,
+                'Error: Path should not start with /',
+                Style.RESET_ALL
+            )
+            return None
+
+        # Set inherit value
+        if inherit is True:
+            inherit = 'inherit'
+        else:
+            inherit = ''
+
+        # Get the config
+        try:
+            result = self.device.rpc.get_config(
+                filter_xml=path,
+                options={
+                    'format': 'json',
+                    'inherit': inherit,
+                }
+            )
+
+        except Exception as e:
+            print(Fore.RED, f'Error: {e}', Style.RESET_ALL)
+
+        # Filter the results nicely
+        path_list = path.split('/')
+        result = result['configuration']
+
+        if path_list[0] not in result:
+            return None
+
+        for item in path_list:
+            result = result[item]
+
+        return result
+
+    def get_addresses(
+        self
+    ) -> list:
+        '''
+        Gets:
+            - Address books
+            - Address objects
+            - Address sets (groups of addresses)
+
+        Add addresses and address sets are part of an address book
+
+        Returns:
+            list: The addresses
+                name (str): The name of the address book
+                address (list): The addresses in the address book
+                    name (str): The name of the address
+                    ip-prefix (str): The IP prefix of the address
+                address-set (list): The address sets in the address book
+                    name (str): The name of the address set
+                    address (list): The addresses in the address set
+                        name (str): The name of the address object
+        '''
+
+        addresses = self.get_partial_config(
+            path='security/address-book',
+            inherit=True,
+        )
+
+        return addresses
+
+    def get_address_groups(
+        self
+    ) -> list:
+        '''
+        An Alias for get_addresses
+        This is to match other APIs that don't include addresses
+            and address sets together
+        '''
+
+        addresses = self.get_partial_config(
+            path='security/address-book',
+            inherit=True,
+        )
+
+        return addresses
+
+    def get_application_groups(
+        self
+    ):
+        '''
+        Gets application groups
+            This is part of the app-id license
+
+        Returns:
+            list: Dictionaries of application groups
+                name (str): The name of the application
+                applications (list): The applications in the group
+                    name (str): The name of the application
+        '''
+
+        app_groups = self.get_partial_config(
+            path='services/application-identification/application-group',
+            inherit=True,
+        )
+
+        return app_groups
+
+    def get_services(
+        self
+    ):
+        '''
+        Gets services
+
+        Returns:
+            list: Dictionaries of services
+                name (str): The name of the service
+                description (str): The description of the service
+                protocol (str): The protocol of the service
+                destination-port (str): The destination port of the service
+                source-port (str): The source port of the service
+        '''
+
+        services = self.get_partial_config(
+            path='applications/application',
+            inherit=True,
+        )
+
+        return services
+
+    def get_service_groups(
+        self
+    ):
+        '''
+        Gets service groups
+            This is an 'application-set' in Junos
+
+        Returns:
+            list: Dictionaries of service groups
+                name (str): The name of the service group
+                description (str): The description of the service group
+                application (list): The applications in the group
+                    name (str): The name of the application object
+        '''
+
+        service_groups = self.get_partial_config(
+            path='applications/application-set',
+            inherit=True,
+        )
+
+        return service_groups
+
+    def get_nat_policies(
+        self
+    ):
+        '''
+        Gets NAT policies
+            This can be source or destination NAT
+
+        Notes:
+            interfaces may be 'null' if the NAT is not interface-based
+
+        Returns:
+            dict: Dictionaries source and destination NAT policies
+                source (dict): Source NAT policies
+                    rule-set (list of dicts): The source NAT rule sets
+                        name (str): The name of the rule set
+                        from (dict): The source zone
+                            zone (list of str): The source zones
+                        to (dict): The destination zone
+                            zone (list of str): The destination zones
+                        rule (list of dicts): The source NAT rules
+                            name (str): The name of the rule
+                            src-nat-rule-match (dict): The source NAT match
+                                source-address (list of str): Source networks
+                            then (dict): The source NAT action
+                                source-nat (dict): The source NAT details
+                                    interface (list of str): The source int
+
+                destination (dict): Destination NAT policies
+                    pool (list of dicts): The destination NAT pools
+                        name (str): The name of the pool
+                        routng-instance (dict): The routing instance
+                            ri-name (str): The name of the routing instance
+                        address (dict): The address of the pool
+                            ip-prefix (str): The IP prefix of the pool
+                    rule-set (list of dicts): The destination NAT rule sets
+                        name (str): The rule set name
+                        from (dict): The source zone
+                            zone (list of str): The source zones
+                        rule (list of dicts): The destination NAT rules
+                            name (str): The name of the rule
+                            dest-nat-rule-match (dict): The d-NAT match
+                                destination-address (dict): The dest address
+                                    dst-addr: (str): The destination address
+                                destination-port (list of dict): The dest port
+                                    name (int): The destination port
+                            then (dict): The destination NAT action
+                                destination-nat (dict): The d-NAT details
+                                    pool (list of str): The destination NAT
+                                        pool-name (str): The pool name
+        '''
+
+        nat_policy = self.get_partial_config(
+            path='applications/application-set',
+            inherit=True,
+        )
+
+        return nat_policy
+
+    def get_security_policies(
+        self
+    ):
+        '''
+        Gets security policies
+
+        Returns:
+            list of dicts: Dictionaries of security policies
+                from-zone-name (str): The source zone
+                to-zone-name (str): The destination zone
+                policy (list of dicts): The security policies
+                    name (str): The name of the policy
+                    match (dict): The match criteria
+                        source-address (list of str): The source addresses
+                        destination-address (list of str): The dest addresses
+                        application (list of str): The applications
+                    then (dict): The action
+                        permit (dict): The permit action
+                        log (dict): The log action
+                        count (dict): The count action
+                        deny (dict): The deny action
+        '''
+
+        service_groups = self.get_partial_config(
+            path='security/policies/policy',
+            inherit=True,
+        )
+
+        return service_groups
+
+    def get_qos_policies(
+        self
+    ):
+        '''
+        Gets QoS policies
+
+        Returns:
+            dict: Dictionaries of QoS policies
+                classifiers (dict): The classifiers
+                    dscp (list of dicts): The DSCP classifiers
+                        name (str): The name of the classifier
+                        forwarding-class (list): The forwarding classes
+                            name (str): The name of the forwarding class
+                            loss-priority (list): The loss priorities
+                                name (str): The name of the loss priority
+                                code-point (list of str): The code point
+                drop-profiles (list of dicts): The drop profiles
+                    name (str): The name of the drop profile
+                    drop-profile-map (list): The drop profile map
+                        name (str): The name of the drop profile map
+                        drop-profile (list): The drop profiles
+                            name (str): The name of the drop profile
+                            interpolate (dict): The interpolate values
+                                fill-level (list of ints): The fill levels
+                                drop-probability (list of ints): The drop probs
+                forwarding-classes (dict): The forwarding classes
+                    queue (list of dicts): The queues
+                        name (str): Queue name
+                        class-name (str): The class name
+                interfaces (dict): The interfaces
+                    interface (list of dicts): The interfaces
+                        name (str): The interface name
+                        shaping-rate (dict): The shaping rate
+                            rate (str): The shaping rate
+                        unit (list of dicts): The interface units
+                            name (int): The unit number
+                            scheduler-map (str): The assigned scheduler map
+                            classifiers (dict): The assigned classifiers
+                                dscp (list of dicts): Assigned DSCP classifiers
+                                    name (str): The name of the classifier
+                rewrite-rules (dict): The rewrite rules
+                    dscp: (list of dicts): The DSCP rewrite rules
+                        name (str): The name of the rewrite rule
+                        forwarding-class (list of dicts): Forwarding classes
+                            name (str): The name of the forwarding class
+                            loss-priority (list of dicts): The loss priorities
+                                name (str): The name of the loss priority
+                                code-point (str): The code point
+                scheduler-maps (list of dicts): The scheduler maps
+                    name (str): The name of the scheduler map
+                    forwarding-class (list of dicts): The forwarding classes
+                        name (str): The name of the forwarding class
+                        scheduler (str): The assigned scheduler
+                schedulers (list of dicts): The schedulers
+                    name (str): The name of the scheduler
+                    transmit-rate (dict): The transmit rate
+                        percent (int): The transmit rate percentage
+                    buffer-size (dict): The buffer size
+                        percent (int): The buffer size percentage
+                    drop-profile-map (list of dicts): The drop profile map
+                        loss-priority (str): The loss priority
+                        protocol (str): The protocol
+                        drop-profile (str): The drop profile
+                    priority (str): The priority name
+        '''
+
+        service_groups = self.get_partial_config(
+            path='class-of-service',
+            inherit=True,
+        )
+
+        return service_groups

@@ -149,3 +149,9 @@ button.highlight-disabled {
 .input-group button {
     margin-left: 10px;
 }
+
+/* Dropdown styling */
+.deviceDropdown {
+    max-height: 300px;
+    overflow-y: auto;
+}

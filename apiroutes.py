@@ -978,7 +978,7 @@ class ObjectsView(MethodView):
             service_groups: Get the service groups for a device.
 
     POST Parameters:
-        object (str): The object type to get.
+        object (str): The object type.
             tags: Get the tags for a device.
         action (str): The action to perform.
             create: Add a device to the database.
@@ -1095,43 +1095,108 @@ class ObjectsView(MethodView):
             # Extract the details from the SQL output
             hostname = output[0][1]
             token = output[0][9]
+            vendor = output[0][3]
+            username = output[0][6]
+            password = output[0][7]
+            salt = output[0][8]
 
-            # Create the device object
-            device_api = PaDeviceApi(
-                hostname=hostname,
-                rest_key=token,
-                version='v11.0'
-            )
-
-            # The address objects from the device
-            raw_addresses = device_api.get_addresses()
-
-            # A cleaned up list of address objects
-            address_list = []
-            for address in raw_addresses:
-                entry = {}
-                entry["name"] = address['@name']
-
-                if 'ip-netmask' in address:
-                    entry["addr"] = address['ip-netmask']
-                elif 'ip-range' in address:
-                    entry["addr"] = address['ip-range']
-                elif 'fqdn' in address:
-                    entry["addr"] = address['fqdn']
-                else:
-                    entry["addr"] = 'No IP'
-                    print(
-                        Fore.RED,
-                        f'No IP for object {entry['name']}',
-                        Style.RESET_ALL
+            # Decrypt the password
+            try:
+                with CryptoSecret() as decryptor:
+                    print(f"Decrypting password for device '{hostname}'.")
+                    # Decrypt the password
+                    real_pw = decryptor.decrypt(
+                        secret=password,
+                        salt=base64.urlsafe_b64decode(salt.encode())
                     )
 
-                entry["description"] = address.get(
-                    'description',
-                    'No description',
+            except Exception as e:
+                print(
+                    Fore.RED,
+                    f"Could not decrypt password for device '{hostname}'.",
+                    Style.RESET_ALL
                 )
-                entry["tag"] = address.get('tag', 'No tag')
-                address_list.append(entry)
+                print(e)
+                real_pw = None
+
+            # Create the device object
+            if vendor == 'paloalto':
+                device_api = PaDeviceApi(
+                    hostname=hostname,
+                    rest_key=token,
+                    version='v11.0'
+                )
+
+                # The address objects from the device
+                raw_addresses = device_api.get_addresses()
+
+                # A cleaned up list of address objects
+                address_list = []
+                for address in raw_addresses:
+                    entry = {}
+                    entry["name"] = address['@name']
+
+                    if 'ip-netmask' in address:
+                        entry["addr"] = address['ip-netmask']
+                    elif 'ip-range' in address:
+                        entry["addr"] = address['ip-range']
+                    elif 'fqdn' in address:
+                        entry["addr"] = address['fqdn']
+                    else:
+                        entry["addr"] = 'No IP'
+                        print(
+                            Fore.RED,
+                            f'No IP for object {entry['name']}',
+                            Style.RESET_ALL
+                        )
+
+                    entry["description"] = address.get(
+                        'description',
+                        'No description',
+                    )
+                    entry["tag"] = address.get('tag', 'No tag')
+                    address_list.append(entry)
+
+            elif vendor == 'juniper':
+                device_api = JunosDeviceApi(
+                    hostname=hostname,
+                    username=username,
+                    password=real_pw,
+                )
+
+                # The address objects from the device
+                raw_addresses = device_api.get_addresses()
+                if raw_addresses is None:
+                    return jsonify(
+                        {
+                            "result": "Success",
+                            "message": "No addresses found"
+                        }
+                    ), 200
+
+                # A cleaned up list of address objects
+                address_list = []
+                for address_book in raw_addresses:
+                    for address in address_book['address']:
+                        entry = {}
+                        entry["name"] = address['name']
+                        entry["addr"] = address.get(
+                            'ip-prefix',
+                            'No IP'
+                        )
+                        entry["description"] = address.get(
+                            'description',
+                            'No description',
+                        )
+                        address_list.append(entry)
+
+            else:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Unknown vendor"
+                    }
+                ), 500
 
             # Sort the addresses by name
             address_list.sort(key=lambda x: x['name'])

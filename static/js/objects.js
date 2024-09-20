@@ -92,32 +92,35 @@ function populateDropdownWithData(selector, hoverColorClass, devices, divId) {
     dropdown.innerHTML = '';
 
     // Populate the dropdown with the list of devices
+    devices.sort((a, b) => a.device_name.localeCompare(b.device_name));
     devices.forEach(device => {
-        if (device.vendor == 'paloalto') {
-            // Create a new link element for each device
-            const link = document.createElement('a');
-            link.href = '#';
-            link.className = `w3-bar-item w3-button ${hoverColorClass} text`;
-            link.textContent = device.device_name;
+        if (selector.includes('tag') && device.vendor != 'paloalto') {
+            return;
+        }
 
-            // Add click event listener to each link
-            link.addEventListener('click', function () {
-                button.textContent = device.device_name;
-                button.innerHTML += ' <i class="fa fa-caret-down"></i>';
+        // Create a new link element for each device
+        const link = document.createElement('a');
+        link.href = '#';
+        link.className = `w3-bar-item w3-button ${hoverColorClass} text`;
+        link.textContent = device.device_name;
+
+        // Add click event listener to each link
+        link.addEventListener('click', function () {
+            button.textContent = device.device_name;
+            button.innerHTML += ' <i class="fa fa-caret-down"></i>';
 
 
-                // Fetch tags for the selected device using device_id and update the specified table
-                if (divId.includes('tagAccordion')) updateTagsTable(device.device_id, divId);
-                if (divId.includes('addressAccordion')) updateAddressesTable(device.device_id, divId);
-                if (divId.includes('addressGroupAccordion')) updateAddressGroupsTable(device.device_id, divId);
-                if (divId.includes('applicationGroupAccordion')) updateApplicationGroupsTable(device.device_id, divId);
-                if (divId.includes('serviceAccordion')) updateServicesTable(device.device_id, divId);
-                if (divId.includes('serviceGroupAccordion')) updateServiceGroupsTable(device.device_id, divId);
-            })
+            // Fetch tags for the selected device using device_id and update the specified table
+            if (divId.includes('tagAccordion')) updateTagsTable(device.device_id, divId, device.vendor);
+            if (divId.includes('addressAccordion')) updateAddressesTable(device.device_id, divId, device.vendor);
+            if (divId.includes('addressGroupAccordion')) updateAddressGroupsTable(device.device_id, divId, device.vendor);
+            if (divId.includes('applicationGroupAccordion')) updateApplicationGroupsTable(device.device_id, divId, device.vendor);
+            if (divId.includes('serviceAccordion')) updateServicesTable(device.device_id, divId, device.vendor);
+            if (divId.includes('serviceGroupAccordion')) updateServiceGroupsTable(device.device_id, divId, device.vendor);
+        })
 
-            // Append the link to the dropdown
-            dropdown.appendChild(link);
-        };
+        // Append the link to the dropdown
+        dropdown.appendChild(link);
     });
 }
 
@@ -152,7 +155,7 @@ function addChildTableItem(tableName, heading, value) {
  * @param {*} deviceId 
  * @param {*} divId 
  */
-function updateTagsTable(deviceId, divId) {
+function updateTagsTable(deviceId, divId, vendor) {
     // Create lists to track contents
     let objectList = [];
 
@@ -165,6 +168,7 @@ function updateTagsTable(deviceId, divId) {
     // Clear any existing content in the div
     divElement.innerHTML = '';
     divElement.dataset.deviceId = deviceId;
+    divElement.dataset.vendor = vendor;
     clearLines()
 
     // API call to fetch tags for the selected device
@@ -241,7 +245,7 @@ function updateTagsTable(deviceId, divId) {
  * @param {*} deviceId 
  * @param {*} divId 
  */
-function updateAddressesTable(deviceId, divId) {
+function updateAddressesTable(deviceId, divId, vendor) {
     // Create lists to track contents
     let addressList = [];
 
@@ -254,6 +258,7 @@ function updateAddressesTable(deviceId, divId) {
     // Clear any existing content in the div
     divElement.innerHTML = '';
     divElement.dataset.deviceId = deviceId;
+    divElement.dataset.vendor = vendor;
     clearLines()
 
     // API call to fetch addresses for the selected device
@@ -262,6 +267,13 @@ function updateAddressesTable(deviceId, divId) {
         .then(addresses => {
             // The div element to populate with the list of addresses
             const divElement = document.getElementById(divId);
+
+            // Check that addresses were found
+            if (addresses.message && addresses.message == 'No addresses found') {
+                document.getElementById('addressLoadingSpinner').style.display = 'none';
+                showNotification('No addresses found for the selected device', 'Failure');
+                return;
+            }
 
             // Populate with the list of addresses
             addresses.forEach(address => {
@@ -289,7 +301,9 @@ function updateAddressesTable(deviceId, divId) {
                 table.className = 'w3-table indented-table';
                 addChildTableItem(table, 'Address', address.addr);
                 addChildTableItem(table, 'Description', address.description);
-                addChildTableItem(table, 'Tag', address.tag.member.join(", "));
+                if (address.tag) {
+                    addChildTableItem(table, 'Tag', address.tag.member.join(", "));     // Tags do not exist on some platforms
+                }
                 listDiv.appendChild(table);
 
                 // Add items to the div element
@@ -302,7 +316,7 @@ function updateAddressesTable(deviceId, divId) {
                     name: address.name,
                     addr: address.addr,
                     description: address.description,
-                    tag: address.tag.member.join(", "),
+                    ...(address.tag && { tag: address.tag.member.join(", ") }),     // Tags do not exist on some platforms
                 };
                 addressList.push(addressObject);
             });
@@ -317,7 +331,6 @@ function updateAddressesTable(deviceId, divId) {
 
         })
         .catch(error => {
-            // Hide loading spinner when the response is received
             document.getElementById('addressLoadingSpinner').style.display = 'none';
             console.error('Error fetching addresses:', error)
         });
@@ -331,7 +344,7 @@ function updateAddressesTable(deviceId, divId) {
  * @param {*} deviceId 
  * @param {*} divId 
  */
-function updateAddressGroupsTable(deviceId, divId) {
+function updateAddressGroupsTable(deviceId, divId, vendor) {
     // Create a list to track contents
     let addressGroupList = [];
 
@@ -344,6 +357,7 @@ function updateAddressGroupsTable(deviceId, divId) {
     // Clear any existing content in the div
     divElement.innerHTML = '';
     divElement.dataset.deviceId = deviceId;
+    divElement.dataset.vendor = vendor;
     clearLines()
 
     // API call to fetch address groups for the selected device
@@ -421,7 +435,7 @@ function updateAddressGroupsTable(deviceId, divId) {
  * @param {*} deviceId 
  * @param {*} divId 
  */
-function updateApplicationGroupsTable(deviceId, divId) {
+function updateApplicationGroupsTable(deviceId, divId, vendor) {
     // Create a list to track contents
     let applicationGroupList = [];
 
@@ -434,6 +448,7 @@ function updateApplicationGroupsTable(deviceId, divId) {
     // Clear any existing content in the div
     divElement.innerHTML = '';
     divElement.dataset.deviceId = deviceId;
+    divElement.dataset.vendor = vendor;
     clearLines()
 
     // API call to fetch application groups for the selected device
@@ -507,7 +522,7 @@ function updateApplicationGroupsTable(deviceId, divId) {
  * @param {*} deviceId 
  * @param {*} divId 
  */
-function updateServicesTable(deviceId, divId) {
+function updateServicesTable(deviceId, divId, vendor) {
     // Create a list to track contents
     let serviceList = [];
 
@@ -520,6 +535,7 @@ function updateServicesTable(deviceId, divId) {
     // Clear any existing content in the div
     divElement.innerHTML = '';
     divElement.dataset.deviceId = deviceId;
+    divElement.dataset.vendor = vendor;
     clearLines()
 
     // API call to fetch service objects for the selected device
@@ -601,7 +617,7 @@ function updateServicesTable(deviceId, divId) {
  * @param {*} deviceId 
  * @param {*} divId 
  */
-function updateServiceGroupsTable(deviceId, divId) {
+function updateServiceGroupsTable(deviceId, divId, vendor) {
     // Create a list to track contents
     let serviceGroupList = [];
 
@@ -614,6 +630,7 @@ function updateServiceGroupsTable(deviceId, divId) {
     // Clear any existing content in the div
     divElement.innerHTML = '';
     divElement.dataset.deviceId = deviceId;
+    divElement.dataset.vendor = vendor;
     clearLines()
 
     // API call to fetch service groups for the selected device
