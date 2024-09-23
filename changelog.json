@@ -9,7 +9,12 @@
             "Rebranded as 'Firewall Management'",
             "Added a changelog to the 'about' page",
             "Added admin and helpdesk roles to the 'settings' page",
-            "Added support for SRX objects (addresses/groups, applications, and services/service groups)"
+            "Added support for SRX objects (addresses/groups, applications, and services/service groups)",
+            "Added GP VPN session count",
+            "Added device vendor drop down when adding or editing a device",
+            "Updated device edit screen to show the saved username, but not password",
+            "Hid HA details on devices that don't have HA enabled",
+            "Added icons to connect to devices with SSH or HTTPS"
         ]
     },
     {

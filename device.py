@@ -112,6 +112,7 @@ class Device:
         password: str,
         salt: str,
         vendor: str,
+        full_vendor: str = '',
         name: str = '',
         serial: str = '',
         ha_partner_serial: str = '',
@@ -128,7 +129,8 @@ class Device:
             username (str): Username for the device (XML API)
             password (str): Encrypted password for the device (XML API)
             salt (str): Salt for the encrypted (XML API)
-            vendor (str): Vendor of the device
+            vendor (str): Vendor of the device (short form in DB)
+            full_vendor (str): Full vendor name (for display)
             name (str): Friendly name of the device
             serial (str): Serial number of the device
             ha_partner_serial (str): Serial number of the HA partner
@@ -143,6 +145,7 @@ class Device:
         self.hostname = hostname
         self.site = site
         self.vendor = vendor
+        self.full_vendor = full_vendor
         self.serial = serial
         self.ha_partner_serial = ha_partner_serial
         self.model = None
@@ -791,6 +794,14 @@ class DeviceManager():
             Device: A new Device object
         '''
 
+        # Get the full vendor name (DB entry is in short form)
+        vendor_list = {
+            'paloalto': 'Palo Alto',
+            'juniper': 'Juniper',
+        }
+        vendor = device[3]
+        vendor_full_name = vendor_list.get(vendor, vendor)
+
         # Create the device object
         this_device = Device(
             id=device[0],
@@ -802,6 +813,7 @@ class DeviceManager():
             salt=device[8],
             name=device[10] if device[10] is not None else "no-name",
             vendor=device[3],
+            full_vendor=vendor_full_name,
             serial=device[11],
             ha_partner_serial=device[12],
             config=config,
@@ -865,6 +877,7 @@ class DeviceManager():
         name: str,
         hostname: str,
         site: uuid,
+        vendor: str,
         key: str,
         username: str,
         password: str,
@@ -879,6 +892,7 @@ class DeviceManager():
             friendly_name (str): The name of the device
             hostname (str): The hostname of the device
             site (uuid): The site identifier for the device
+            vendor (str): The vendor of the device
             key (str): The REST API key for the device
             username (str): The username for the device (XML API)
             password (str): The encrypted password for the device (XML API)
@@ -941,6 +955,7 @@ class DeviceManager():
             id=id,
             hostname=hostname,
             site=site,
+            vendor=vendor,
             key=key,
             username=username,
             password=password_encoded,
@@ -961,7 +976,7 @@ class DeviceManager():
                     'name': new_device.hostname,
                     'friendly_name': new_device.name,
                     'site': new_device.site,
-                    'vendor': 'paloalto',
+                    'vendor': vendor,
                     'type': 'firewall',
                     'auth_type': 'token',
                     'username': username,
@@ -1019,6 +1034,7 @@ class DeviceManager():
         name: str,
         hostname: str,
         site: uuid,
+        vendor: str,
         key: str,
         username: str,
         password: str,
@@ -1032,6 +1048,7 @@ class DeviceManager():
             name (str): The new name for the device
             hostname (str): The new hostname for the device
             site (uuid): The new site for the device
+            vendor (str): The new vendor for the device
             key (str): The new REST API key for the device
             username (str): The new username for the device (XML API)
             password (str): The new encrypted password for the device (XML API)
@@ -1064,6 +1081,7 @@ class DeviceManager():
                         'friendly_name': name,
                         'name': hostname,
                         'site': site,
+                        'vendor': vendor,
                         'token': key,
                         'username': username,
                         'secret': password,

@@ -165,3 +165,22 @@ button.highlight-disabled {
     max-height: 300px;
     overflow-y: auto;
 }
+
+/* Icon link styling */
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.icon-links {
+    display: flex;
+}
+
+.icon-link {
+    margin-left: 10px;
+}
+
+.icon-link i {
+    font-size: 1.2em;
+}

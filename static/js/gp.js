@@ -140,6 +140,12 @@ document.getElementById('gp-session-button').addEventListener('click', function 
 
                 // Hide loading spinner when the response is received
                 document.getElementById('loadingSpinner').style.display = 'none';
+
+                // Add session count
+                let sessionCount = sessionAccordion.getElementsByTagName('table').length;
+                let heading = document.getElementById('sessionHeader');
+                heading.innerHTML = `<h3>Global Protect Sessions (${sessionCount})</h3>`;
+
             })
 
             .catch(error => {

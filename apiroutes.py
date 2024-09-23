@@ -676,10 +676,12 @@ class DeviceView(MethodView):
 
             # Add the device to the database
             print(Fore.CYAN, "Adding device to DB", Style.RESET_ALL)
+            print(request.form)
             new_device = device_manager.add_device(
                 name=device_name,
                 hostname=request.form['hostName'],
                 site=request.form['siteMember'],
+                vendor=request.form['deviceVendor'],
                 key=request.form['apiKey'],
                 username=request.form['apiUser'],
                 password=encrypted_key,
@@ -766,6 +768,7 @@ class DeviceView(MethodView):
                 name=device_name,
                 hostname=request.form['hostNameEdit'],
                 site=request.form['siteMemberEdit'],
+                vendor=request.form['deviceVendorEdit'],
                 key=request.form['apiKeyEdit'],
                 username=request.form['apiUserEdit'],
                 password=encrypted_key,
