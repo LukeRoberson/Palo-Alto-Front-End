@@ -474,7 +474,7 @@ function updateApplicationGroupsTable(deviceId, divId, vendor) {
             const divElement = document.getElementById(divId);
 
             // Check that addresses were found
-            if (appGroups.message && addresses.message == 'No application groups found') {
+            if (appGroups.message && appGroups.message == 'No application groups found') {
                 document.getElementById('loadingSpinner').style.display = 'none';
                 showNotification('No application groups found for the selected device', 'Failure');
                 return;
@@ -504,7 +504,17 @@ function updateApplicationGroupsTable(deviceId, divId, vendor) {
                 // Table
                 const table = document.createElement('table');
                 table.className = 'w3-table indented-table';
-                addChildTableItem(table, 'Members', appGroup.members.member.join(", "));
+
+                let membersString = '';
+                if (appGroup.members && appGroup.members.member) {
+                    // Case where appGroup has 'members' and 'member'
+                    membersString = appGroup.members.member.join(", ");
+                } else if (appGroup.name) {
+                    // Case where appGroup has 'name'
+                    membersString = appGroup.name;
+                }
+
+                addChildTableItem(table, 'Members', membersString);
                 listDiv.appendChild(table);
 
                 // Add items to the div element
@@ -515,7 +525,9 @@ function updateApplicationGroupsTable(deviceId, divId, vendor) {
                 // Create an array of application groups
                 const appGroupObject = {
                     name: appGroup.name,
-                    members: appGroup.members.member.join(", "),
+                    members: appGroup.members && appGroup.members.member
+                        ? appGroup.members.member.join(", ")
+                        : appGroup.name || '',
                 };
                 applicationGroupList.push(appGroupObject);
             });
@@ -568,7 +580,7 @@ function updateServicesTable(deviceId, divId, vendor) {
             const divElement = document.getElementById(divId);
 
             // Check that addresses were found
-            if (services.message && addresses.message == 'No services found') {
+            if (services.message && services.message == 'No services found') {
                 document.getElementById('loadingSpinner').style.display = 'none';
                 showNotification('No services found for the selected device', 'Failure');
                 return;
@@ -596,15 +608,27 @@ function updateServicesTable(deviceId, divId, vendor) {
                 listDiv.style = 'overflow-x: auto;';
 
                 // Table
-                const protocolType = Object.keys(service.protocol)[0];
-                const protocolPort = service.protocol[protocolType]['port'];
+                let protocolType;
+                let protocolPort;
+                if (vendor == 'paloalto') {
+                    protocolType = Object.keys(service.protocol)[0];
+                    protocolPort = service.protocol[protocolType]['port'];
+                } else if (vendor == 'juniper') {
+                    protocolType = service.protocol;
+                    protocolPort = service.dest_port;
+                } else {
+                    console.log("Unknown vendor");
+                    return;
+                }
 
                 const table = document.createElement('table');
                 table.className = 'w3-table indented-table';
                 addChildTableItem(table, 'Protocol', protocolType);
                 addChildTableItem(table, 'Port', protocolPort);
                 addChildTableItem(table, 'Description', service.description);
-                addChildTableItem(table, 'Tag', service.tag.member.join(", "));
+                if (service.tag) {
+                    addChildTableItem(table, 'Tag', service.tag.member.join(", "));         // Tags do not exist on some platforms
+                }
                 listDiv.appendChild(table);
 
                 // Add items to the div element
@@ -617,7 +641,7 @@ function updateServicesTable(deviceId, divId, vendor) {
                     name: service.name,
                     addr: service.addr,
                     description: service.description,
-                    tag: service.tag.member.join(", "),
+                    ...(service.tag && { tag: service.tag.member.join(", ") }),             // Tags do not exist on some platforms
                 };
                 serviceList.push(serviceObject);
             });
@@ -670,7 +694,7 @@ function updateServiceGroupsTable(deviceId, divId, vendor) {
             const divElement = document.getElementById(divId);
 
             // Check that addresses were found
-            if (serviceGroups.message && addresses.message == 'No service groups found') {
+            if (serviceGroups.message && serviceGroups.message == 'No service groups found') {
                 document.getElementById('loadingSpinner').style.display = 'none';
                 showNotification('No service groups found for the selected device', 'Failure');
                 return;
@@ -700,8 +724,20 @@ function updateServiceGroupsTable(deviceId, divId, vendor) {
                 // Table
                 const table = document.createElement('table');
                 table.className = 'w3-table indented-table';
-                addChildTableItem(table, 'Members', group.members.member.join(", "));
-                addChildTableItem(table, 'Tag', group.tag.member?.join(", ") ?? 'No tags');
+                let membersString = '';
+
+                if (group.members && Array.isArray(group.members.member)) {
+                    // Case where group.members.member is a list of items
+                    membersString = group.members.member.join(", ");
+                } else if (group.members && Array.isArray(group.members)) {
+                    // Case where group.members is a list of objects with a 'name' key
+                    membersString = group.members.map(member => member.name).join(", ");
+                }
+
+                addChildTableItem(table, 'Members', membersString);
+                if (group.tag) {
+                    addChildTableItem(table, 'Tag', group.tag.member?.join(", ") ?? 'No tags');         // Tags do not exist on some platforms
+                }
                 listDiv.appendChild(table);
 
                 // Add items to the div element
@@ -712,8 +748,13 @@ function updateServiceGroupsTable(deviceId, divId, vendor) {
                 // Create an array of services
                 const serviceGroupObject = {
                     name: group.name,
-                    members: group.members.member.join(", "),
-                    tag: group.tag.member?.join(", ") ?? 'No tags',
+                    members: group.members && Array.isArray(group.members.member)
+                        ? group.members.member.join(", ")
+                        : group.members && Array.isArray(group.members)
+                            ? group.members.map(member => member.name).join(", ")
+                            : '',
+                    ...(group.tag && Array.isArray(group.tag.member) && { tag: group.tag.member.join(", ") }), // Tags do not exist on some platforms             // Tags do not exist on some platforms
+
                 };
                 serviceGroupList.push(serviceGroupObject);
             });

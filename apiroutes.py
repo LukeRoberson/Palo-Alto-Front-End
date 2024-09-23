@@ -1303,7 +1303,7 @@ class ObjectsView(MethodView):
                     return jsonify(
                         {
                             "result": "Success",
-                            "message": "No addresses found"
+                            "message": "No address groups found"
                         }
                     ), 200
 
@@ -1379,27 +1379,94 @@ class ObjectsView(MethodView):
             # Extract the details from the SQL output
             hostname = output[0][1]
             token = output[0][9]
+            vendor = output[0][3]
+            username = output[0][6]
+            password = output[0][7]
+            salt = output[0][8]
+
+            # Decrypt the password
+            try:
+                with CryptoSecret() as decryptor:
+                    print(f"Decrypting password for device '{hostname}'.")
+                    # Decrypt the password
+                    real_pw = decryptor.decrypt(
+                        secret=password,
+                        salt=base64.urlsafe_b64decode(salt.encode())
+                    )
+
+            except Exception as e:
+                print(
+                    Fore.RED,
+                    f"Could not decrypt password for device '{hostname}'.",
+                    Style.RESET_ALL
+                )
+                print(e)
+                real_pw = None
 
             # Create the device object
-            device_api = PaDeviceApi(
-                hostname=hostname,
-                rest_key=token,
-                version='v11.0'
-            )
-
-            # The application groups from the device
-            raw_application_groups = device_api.get_application_groups()
-
-            # A cleaned up list of application groups
-            application_group_list = []
-            for application_group in raw_application_groups:
-                entry = {}
-                entry["name"] = application_group['@name']
-                entry["members"] = application_group.get(
-                    'members',
-                    'No members'
+            if vendor == 'paloalto':
+                device_api = PaDeviceApi(
+                    hostname=hostname,
+                    rest_key=token,
+                    version='v11.0'
                 )
-                application_group_list.append(entry)
+
+                # The application groups from the device
+                raw_application_groups = device_api.get_application_groups()
+                if raw_application_groups is None:
+                    return jsonify(
+                        {
+                            "result": "Success",
+                            "message": "No application groups found"
+                        }
+                    ), 200
+
+                # A cleaned up list of application groups
+                application_group_list = []
+                for application_group in raw_application_groups:
+                    entry = {}
+                    entry["name"] = application_group['@name']
+                    entry["members"] = application_group.get(
+                        'members',
+                        'No members'
+                    )
+                    application_group_list.append(entry)
+
+            elif vendor == 'juniper':
+                device_api = JunosDeviceApi(
+                    hostname=hostname,
+                    username=username,
+                    password=real_pw,
+                )
+
+                # The application groups from the device
+                raw_application_groups = device_api.get_application_groups()
+                if raw_application_groups is None:
+                    return jsonify(
+                        {
+                            "result": "Success",
+                            "message": "No application groups found"
+                        }
+                    ), 200
+
+                # A cleaned up list of application groups
+                application_group_list = []
+                for application_group in raw_application_groups:
+                    entry = {}
+                    entry["name"] = application_group['name']
+                    entry["members"] = application_group.get(
+                        'applications',
+                        'No members'
+                    )
+                    application_group_list.append(entry)
+
+            else:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Unknown vendor"
+                    }
+                ), 500
 
             # Sort the application groups by name
             application_group_list.sort(key=lambda x: x['name'])
@@ -1439,29 +1506,102 @@ class ObjectsView(MethodView):
             # Extract the details from the SQL output
             hostname = output[0][1]
             token = output[0][9]
+            vendor = output[0][3]
+            username = output[0][6]
+            password = output[0][7]
+            salt = output[0][8]
+
+            # Decrypt the password
+            try:
+                with CryptoSecret() as decryptor:
+                    print(f"Decrypting password for device '{hostname}'.")
+                    # Decrypt the password
+                    real_pw = decryptor.decrypt(
+                        secret=password,
+                        salt=base64.urlsafe_b64decode(salt.encode())
+                    )
+
+            except Exception as e:
+                print(
+                    Fore.RED,
+                    f"Could not decrypt password for device '{hostname}'.",
+                    Style.RESET_ALL
+                )
+                print(e)
+                real_pw = None
 
             # Create the device object
-            device_api = PaDeviceApi(
-                hostname=hostname,
-                rest_key=token,
-                version='v11.0'
-            )
-
-            # The service objects from the device
-            raw_services = device_api.get_services()
-
-            # A cleaned up list of service objects
-            services_list = []
-            for service in raw_services:
-                entry = {}
-                entry["name"] = service['@name']
-                entry["protocol"] = service['protocol']
-                entry["description"] = service.get(
-                    'description',
-                    'No description'
+            if vendor == 'paloalto':
+                device_api = PaDeviceApi(
+                    hostname=hostname,
+                    rest_key=token,
+                    version='v11.0'
                 )
-                entry["tag"] = service.get('tag', 'No tag')
-                services_list.append(entry)
+
+                # The service objects from the device
+                raw_services = device_api.get_services()
+                if raw_services is None:
+                    return jsonify(
+                        {
+                            "result": "Success",
+                            "message": "No services found"
+                        }
+                    ), 200
+
+                # A cleaned up list of service objects
+                services_list = []
+                for service in raw_services:
+                    entry = {}
+                    entry["name"] = service['@name']
+                    entry["protocol"] = service['protocol']
+                    entry["description"] = service.get(
+                        'description',
+                        'No description'
+                    )
+                    entry["tag"] = service.get('tag', 'No tag')
+                    services_list.append(entry)
+
+            elif vendor == 'juniper':
+                device_api = JunosDeviceApi(
+                    hostname=hostname,
+                    username=username,
+                    password=real_pw,
+                )
+
+                # The service objects from the device
+                raw_services = device_api.get_services()
+                if raw_services is None:
+                    return jsonify(
+                        {
+                            "result": "Success",
+                            "message": "No services found"
+                        }
+                    ), 200
+
+                # A cleaned up list of service objects
+                print(raw_services)
+                services_list = []
+                for service in raw_services:
+                    entry = {}
+                    entry["name"] = service['name']
+                    entry["protocol"] = service['protocol']
+                    entry["description"] = service.get(
+                        'description',
+                        'No description'
+                    )
+                    entry["dest_port"] = service.get(
+                        'destination-port',
+                        'No port'
+                    )
+                    services_list.append(entry)
+
+            else:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Unknown vendor"
+                    }
+                ), 500
 
             # Sort the service objects by name
             services_list.sort(key=lambda x: x['name'])
@@ -1501,25 +1641,96 @@ class ObjectsView(MethodView):
             # Extract the details from the SQL output
             hostname = output[0][1]
             token = output[0][9]
+            vendor = output[0][3]
+            username = output[0][6]
+            password = output[0][7]
+            salt = output[0][8]
+
+            # Decrypt the password
+            try:
+                with CryptoSecret() as decryptor:
+                    print(f"Decrypting password for device '{hostname}'.")
+                    # Decrypt the password
+                    real_pw = decryptor.decrypt(
+                        secret=password,
+                        salt=base64.urlsafe_b64decode(salt.encode())
+                    )
+
+            except Exception as e:
+                print(
+                    Fore.RED,
+                    f"Could not decrypt password for device '{hostname}'.",
+                    Style.RESET_ALL
+                )
+                print(e)
+                real_pw = None
 
             # Create the device object
-            device_api = PaDeviceApi(
-                hostname=hostname,
-                rest_key=token,
-                version='v11.0'
-            )
+            if vendor == 'paloalto':
+                device_api = PaDeviceApi(
+                    hostname=hostname,
+                    rest_key=token,
+                    version='v11.0'
+                )
 
-            # The service groups from the device
-            raw_service_groups = device_api.get_service_groups()
+                # The service groups from the device
+                raw_service_groups = device_api.get_service_groups()
+                if raw_service_groups is None:
+                    return jsonify(
+                        {
+                            "result": "Success",
+                            "message": "No service groups found"
+                        }
+                    ), 200
 
-            # A cleaned up list of service groups
-            service_groups_list = []
-            for service in raw_service_groups:
-                entry = {}
-                entry["name"] = service['@name']
-                entry["members"] = service.get('members', 'No members')
-                entry["tag"] = service.get('tag', 'No tags')
-                service_groups_list.append(entry)
+                # A cleaned up list of service groups
+                service_groups_list = []
+                for service in raw_service_groups:
+                    entry = {}
+                    entry["name"] = service['@name']
+                    entry["members"] = service.get('members', 'No members')
+                    entry["tag"] = service.get('tag', 'No tags')
+                    service_groups_list.append(entry)
+
+            elif vendor == 'juniper':
+                device_api = JunosDeviceApi(
+                    hostname=hostname,
+                    username=username,
+                    password=real_pw,
+                )
+
+                # The service groups from the device
+                raw_service_groups = device_api.get_service_groups()
+                if raw_service_groups is None:
+                    return jsonify(
+                        {
+                            "result": "Success",
+                            "message": "No service groups found"
+                        }
+                    ), 200
+
+                # A cleaned up list of service groups
+                service_groups_list = []
+                for service in raw_service_groups:
+                    entry = {}
+                    entry["name"] = service['name']
+                    entry["description"] = service.get(
+                        'description',
+                        'No description'
+                    )
+                    entry["members"] = service.get(
+                        'application',
+                        'No applications'
+                    )
+                    service_groups_list.append(entry)
+
+            else:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Unknown vendor"
+                    }
+                ), 500
 
             # Sort the service groups by name
             service_groups_list.sort(key=lambda x: x['name'])

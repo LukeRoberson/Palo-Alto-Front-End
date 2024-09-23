@@ -1,6 +1,7 @@
 [
     {
         "version": "1.0",
+        "date": "September 2024",
         "changes": [
             "Added version number to 'about' page",
             "Fixed light/dark mode suppot to the table on the 'about' page",
@@ -8,11 +9,12 @@
             "Rebranded as 'Firewall Management'",
             "Added a changelog to the 'about' page",
             "Added admin and helpdesk roles to the 'settings' page",
-            "Added support for SRX address objects"
+            "Added support for SRX objects (addresses/groups, applications, and services/service groups)"
         ]
     },
     {
         "version": "0.0-beta",
+        "date": "September 2024",
         "changes": [
             "Finished beta release",
             "Support for Palo Alto and SRX firewalls"

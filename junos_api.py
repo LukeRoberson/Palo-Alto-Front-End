@@ -265,9 +265,13 @@ class DeviceApi:
             )
 
         except Exception as e:
-            print(Fore.RED, f'Error: {e}', Style.RESET_ALL)
+            if 'NoneType' not in str(e):
+                print(Fore.RED, f'Error: {e}', Style.RESET_ALL)
+
+            return None
 
         # Filter the results nicely
+        print(result)
         path_list = path.split('/')
         result = result['configuration']
 
@@ -387,6 +391,7 @@ class DeviceApi:
             path='applications/application-set',
             inherit=True,
         )
+        print(service_groups)
 
         return service_groups
 
