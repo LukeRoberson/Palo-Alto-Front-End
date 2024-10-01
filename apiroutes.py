@@ -451,7 +451,6 @@ class SiteView(MethodView):
         # Add a site to the database
         if parameters == 'add':
             # Get the site name from the form
-            print(request.form)
             site_name = request.form['siteName']
 
             # Add the site to the database
@@ -606,7 +605,6 @@ class DeviceView(MethodView):
             # If there is a device parameter, return the device entry
             device_entry = None
             for entry in device_list:
-                print(entry)
                 if str(entry['device_id']) == device:
                     device_entry = entry
 
@@ -676,7 +674,6 @@ class DeviceView(MethodView):
 
             # Add the device to the database
             print(Fore.CYAN, "Adding device to DB", Style.RESET_ALL)
-            print(request.form)
             new_device = device_manager.add_device(
                 name=device_name,
                 hostname=request.form['hostName'],
@@ -1315,7 +1312,6 @@ class ObjectsView(MethodView):
                 for address_book in raw_addresses:
                     if 'address-set' in address_book:
                         for address in address_book['address-set']:
-                            print(address)
                             entry = {}
                             entry["name"] = address['name']
                             entry["static"] = address.get(
@@ -1582,7 +1578,6 @@ class ObjectsView(MethodView):
                     ), 200
 
                 # A cleaned up list of service objects
-                print(raw_services)
                 services_list = []
                 for service in raw_services:
                     entry = {}
@@ -1764,6 +1759,7 @@ class ObjectsView(MethodView):
         # Get the action parameter from the request
         action = request.args.get('action')
 
+        # Create a new tag
         if object_type == 'tags' and action == 'create':
             # Get device information
             device = request.args.get('id')
@@ -1811,6 +1807,238 @@ class ObjectsView(MethodView):
             )
 
             return jsonify(result)
+
+        # Create a new address object - PLACEHOLDER
+        if object_type == 'addresses' and action == 'create':
+            # Get device information
+            device = request.args.get('id')
+            sql_server = config.sql_server
+            sql_database = config.sql_database
+            table = 'devices'
+
+            # Read the device details from the database
+            with SqlServer(
+                server=sql_server,
+                database=sql_database,
+                table=table,
+                config=config,
+            ) as sql:
+                output = sql.read(
+                    field='id',
+                    value=device,
+                )
+
+            # Return a failure message if the database read failed
+            if not output:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Problems reading from the database"
+                    }
+                ), 500
+
+            print(
+                Fore.MAGENTA,
+                "Create a new address object - PLACEHOLDER",
+                f'Name: {request.json["name"]}',
+                f'Address: {request.json["address"]}',
+                f'Description: {request.json["description"]}',
+                f'Tag: {request.json["tag"]}',
+                Style.RESET_ALL
+            )
+
+            return jsonify(
+                {
+                    "result": "Success",
+                    "message": "Placeholder for creating address object"
+                }
+            ), 200
+
+        # Create a new address group - PLACEHOLDER
+        if object_type == 'address_groups' and action == 'create':
+            # Get device information
+            device = request.args.get('id')
+            sql_server = config.sql_server
+            sql_database = config.sql_database
+            table = 'devices'
+
+            # Read the device details from the database
+            with SqlServer(
+                server=sql_server,
+                database=sql_database,
+                table=table,
+                config=config,
+            ) as sql:
+                output = sql.read(
+                    field='id',
+                    value=device,
+                )
+
+            # Return a failure message if the database read failed
+            if not output:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Problems reading from the database"
+                    }
+                ), 500
+
+            print(
+                Fore.MAGENTA,
+                "Create a new address group object - PLACEHOLDER",
+                f'Name: {request.json["name"]}',
+                f'Members: {request.json["members"]}',
+                f'Description: {request.json["description"]}',
+                f'Tag: {request.json["tag"]}',
+                Style.RESET_ALL
+            )
+            return jsonify(
+                {
+                    "result": "Success",
+                    "message": "Placeholder for creating address groups"
+                }
+            ), 200
+
+        # Create a new application group - PLACEHOLDER
+        if object_type == 'app_groups' and action == 'create':
+            # Get device information
+            device = request.args.get('id')
+            sql_server = config.sql_server
+            sql_database = config.sql_database
+            table = 'devices'
+
+            # Read the device details from the database
+            with SqlServer(
+                server=sql_server,
+                database=sql_database,
+                table=table,
+                config=config,
+            ) as sql:
+                output = sql.read(
+                    field='id',
+                    value=device,
+                )
+
+            # Return a failure message if the database read failed
+            if not output:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Problems reading from the database"
+                    }
+                ), 500
+
+            print(
+                Fore.MAGENTA,
+                "Create a new application group object - PLACEHOLDER",
+                f'Name: {request.json["name"]}',
+                f'Members: {request.json["members"]}',
+                Style.RESET_ALL
+            )
+            return jsonify(
+                {
+                    "result": "Success",
+                    "message": "Placeholder for creating application groups"
+                }
+            ), 200
+
+        # Create a new service object - PLACEHOLDER
+        if object_type == 'services' and action == 'create':
+            # Get device information
+            device = request.args.get('id')
+            sql_server = config.sql_server
+            sql_database = config.sql_database
+            table = 'devices'
+
+            # Read the device details from the database
+            with SqlServer(
+                server=sql_server,
+                database=sql_database,
+                table=table,
+                config=config,
+            ) as sql:
+                output = sql.read(
+                    field='id',
+                    value=device,
+                )
+
+            # Return a failure message if the database read failed
+            if not output:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Problems reading from the database"
+                    }
+                ), 500
+
+            print(
+                Fore.MAGENTA,
+                "Create a new service object - PLACEHOLDER",
+                f'Name: {request.json["name"]}',
+                f'Protocol: {request.json["protocol"]}',
+                f'Port: {request.json["port"]}',
+                f'Description: {request.json["description"]}',
+                f'Tag: {request.json["tag"]}',
+                Style.RESET_ALL
+            )
+            return jsonify(
+                {
+                    "result": "Success",
+                    "message": "Placeholder for creating services"
+                }
+            ), 200
+
+        # Create a new service group - PLACEHOLDER
+        if object_type == 'service_groups' and action == 'create':
+            # Get device information
+            device = request.args.get('id')
+            sql_server = config.sql_server
+            sql_database = config.sql_database
+            table = 'devices'
+
+            # Read the device details from the database
+            with SqlServer(
+                server=sql_server,
+                database=sql_database,
+                table=table,
+                config=config,
+            ) as sql:
+                output = sql.read(
+                    field='id',
+                    value=device,
+                )
+
+            # Return a failure message if the database read failed
+            if not output:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Problems reading from the database"
+                    }
+                ), 500
+
+            print(
+                Fore.MAGENTA,
+                "Create a new service group object - PLACEHOLDER",
+                f'Name: {request.json["name"]}',
+                f'Members: {request.json["members"]}',
+                f'Tag: {request.json["tag"]}',
+                Style.RESET_ALL
+            )
+            return jsonify(
+                {
+                    "result": "Success",
+                    "message": "Placeholder for creating service groups"
+                }
+            ), 200
+
+        # Unknown or missing action
+        return jsonify(
+            {
+                "result": "Failure",
+                "message": "Unknown action supplied"
+            }
+        ), 500
 
 
 class PolicyView(MethodView):

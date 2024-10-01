@@ -165,14 +165,37 @@ function compareAndAppend(listA, listB, listAContainer, listBContainer) {
         // Add event listener to the add button
         addButton.addEventListener('click', (function (currentIndex, currentItem) {
             return function () {
-                // Display a notification that the feature is not yet supported
-                if (!parentDiv.id.includes('tag')) {
-                    showNotification('Adding objects is not yet supported here', 'Failure');
-                } else {
-                    showNotification('Adding tag...', 'Success');
-                    const targetDevice = container.dataset.deviceId;
+                // Call the function to add the object to the device
+                const targetDevice = container.dataset.deviceId;
+                const deviceVendor = container.dataset.vendor;
 
-                    addTagToDevice(targetDevice, currentItem);
+                switch (true) {
+                    case parentDiv.id.includes('tag'):
+                        addTagToDevice(targetDevice, deviceVendor, currentItem);
+                        break;
+
+                    case parentDiv.id.includes('addressGroup'):
+                        addAddressGroupToDevice(targetDevice, deviceVendor, currentItem);
+                        break;
+
+                    case parentDiv.id.includes('address'):
+                        addAddressToDevice(targetDevice, deviceVendor, currentItem);
+                        break;
+
+                    case parentDiv.id.includes('applicationGroup'):
+                        addApplicationGroupToDevice(targetDevice, deviceVendor, currentItem);
+                        break;
+
+                    case parentDiv.id.includes('serviceGroup'):
+                        addServiceGroupToDevice(targetDevice, deviceVendor, currentItem);
+                        break;
+
+                    case parentDiv.id.includes('service'):
+                        addServiceToDevice(targetDevice, deviceVendor, currentItem);
+                        break;
+
+                    default:
+                        showNotification('Adding objects is not yet supported here', 'Failure');
                 }
             };
         })(index, list[index]));
@@ -208,54 +231,411 @@ function compareAndAppend(listA, listB, listAContainer, listBContainer) {
 }
 
 
-async function addTagToDevice(targetDevice, item) {
-    try {
-        // Show loading spinner
-        document.getElementById('loadingSpinner').style.display = 'block';
+/**
+ * Adds a tag to a Palo Alto device
+ * Note, tags are only supported on PA, not SRX
+ * 
+ * @param {*} targetDevice 
+ * @param {*} item 
+ */
+async function addTagToDevice(targetDevice, deviceVendor, item) {
+    // Quick validation
+    if (deviceVendor !== 'paloalto') {
+        showNotification('Tags are not supported on SRX devices', 'Failure');
+        return;
+    }
 
-        // API call to check that the target is not passive (HA)
+    // Show loading spinner
+    document.getElementById('loadingSpinner').style.display = 'block';
+
+    // If Palo Alto, API call to check that the target is not passive (HA)
+    if (deviceVendor == 'paloalto') {
         const response = await fetch('/api/device?action=list&id=' + targetDevice);
         const data = await response.json();
 
         if (data['ha_state'] === 'passive') {
             showNotification('Cannot add tags to a passive device', 'Failure');
             document.getElementById('loadingSpinner').style.display = 'none';
-
-        } else {
-            // API call to add the tag to the device
-            const tag_data = {
-                "name": item['name'],
-                "comment": item['description'],
-            };
-
-            // If the tag has a colour, add it to the tag data
-            if (item['colour'] !== 'no colour') {
-                tag_data['colour'] = item['colour'];
-            };
-
-            // API call to add the tag to the device
-            const tagResponse = await fetch('/api/objects?object=tags&action=create&id=' + targetDevice, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(tag_data)
-            });
-
-            if (!tagResponse.ok) {
-                throw new Error(`HTTP error! status: ${tagResponse.status}`);
-            }
-
-            const tagResult = await tagResponse.json();
-            showNotification('Tag added, remember to commit', 'Success');
-            document.getElementById('loadingSpinner').style.display = 'none';
-
+            return;
         }
+    }
+
+    try {
+        // API call to add the tag to the device
+        const tag_data = {
+            "name": item['name'],
+            "comment": item['description'],
+        };
+
+        // If the tag has a colour, add it to the tag data
+        if (item['colour'] !== 'no colour') {
+            tag_data['colour'] = item['colour'];
+        };
+
+        // API call to add the tag to the device
+        const tagResponse = await fetch('/api/objects?object=tags&action=create&id=' + targetDevice, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(tag_data)
+        });
+
+        if (!tagResponse.ok) {
+            throw new Error(`HTTP error! status: ${tagResponse.status}`);
+        }
+
+        const tagResult = await tagResponse.json();
+        showNotification('Tag added, remember to commit', 'Success');
+        document.getElementById('loadingSpinner').style.display = 'none';
+
     } catch (error) {
         console.error('Error:', error);
         showNotification('Failed to add tag', 'Failure');
+
+    } finally {
+        // Hide the loading spinner
+        document.getElementById('loadingSpinner').style.display = 'none';
+    }
+}
+
+
+/**
+ * Add address objects to a device
+ * 
+ * @param {*} targetDevice 
+ * @param {*} item 
+ */
+async function addAddressToDevice(targetDevice, deviceVendor, item) {
+    // Quick validation
+    if (deviceVendor != 'paloalto' && deviceVendor != 'juniper') {
+        showNotification(`This vendor (${deviceVendor}) is not supported`, 'Failure');
+        return;
+    }
+
+    // Show loading spinner
+    document.getElementById('loadingSpinner').style.display = 'block';
+
+    // If Palo Alto, API call to check that the target is not passive (HA)
+    if (deviceVendor == 'paloalto') {
+        const response = await fetch('/api/device?action=list&id=' + targetDevice);
+        const data = await response.json();
+
+        if (data['ha_state'] === 'passive') {
+            showNotification('Cannot add tags to a passive device', 'Failure');
+            document.getElementById('loadingSpinner').style.display = 'none';
+            return;
+        }
+    }
+
+    // API call to add the address object to the device
+    try {
+        // Collect information
+        const address_data = {
+            "name": item['name'],
+            "address": item['addr'],
+            "description": item['description'],
+            "tag": item['tag'] ? item['tag'] : 'None',
+        };
+
+        // Placeholder for API call
+        const addressResponse = await fetch('/api/objects?object=addresses&action=create&id=' + targetDevice, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(address_data)
+        });
+
+        if (!addressResponse.ok) {
+            throw new Error(`HTTP error! status: ${addressResponse.status}`);
+        }
+
+        console.log('Placeholder: Adding address to device');
+        console.log(address_data);
+        showNotification('Adding address objects is not yet supported', 'Failure');
+
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Failed to add address object', 'Failure');
+
+    } finally {
+        // Hide the loading spinner
+        document.getElementById('loadingSpinner').style.display = 'none';
+    }
+}
+
+
+/**
+ * Add address group objects to a device
+ * 
+ * @param {*} targetDevice 
+ * @param {*} item 
+ */
+async function addAddressGroupToDevice(targetDevice, deviceVendor, item) {
+    // Quick validation
+    if (deviceVendor != 'paloalto' && deviceVendor != 'juniper') {
+        showNotification(`This vendor (${deviceVendor}) is not supported`, 'Failure');
+        return;
+    }
+
+    // Show loading spinner
+    document.getElementById('loadingSpinner').style.display = 'block';
+
+    // If Palo Alto, API call to check that the target is not passive (HA)
+    if (deviceVendor == 'paloalto') {
+        const response = await fetch('/api/device?action=list&id=' + targetDevice);
+        const data = await response.json();
+
+        if (data['ha_state'] === 'passive') {
+            showNotification('Cannot add addresses to a passive device', 'Failure');
+            document.getElementById('loadingSpinner').style.display = 'none';
+            return;
+        }
+    }
+
+    // API call to add the address group object to the device
+    try {
+        // Collect information
+        const address_group_data = {
+            "name": item['name'],
+            "members": item['static'],
+            "description": item['description'] ? item['description'] : 'None',
+            "tag": item['tag'] ? item['tag'] : 'None',
+        };
+
+        // Placeholder for API call
+        const addressGroupResponse = await fetch('/api/objects?object=address_groups&action=create&id=' + targetDevice, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(address_group_data)
+        });
+
+        if (!addressGroupResponse.ok) {
+            throw new Error(`HTTP error! status: ${addressGroupResponse.status}`);
+        }
+
+        console.log('Placeholder: Adding address group to device');
+        console.log(address_group_data);
+        showNotification('Adding address group objects is not yet supported', 'Failure');
+
+        // Hide the loading spinner
         document.getElementById('loadingSpinner').style.display = 'none';
 
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Failed to add address group object', 'Failure');
+
+    } finally {
+        // Hide the loading spinner
+        document.getElementById('loadingSpinner').style.display = 'none';
+    }
+}
+
+
+/**
+ * Add application group objects to a device
+ * 
+ * @param {*} targetDevice 
+ * @param {*} item 
+ */
+async function addApplicationGroupToDevice(targetDevice, deviceVendor, item) {
+    // Quick validation
+    if (deviceVendor != 'paloalto' && deviceVendor != 'juniper') {
+        showNotification(`This vendor (${deviceVendor}) is not supported`, 'Failure');
+        return;
+    }
+
+    // Show loading spinner
+    document.getElementById('loadingSpinner').style.display = 'block';
+
+    // If Palo Alto, API call to check that the target is not passive (HA)
+    if (deviceVendor == 'paloalto') {
+        const response = await fetch('/api/device?action=list&id=' + targetDevice);
+        const data = await response.json();
+
+        if (data['ha_state'] === 'passive') {
+            showNotification('Cannot add address groups to a passive device', 'Failure');
+            document.getElementById('loadingSpinner').style.display = 'none';
+            return;
+        }
+    }
+
+    // API call to add the application group object to the device
+    try {
+        // Collect information
+        const application_group_data = {
+            "name": item['name'],
+            "members": item['members'],
+        };
+
+        // Placeholder for API call
+        const appGroupResponse = await fetch('/api/objects?object=app_groups&action=create&id=' + targetDevice, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(application_group_data)
+        });
+
+        if (!appGroupResponse.ok) {
+            throw new Error(`HTTP error! status: ${appGroupResponse.status}`);
+        }
+
+        console.log('Placeholder: Adding application group to device');
+        console.log(application_group_data);
+        showNotification('Adding application group objects is not yet supported', 'Failure');
+
+        // Hide the loading spinner
+        document.getElementById('loadingSpinner').style.display = 'none';
+
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Failed to add application group object', 'Failure');
+
+    } finally {
+        // Hide the loading spinner
+        document.getElementById('loadingSpinner').style.display = 'none';
+    }
+}
+
+
+/**
+ * Add service objects to a device
+ * 
+ * @param {*} targetDevice 
+ * @param {*} item 
+ */
+async function addServiceToDevice(targetDevice, deviceVendor, item) {
+    // Quick validation
+    if (deviceVendor != 'paloalto' && deviceVendor != 'juniper') {
+        showNotification(`This vendor (${deviceVendor}) is not supported`, 'Failure');
+        return;
+    }
+
+    // Show loading spinner
+    document.getElementById('loadingSpinner').style.display = 'block';
+
+    // If Palo Alto, API call to check that the target is not passive (HA)
+    if (deviceVendor == 'paloalto') {
+        const response = await fetch('/api/device?action=list&id=' + targetDevice);
+        const data = await response.json();
+
+        if (data['ha_state'] === 'passive') {
+            showNotification('Cannot add services to a passive device', 'Failure');
+            document.getElementById('loadingSpinner').style.display = 'none';
+            return;
+        }
+    }
+
+    // API call to add the service object to the device
+    try {
+        // Collect information
+        const service_data = {
+            "name": item['name'],
+            "protocol": item['protocol'],
+            "port": item['port'],
+            "description": item['description'],
+            "tag": item['tag'] ? item['tag'] : 'None',
+        };
+
+        // Placeholder for API call
+        const serviceResponse = await fetch('/api/objects?object=services&action=create&id=' + targetDevice, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(service_data)
+        });
+
+        if (!serviceResponse.ok) {
+            throw new Error(`HTTP error! status: ${serviceResponse.status}`);
+        }
+
+        console.log('Placeholder: Adding service to device');
+        console.log(service_data);
+        showNotification('Adding service objects is not yet supported', 'Failure');
+
+        // Hide the loading spinner
+        document.getElementById('loadingSpinner').style.display = 'none';
+
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Failed to add service object', 'Failure');
+
+    } finally {
+        // Hide the loading spinner
+        document.getElementById('loadingSpinner').style.display = 'none';
+    }
+}
+
+
+/**
+ * Add service group objects to a device
+ * 
+ * @param {*} targetDevice 
+ * @param {*} item 
+ */
+async function addServiceGroupToDevice(targetDevice, deviceVendor, item) {
+    // Quick validation
+    if (deviceVendor != 'paloalto' && deviceVendor != 'juniper') {
+        showNotification(`This vendor (${deviceVendor}) is not supported`, 'Failure');
+        return;
+    }
+
+    // Show loading spinner
+    document.getElementById('loadingSpinner').style.display = 'block';
+
+    // If Palo Alto, API call to check that the target is not passive (HA)
+    if (deviceVendor == 'paloalto') {
+        const response = await fetch('/api/device?action=list&id=' + targetDevice);
+        const data = await response.json();
+
+        if (data['ha_state'] === 'passive') {
+            showNotification('Cannot add service groups to a passive device', 'Failure');
+            document.getElementById('loadingSpinner').style.display = 'none';
+            return;
+        }
+    }
+
+    // API call to add the service group object to the device
+    try {
+        // Collect information
+        const service_group_data = {
+            "name": item['name'],
+            "members": item['members'],
+            "tag": item['tag'] ? item['tag'] : 'None',
+        };
+
+        // Placeholder for API call
+        const serviceGroupResponse = await fetch('/api/objects?object=service_groups&action=create&id=' + targetDevice, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(service_group_data)
+        });
+
+        if (!serviceGroupResponse.ok) {
+            throw new Error(`HTTP error! status: ${serviceGroupResponse.status}`);
+        }
+
+        console.log('Placeholder: Adding service group to device');
+        console.log(service_group_data);
+        showNotification('Adding service group objects is not yet supported', 'Failure');
+
+        // Hide the loading spinner
+        document.getElementById('loadingSpinner').style.display = 'none';
+
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Failed to add service group object', 'Failure');
+
+    } finally {
+        // Hide the loading spinner
+        document.getElementById('loadingSpinner').style.display = 'none';
     }
 }
 

@@ -639,7 +639,8 @@ function updateServicesTable(deviceId, divId, vendor) {
                 // Create an array of services
                 const serviceObject = {
                     name: service.name,
-                    addr: service.addr,
+                    protocol: protocolType,
+                    port: protocolPort,
                     description: service.description,
                     ...(service.tag && { tag: service.tag.member.join(", ") }),             // Tags do not exist on some platforms
                 };
