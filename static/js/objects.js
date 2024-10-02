@@ -22,6 +22,20 @@ let serviceListB = [];
 let serviceGroupListA = [];
 let serviceGroupListB = [];
 
+// Flags to check table population
+let tagFlagA = false;
+let tagFlagB = false;
+let addressFlagA = false;
+let addressFlagB = false;
+let addressGroupFlagA = false;
+let addressGroupFlagB = false;
+let applicationGroupFlagA = false;
+let applicationGroupFlagB = false;
+let serviceFlagA = false;
+let serviceFlagB = false;
+let serviceGroupFlagA = false;
+let serviceGroupFlagB = false;
+
 
 // Fetch the device list once and populate dropdowns for all subpages
 // The two lists use different hover colors
@@ -53,7 +67,8 @@ fetch('/api/device?action=list')
 function registerRefreshButtonListener(buttonId, accordionId, functionName) {
     document.getElementById(buttonId).addEventListener('click', function () {
         const deviceId = document.getElementById(accordionId).dataset.deviceId;
-        functionName(deviceId, accordionId);
+        const vendor = document.getElementById(accordionId).dataset.vendor;
+        functionName(deviceId, accordionId, vendor);
     });
 }
 
@@ -159,11 +174,11 @@ function updateTagsTable(deviceId, divId, vendor) {
     // Create lists to track contents
     let objectList = [];
 
-    // Show loading spinner
-    document.getElementById('loadingSpinner').style.display = 'block';
-
     // The div element to populate with the list of addresses
     const divElement = document.getElementById(divId);
+
+    // Show the loading spinner
+    showLoadingSpinner(divId);
 
     // Clear any existing content in the div
     divElement.innerHTML = '';
@@ -220,19 +235,26 @@ function updateTagsTable(deviceId, divId, vendor) {
                 objectList.push(tagObject);
             });
 
+            // Store the list of tags in the appropriate list
+            // Manage comparison button
             if (divId.includes('tagAccordionA')) {
                 tagListA = objectList;
+                tagFlagA = true;
             } else {
                 tagListB = objectList;
+                tagFlagB = true;
+            }
+            if (tagFlagA && tagFlagB) {
+                document.getElementById('tagCompare').disabled = false;
             }
 
             // Hide loading spinner when the response is received
-            document.getElementById('loadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
         })
 
         .catch(error => {
             // Hide loading spinner when the response is received
-            document.getElementById('loadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
             console.error('Error fetching tags:', error)
         });
 }
@@ -249,11 +271,11 @@ function updateAddressesTable(deviceId, divId, vendor) {
     // Create lists to track contents
     let addressList = [];
 
-    // Show loading spinner
-    document.getElementById('loadingSpinner').style.display = 'block';
-
     // The div element to populate with the list of addresses
     const divElement = document.getElementById(divId);
+
+    // Show the loading spinner
+    showLoadingSpinner(divId);
 
     // Clear any existing content in the div
     divElement.innerHTML = '';
@@ -270,7 +292,20 @@ function updateAddressesTable(deviceId, divId, vendor) {
 
             // Check that addresses were found
             if (addresses.message && addresses.message == 'No addresses found') {
-                document.getElementById('loadingSpinner').style.display = 'none';
+                hideLoadingSpinner(divId);
+
+                // Manage comparison button
+                if (divId.includes('addressAccordionA')) {
+                    addressListA = addressList;
+                    addressFlagA = true;
+                } else {
+                    addressListB = addressList;
+                    addressFlagB = true;
+                }
+                if (addressFlagA && addressFlagB) {
+                    document.getElementById('addressObjectsCompare').disabled = false;
+                }
+
                 showNotification('No addresses found for the selected device', 'Failure');
                 return;
             }
@@ -321,17 +356,25 @@ function updateAddressesTable(deviceId, divId, vendor) {
                 addressList.push(addressObject);
             });
 
+            // Store the list of addresses in the appropriate list
+            // Manage comparison button
             if (divId.includes('addressAccordionA')) {
                 addressListA = addressList;
+                addressFlagA = true;
             } else {
                 addressListB = addressList;
+                addressFlagB = true;
             }
+            if (addressFlagA && addressFlagB) {
+                document.getElementById('addressObjectsCompare').disabled = false;
+            }
+
             // Hide loading spinner when the response is received
-            document.getElementById('loadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
 
         })
         .catch(error => {
-            document.getElementById('loadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
             console.error('Error fetching addresses:', error)
         });
 }
@@ -348,11 +391,11 @@ function updateAddressGroupsTable(deviceId, divId, vendor) {
     // Create a list to track contents
     let addressGroupList = [];
 
-    // Show loading spinner
-    document.getElementById('loadingSpinner').style.display = 'block';
-
     // The div element to populate with the list of addresses
     const divElement = document.getElementById(divId);
+
+    // Show the loading spinner
+    showLoadingSpinner(divId);
 
     // Clear any existing content in the div
     divElement.innerHTML = '';
@@ -369,7 +412,18 @@ function updateAddressGroupsTable(deviceId, divId, vendor) {
 
             // Check that addresses were found
             if (addresses.message && addresses.message == 'No address groups found') {
-                document.getElementById('loadingSpinner').style.display = 'none';
+                hideLoadingSpinner(divId);
+
+                // Manage comparison button
+                if (divId.includes('addressGroupAccordionA')) {
+                    addressGroupFlagA = true;
+                } else {
+                    addressGroupFlagB = true;
+                }
+                if (addressGroupFlagA && addressGroupFlagB) {
+                    document.getElementById('addressGroupCompare').disabled = false;
+                }
+
                 showNotification('No address groups found for the selected device', 'Failure');
                 return;
             }
@@ -426,18 +480,25 @@ function updateAddressGroupsTable(deviceId, divId, vendor) {
                 addressGroupList.push(addressGroupObject);
             });
 
+            // Store the list of address groups in the appropriate list
+            // Manage comparison button
             if (divId.includes('addressGroupAccordionA')) {
                 addressGroupListA = addressGroupList;
+                addressGroupFlagA = true;
             } else {
                 addressGroupListB = addressGroupList;
+                addressGroupFlagB = true;
+            }
+            if (addressGroupFlagA && addressGroupFlagB) {
+                document.getElementById('addressGroupCompare').disabled = false;
             }
 
             // Hide loading spinner when the response is received
-            document.getElementById('loadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
         })
         .catch(error => {
             // Hide loading spinner when the response is received
-            document.getElementById('loadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
             console.error('Error fetching addresses:', error)
         });
 }
@@ -454,11 +515,11 @@ function updateApplicationGroupsTable(deviceId, divId, vendor) {
     // Create a list to track contents
     let applicationGroupList = [];
 
-    // Show loading spinner
-    document.getElementById('loadingSpinner').style.display = 'block';
-
     // The div element to populate with the list of addresses
     const divElement = document.getElementById(divId);
+
+    // Show the loading spinner
+    showLoadingSpinner(divId);
 
     // Clear any existing content in the div
     divElement.innerHTML = '';
@@ -475,7 +536,18 @@ function updateApplicationGroupsTable(deviceId, divId, vendor) {
 
             // Check that addresses were found
             if (appGroups.message && appGroups.message == 'No application groups found') {
-                document.getElementById('loadingSpinner').style.display = 'none';
+                hideLoadingSpinner(divId);
+
+                // Manage comparison button
+                if (divId.includes('applicationGroupAccordionA')) {
+                    applicationGroupFlagA = true;
+                } else {
+                    applicationGroupFlagB = true;
+                }
+                if (applicationGroupFlagA && applicationGroupFlagB) {
+                    document.getElementById('applicationGroupCompare').disabled = false;
+                }
+
                 showNotification('No application groups found for the selected device', 'Failure');
                 return;
             }
@@ -532,18 +604,25 @@ function updateApplicationGroupsTable(deviceId, divId, vendor) {
                 applicationGroupList.push(appGroupObject);
             });
 
+            // Store the list of application groups in the appropriate list
+            // Manage comparison button
             if (divId.includes('applicationGroupAccordionA')) {
                 applicationGroupListA = applicationGroupList;
+                applicationGroupFlagA = true;
             } else {
                 applicationGroupListB = applicationGroupList;
+                applicationGroupFlagB = true;
+            }
+            if (applicationGroupFlagA && applicationGroupFlagB) {
+                document.getElementById('applicationGroupCompare').disabled = false;
             }
 
             // Hide loading spinner when the response is received
-            document.getElementById('loadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
         })
         .catch(error => {
             // Hide loading spinner when the response is received
-            document.getElementById('loadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
             console.error('Error fetching application groups:', error)
         });
 }
@@ -560,11 +639,11 @@ function updateServicesTable(deviceId, divId, vendor) {
     // Create a list to track contents
     let serviceList = [];
 
-    // Show loading spinner
-    document.getElementById('loadingSpinner').style.display = 'block';
-
     // The div element to populate with the list of addresses
     const divElement = document.getElementById(divId);
+
+    // Show the loading spinner
+    showLoadingSpinner(divId);
 
     // Clear any existing content in the div
     divElement.innerHTML = '';
@@ -581,7 +660,18 @@ function updateServicesTable(deviceId, divId, vendor) {
 
             // Check that addresses were found
             if (services.message && services.message == 'No services found') {
-                document.getElementById('loadingSpinner').style.display = 'none';
+                hideLoadingSpinner(divId);
+
+                // Manage comparison button
+                if (divId.includes('serviceAccordionA')) {
+                    serviceFlagA = true;
+                } else {
+                    serviceFlagB = true;
+                }
+                if (serviceFlagA && serviceFlagB) {
+                    document.getElementById('serviceObjectCompare').disabled = false;
+                }
+
                 showNotification('No services found for the selected device', 'Failure');
                 return;
             }
@@ -647,18 +737,25 @@ function updateServicesTable(deviceId, divId, vendor) {
                 serviceList.push(serviceObject);
             });
 
+            // Store the list of services in the appropriate list
+            // Manage comparison button
             if (divId.includes('serviceAccordionA')) {
                 serviceListA = serviceList;
+                serviceFlagA = true;
             } else {
                 serviceListB = serviceList;
+                serviceFlagB = true;
+            }
+            if (serviceFlagA && serviceFlagB) {
+                document.getElementById('serviceObjectCompare').disabled = false;
             }
 
             // Hide loading spinner when the response is received
-            document.getElementById('loadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
         })
         .catch(error => {
             // Hide loading spinner when the response is received
-            document.getElementById('loadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
             console.error('Error fetching services:', error)
         });
 }
@@ -675,11 +772,11 @@ function updateServiceGroupsTable(deviceId, divId, vendor) {
     // Create a list to track contents
     let serviceGroupList = [];
 
-    // Show loading spinner
-    document.getElementById('loadingSpinner').style.display = 'block';
-
     // The div element to populate with the list of addresses
     const divElement = document.getElementById(divId);
+
+    // Show the loading spinner
+    showLoadingSpinner(divId);
 
     // Clear any existing content in the div
     divElement.innerHTML = '';
@@ -696,7 +793,18 @@ function updateServiceGroupsTable(deviceId, divId, vendor) {
 
             // Check that addresses were found
             if (serviceGroups.message && serviceGroups.message == 'No service groups found') {
-                document.getElementById('loadingSpinner').style.display = 'none';
+                hideLoadingSpinner(divId);
+
+                // Manage comparison button
+                if (divId.includes('serviceGroupAccordionA')) {
+                    serviceGroupFlagA = true;
+                } else {
+                    serviceGroupFlagB = true;
+                }
+                if (serviceGroupFlagA && serviceGroupFlagB) {
+                    document.getElementById('serviceGroupCompare').disabled = false;
+                }
+
                 showNotification('No service groups found for the selected device', 'Failure');
                 return;
             }
@@ -760,18 +868,25 @@ function updateServiceGroupsTable(deviceId, divId, vendor) {
                 serviceGroupList.push(serviceGroupObject);
             });
 
+            // Store the list of service groups in the appropriate list
+            // Manage comparison button
             if (divId.includes('serviceGroupAccordionA')) {
                 serviceGroupListA = serviceGroupList;
+                serviceGroupFlagA = true;
             } else {
                 serviceGroupListB = serviceGroupList;
+                serviceGroupFlagB = true;
+            }
+            if (serviceGroupFlagA && serviceGroupFlagB) {
+                document.getElementById('serviceGroupCompare').disabled = false;
             }
 
             // Hide loading spinner when the response is received
-            document.getElementById('loadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
         })
         .catch(error => {
             // Hide loading spinner when the response is received
-            document.getElementById('loadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
             console.error('Error fetching services:', error)
         });
 }
