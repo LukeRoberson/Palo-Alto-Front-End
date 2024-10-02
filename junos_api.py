@@ -751,6 +751,7 @@ class DeviceApi:
                 }
             }
         }
+        print(config_template)
 
         return self._add_config(config_template)
 

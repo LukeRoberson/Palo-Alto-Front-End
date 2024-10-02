@@ -338,7 +338,7 @@ async function addAddressToDevice(targetDevice, deviceVendor, item) {
             "tag": item['tag'] ? item['tag'] : 'None',
         };
 
-        // Placeholder for API call
+        // API call
         const addressResponse = await fetch('/api/objects?object=addresses&action=create&id=' + targetDevice, {
             method: 'POST',
             headers: {
@@ -403,7 +403,7 @@ async function addAddressGroupToDevice(targetDevice, deviceVendor, item) {
             "tag": item['tag'] ? item['tag'] : 'None',
         };
 
-        // Placeholder for API call
+        // API call
         const addressGroupResponse = await fetch('/api/objects?object=address_groups&action=create&id=' + targetDevice, {
             method: 'POST',
             headers: {
@@ -416,9 +416,8 @@ async function addAddressGroupToDevice(targetDevice, deviceVendor, item) {
             throw new Error(`HTTP error! status: ${addressGroupResponse.status}`);
         }
 
-        console.log('Placeholder: Adding address group to device');
-        console.log(address_group_data);
-        showNotification('Adding address group objects is not yet supported', 'Failure');
+        const addrGroupResult = await addressGroupResponse.json();
+        showNotification('Address group added, remember to commit', 'Success');
 
         // Hide the loading spinner
         document.getElementById('loadingSpinner').style.display = 'none';
@@ -470,7 +469,7 @@ async function addApplicationGroupToDevice(targetDevice, deviceVendor, item) {
             "members": item['members'],
         };
 
-        // Placeholder for API call
+        // API call
         const appGroupResponse = await fetch('/api/objects?object=app_groups&action=create&id=' + targetDevice, {
             method: 'POST',
             headers: {
@@ -483,9 +482,8 @@ async function addApplicationGroupToDevice(targetDevice, deviceVendor, item) {
             throw new Error(`HTTP error! status: ${appGroupResponse.status}`);
         }
 
-        console.log('Placeholder: Adding application group to device');
-        console.log(application_group_data);
-        showNotification('Adding application group objects is not yet supported', 'Failure');
+        const appGroupResult = await appGroupResponse.json();
+        showNotification('Application group added, remember to commit', 'Success');
 
         // Hide the loading spinner
         document.getElementById('loadingSpinner').style.display = 'none';
@@ -540,7 +538,7 @@ async function addServiceToDevice(targetDevice, deviceVendor, item) {
             "tag": item['tag'] ? item['tag'] : 'None',
         };
 
-        // Placeholder for API call
+        // API call
         const serviceResponse = await fetch('/api/objects?object=services&action=create&id=' + targetDevice, {
             method: 'POST',
             headers: {
@@ -553,9 +551,8 @@ async function addServiceToDevice(targetDevice, deviceVendor, item) {
             throw new Error(`HTTP error! status: ${serviceResponse.status}`);
         }
 
-        console.log('Placeholder: Adding service to device');
-        console.log(service_data);
-        showNotification('Adding service objects is not yet supported', 'Failure');
+        const serviceResult = await serviceResponse.json();
+        showNotification('Service object added, remember to commit', 'Success');
 
         // Hide the loading spinner
         document.getElementById('loadingSpinner').style.display = 'none';
@@ -608,7 +605,7 @@ async function addServiceGroupToDevice(targetDevice, deviceVendor, item) {
             "tag": item['tag'] ? item['tag'] : 'None',
         };
 
-        // Placeholder for API call
+        // API call
         const serviceGroupResponse = await fetch('/api/objects?object=service_groups&action=create&id=' + targetDevice, {
             method: 'POST',
             headers: {
@@ -621,9 +618,8 @@ async function addServiceGroupToDevice(targetDevice, deviceVendor, item) {
             throw new Error(`HTTP error! status: ${serviceGroupResponse.status}`);
         }
 
-        console.log('Placeholder: Adding service group to device');
-        console.log(service_group_data);
-        showNotification('Adding service group objects is not yet supported', 'Failure');
+        const serviceGroupResult = await serviceGroupResponse.json();
+        showNotification('Service group added, remember to commit', 'Success');
 
         // Hide the loading spinner
         document.getElementById('loadingSpinner').style.display = 'none';

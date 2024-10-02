@@ -596,6 +596,97 @@ class DeviceApi:
         address_groups = self._rest_request("/Objects/AddressGroups")
         return address_groups
 
+    def create_addr_group(
+        self,
+        name: str,
+        members: list,
+        description: str = None,
+        tags: str = None,
+    ):
+        '''
+        Add an address group to the device
+            REST API, /Objects/AddressGroups
+
+        Args:
+            name (str): The name of the address object
+            members (list): The members of the group
+            tags (str): Zero or more tags to apply to the address
+
+        Returns:
+            json: The response body
+        '''
+
+        # Sanity check for 'members'
+        if not members:
+            print(
+                Fore.RED,
+                'Error: No members provided',
+                Style.RESET_ALL
+            )
+            return None
+
+        if type(members) is not list:
+            print(
+                Fore.RED,
+                'Error: Members should be a list',
+                Style.RESET_ALL
+            )
+            return None
+
+        url = '/Objects/AddressGroups'
+
+        body = {
+            "entry": {
+                "@name": name,
+                "static": {
+                    "member": members
+                },
+                "description": description
+            }
+        }
+
+        # Add the tag if it is has been included
+        if tags is not None:
+            # If there's more than one tag, split them into a list
+            if "," in tags:
+                tags = tags.split(",")
+
+            # If it's not a list, make it a list
+            if type(tags) is not list:
+                tags = [tags]
+
+            body['entry']['tag'] = {}
+            body['entry']['tag']['member'] = tags
+
+        # Add a description if it has been included
+        if description is not None:
+            body['entry']['description'] = description
+
+        # The name in the params must be the same as the name in the tag
+        self.params['name'] = name
+
+        # Send the request
+        response = requests.post(
+            f"{self.rest_base_url}{url}",
+            headers=self.rest_headers,
+            params=self.params,
+            json=body,
+        )
+
+        # Check the response code for errors
+        if response.status_code != 200:
+            print(
+                Fore.RED,
+                response.status_code,
+                response.text,
+                Style.RESET_ALL
+            )
+
+            return response.status_code
+
+        # Return the body of the response
+        return response.json()
+
     def get_application_groups(
         self
     ) -> list:
@@ -614,6 +705,59 @@ class DeviceApi:
 
         application_groups = self._rest_request("/Objects/ApplicationGroups")
         return application_groups
+
+    def create_app_group(
+        self,
+        name: str,
+        members: list,
+    ):
+        '''
+        Add an address to the device
+            REST API, /Objects/ApplicationGroups
+
+        Args:
+            name (str): The name of the address object
+            members (list): The members of the group
+
+        Returns:
+            json: The response body
+        '''
+
+        url = '/Objects/ApplicationGroups'
+
+        body = {
+            "entry": {
+                "@name": name,
+                "members": {
+                    "member": members
+                }
+            }
+        }
+
+        # The name in the params must be the same as the name in the tag
+        self.params['name'] = name
+
+        # Send the request
+        response = requests.post(
+            f"{self.rest_base_url}{url}",
+            headers=self.rest_headers,
+            params=self.params,
+            json=body,
+        )
+
+        # Check the response code for errors
+        if response.status_code != 200:
+            print(
+                Fore.RED,
+                response.status_code,
+                response.text,
+                Style.RESET_ALL
+            )
+
+            return response.status_code
+
+        # Return the body of the response
+        return response.json()
 
     def get_services(
         self
@@ -639,6 +783,84 @@ class DeviceApi:
         services = self._rest_request("/Objects/Services")
         return services
 
+    def create_service(
+        self,
+        name: str,
+        protocol: str,
+        dest_port: str,
+        description: str = '',
+        tags: str = None,
+    ):
+        '''
+        Add a service object to the device
+            REST API, /Objects/Service
+
+        Args:
+            name (str): The name of the service object
+            protocol (str): The protocol of the service (eg, tcp)
+            dest_port (str): The destination port of the service
+            description (str): The description of the service
+            tags (str): Zero or more tags to apply to the service
+
+        Returns:
+            json: The response body
+        '''
+
+        url = '/Objects/Services'
+
+        body = {
+            "entry": {
+                "@name": name,
+                "protocol": {
+                    protocol: {
+                        "port": dest_port
+                    }
+                }
+            }
+        }
+
+        # Add the tag if it is has been included
+        if tags is not None:
+            # If there's more than one tag, split them into a list
+            if "," in tags:
+                tags = tags.split(",")
+
+            # If it's not a list, make it a list
+            if type(tags) is not list:
+                tags = [tags]
+
+            body['entry']['tag'] = {}
+            body['entry']['tag']['member'] = tags
+
+        # Add a description if it has been included
+        if description is not None:
+            body['entry']['description'] = description
+
+        # The name in the params must be the same as the name in the tag
+        self.params['name'] = name
+
+        # Send the request
+        response = requests.post(
+            f"{self.rest_base_url}{url}",
+            headers=self.rest_headers,
+            params=self.params,
+            json=body,
+        )
+
+        # Check the response code for errors
+        if response.status_code != 200:
+            print(
+                Fore.RED,
+                response.status_code,
+                response.text,
+                Style.RESET_ALL
+            )
+
+            return response.status_code
+
+        # Return the body of the response
+        return response.json()
+
     def get_service_groups(
         self
     ) -> list:
@@ -659,6 +881,74 @@ class DeviceApi:
 
         service_groups = self._rest_request("/Objects/ServiceGroups")
         return service_groups
+
+    def create_service_group(
+        self,
+        name: str,
+        members: list,
+        tags: str = None,
+    ):
+        '''
+        Add service group to the device
+            REST API, /Objects/ServiceGroups
+
+        Args:
+            name (str): The name of the address object
+            members (list): The members of the group
+            tags (str): Zero or more tags to apply to the address
+
+        Returns:
+            json: The response body
+        '''
+
+        url = '/Objects/ServiceGroups'
+
+        body = {
+            "entry": {
+                "@name": name,
+                "members": {
+                    "member": members
+                }
+            }
+        }
+
+        # Add the tag if it is has been included
+        if tags is not None:
+            # If there's more than one tag, split them into a list
+            if "," in tags:
+                tags = tags.split(",")
+
+            # If it's not a list, make it a list
+            if type(tags) is not list:
+                tags = [tags]
+
+            body['entry']['tag'] = {}
+            body['entry']['tag']['member'] = tags
+
+        # The name in the params must be the same as the name in the tag
+        self.params['name'] = name
+
+        # Send the request
+        response = requests.post(
+            f"{self.rest_base_url}{url}",
+            headers=self.rest_headers,
+            params=self.params,
+            json=body,
+        )
+
+        # Check the response code for errors
+        if response.status_code != 200:
+            print(
+                Fore.RED,
+                response.status_code,
+                response.text,
+                Style.RESET_ALL
+            )
+
+            return response.status_code
+
+        # Return the body of the response
+        return response.json()
 
     def get_nat_policies(
         self
