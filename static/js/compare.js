@@ -351,9 +351,8 @@ async function addAddressToDevice(targetDevice, deviceVendor, item) {
             throw new Error(`HTTP error! status: ${addressResponse.status}`);
         }
 
-        console.log('Placeholder: Adding address to device');
-        console.log(address_data);
-        showNotification('Adding address objects is not yet supported', 'Failure');
+        const addrResult = await addressResponse.json();
+        showNotification('Address added, remember to commit', 'Success');
 
     } catch (error) {
         console.error('Error:', error);

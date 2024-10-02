@@ -31,6 +31,7 @@ from requests.exceptions import ConnectionError
 from urllib3.exceptions import MaxRetryError, NewConnectionError
 from types import TracebackType
 from typing import Optional, Type, Union, Tuple
+import json
 
 from colorama import Fore, Style
 import xml.etree.ElementTree as ET
@@ -430,13 +431,18 @@ class DeviceApi:
         name: str,
         colour: str,
         comment: str,
-    ) -> None:
+    ) -> json:
         '''
         Add a tag to the device
             REST API, /Objects/Tags
 
+        Args:
+            name (str): The name of the tag
+            colour (str): The colour of the tag
+            comment (str): The comment of the tag
+
         Returns:
-            None
+            json: The response body
         '''
 
         url = '/Objects/Tags'
@@ -495,6 +501,78 @@ class DeviceApi:
 
         addresses = self._rest_request("/Objects/Addresses")
         return addresses
+
+    def create_address(
+        self,
+        name: str,
+        address: str,
+        description: str = None,
+        tags: str = None,
+    ):
+        '''
+        Add an address to the device
+            REST API, /Objects/Addresses
+
+        Args:
+            name (str): The name of the address object
+            address (str): The IP address and netmask
+            description (str): The description of the address
+            tag (str): Zero or more tags to apply to the address
+
+        Returns:
+            json: The response body
+        '''
+
+        url = '/Objects/Addresses'
+
+        body = {
+            "entry": {
+                "@name": name,
+                "ip-netmask": address,
+            }
+        }
+
+        # Add the tag if it is has been included
+        if tags is not None:
+            # If there's more than one tag, split them into a list
+            if "," in tags:
+                tags = tags.split(",")
+
+            # If it's not a list, make it a list
+            if type(tags) is not list:
+                tags = [tags]
+
+            body['entry']['tag'] = {}
+            body['entry']['tag']['member'] = tags
+
+        # Add a description if it has been included
+        if description is not None:
+            body['entry']['description'] = description
+
+        # The name in the params must be the same as the name in the tag
+        self.params['name'] = name
+
+        # Send the request
+        response = requests.post(
+            f"{self.rest_base_url}{url}",
+            headers=self.rest_headers,
+            params=self.params,
+            json=body,
+        )
+
+        # Check the response code for errors
+        if response.status_code != 200:
+            print(
+                Fore.RED,
+                response.status_code,
+                response.text,
+                Style.RESET_ALL
+            )
+
+            return response.status_code
+
+        # Return the body of the response
+        return response.json()
 
     def get_address_groups(
         self

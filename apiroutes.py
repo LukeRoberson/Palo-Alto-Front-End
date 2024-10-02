@@ -1837,20 +1837,73 @@ class ObjectsView(MethodView):
                     }
                 ), 500
 
-            print(
-                Fore.MAGENTA,
-                "Create a new address object - PLACEHOLDER",
-                f'Name: {request.json["name"]}',
-                f'Address: {request.json["address"]}',
-                f'Description: {request.json["description"]}',
-                f'Tag: {request.json["tag"]}',
-                Style.RESET_ALL
-            )
+            # Extract the details from the SQL output
+            hostname = output[0][1]
+            token = output[0][9]
+            vendor = output[0][3]
+            username = output[0][6]
+            password = output[0][7]
+            salt = output[0][8]
+
+            # Decrypt the password
+            try:
+                with CryptoSecret() as decryptor:
+                    print(f"Decrypting password for device '{hostname}'.")
+                    # Decrypt the password
+                    real_pw = decryptor.decrypt(
+                        secret=password,
+                        salt=base64.urlsafe_b64decode(salt.encode())
+                    )
+
+            except Exception as e:
+                print(
+                    Fore.RED,
+                    f"Could not decrypt password for device '{hostname}'.",
+                    Style.RESET_ALL
+                )
+                print(e)
+                real_pw = None
+
+            # Create the device object
+            if vendor == 'paloalto':
+                device_api = PaDeviceApi(
+                    hostname=hostname,
+                    rest_key=token,
+                    version='v11.0'
+                )
+
+                device_api.create_address(
+                    name=request.json['name'],
+                    address=request.json['address'],
+                    description=request.json['description'],
+                    tags=request.json['tag']
+                )
+
+            elif vendor == 'juniper':
+                device_api = JunosDeviceApi(
+                    hostname=hostname,
+                    username=username,
+                    password=real_pw,
+                )
+
+                device_api.create_address(
+                    name=request.json['name'],
+                    address=request.json['address'],
+                    description=request.json['description'],
+                )
+
+            else:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Unknown vendor"
+                    }
+                ), 500
 
             return jsonify(
                 {
                     "result": "Success",
-                    "message": "Placeholder for creating address object"
+                    "message": "Created address object"
                 }
             ), 200
 

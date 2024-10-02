@@ -22,14 +22,19 @@ Authentication:
 
 
 from jnpr.junos import Device
+from jnpr.junos.utils.config import Config
 from jnpr.junos.exception import (
     ConnectError,
     ConnectAuthError,
     ConnectTimeoutError,
 )
+
 from typing import Union, Tuple
+
 from colorama import Fore, Style
 from lxml import etree
+import json
+import ipaddress
 
 
 class DeviceApi:
@@ -44,6 +49,20 @@ class DeviceApi:
         get_ha: Get high availability details
         get_config: Get the running configuration of the device
         get_partial_config: Gets a partial configuration based on a path
+        _add_config: Add configuration to the device
+        get_addresses: Gets address books, objects, and sets
+        create_address: Create an address object
+        get_address_groups: An alias for get_addresses
+        create_addr_group: Create an address group
+        get_application_groups: Gets application groups
+        create_app_group: Create an application group
+        get_services: Gets services
+        create_service: Create a service object
+        get_service_groups: Gets service groups
+        create_service_group: Create a service group
+        get_nat_policies: Gets NAT policies
+        get_security_policies: Gets security policies
+        get_qos_policies: Gets QoS policies
     '''
 
     def __init__(
@@ -282,6 +301,43 @@ class DeviceApi:
 
         return result
 
+    def _add_config(
+        self,
+        config: dict,
+    ) -> str:
+        '''
+        Add configuration to the device
+        NOTE: This does not commit the changes
+
+        Args:
+            config (dict): Configuration to add
+                This is converted to a JSON string
+
+        Returns:
+            str: Diff of the changes on the device
+        '''
+
+        # Convert dictionary to JSON string
+        config = json.dumps(config)
+
+        # Load the configuration
+        with Config(self.device) as cu:
+            # Load the configuration
+            try:
+                cu.load(
+                    config,
+                    format='json',
+                    merge=True,
+                )
+            except Exception as e:
+                print(Fore.RED, f'Error: {e}', Style.RESET_ALL)
+                return None
+
+            # Compare the changes
+            changes = cu.diff()
+
+        return changes
+
     def get_addresses(
         self
     ) -> list:
@@ -312,6 +368,104 @@ class DeviceApi:
 
         return addresses
 
+    def create_address(
+        self,
+        name: str,
+        address: str,
+        description: str = '',
+        address_book: str = 'global',
+    ) -> str:
+        '''
+        Config template for adding an address object
+
+        Args:
+            name (str): Name of the address object
+            address (str): IP prefix of the address object
+                This can be a single IP or a range
+                eg:
+                    1.1.1.1, 1.1.1.1/32, 1.1.1.0/24
+                    1.1.1.1-1.1.1.4
+            description (str): Description of the address object
+            address_book (str): Name of the address book (default: 'global')
+
+        Returns:
+            str: Diff of the changes on the device
+        '''
+
+        # Check if we have a range or a single IP
+        if '-' in address:
+            address = address.split('-')
+
+            # Check if we have a valid range
+            if len(address) != 2:
+                print(
+                    Fore.RED,
+                    'Error: Invalid prefix range',
+                    Style.RESET_ALL
+                )
+                return None
+
+        else:
+            address = [address]
+
+        # Sanity check for 'prefix'
+        for addr in address:
+            try:
+                ipaddress.ip_network(addr)
+            except ValueError as e:
+                print(Fore.RED, f'Error: {e}', Style.RESET_ALL)
+                return None
+
+        # Single IP address
+        if len(address) == 1:
+            config_template = {
+                "configuration": {
+                    "security": {
+                        "address-book": [
+                            {
+                                "name": address_book,
+                                "address": [
+                                    {
+                                        "name": name,
+                                        "description": description,
+                                        "ip-prefix": address[0]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+
+        # Range of IP addresses
+        elif len(address) == 2:
+            config_template = {
+                "configuration": {
+                    "security": {
+                        "address-book": [
+                            {
+                                "name": address_book,
+                                "address": [
+                                    {
+                                        "name": name,
+                                        "range-address": [
+                                            {
+                                                "name": address[0],
+                                                "to": {
+                                                    "range-high": address[1]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+
+        return self._add_config(config_template)
+
     def get_address_groups(
         self
     ) -> list:
@@ -327,6 +481,65 @@ class DeviceApi:
         )
 
         return addresses
+
+    def create_addr_group(
+        self,
+        name: str,
+        members: list,
+        address_book: str = 'global',
+    ) -> str:
+        '''
+        Config template for adding an address group
+            This is an 'address-set' in junos
+
+        Args:
+            name (str): Name of the address group
+            members (list): List of address objects to include
+            address_book (str): Name of the address book (default: 'global')
+
+        Returns:
+            str: Diff of the changes on the device
+        '''
+
+        # Sanity check for 'members'
+        if not members:
+            print(
+                Fore.RED,
+                'Error: No members provided',
+                Style.RESET_ALL
+            )
+            return None
+
+        if type(members) is not list:
+            print(
+                Fore.RED,
+                'Error: Members should be a list',
+                Style.RESET_ALL
+            )
+            return None
+
+        # Create the configuration template
+        config_template = {
+            "configuration": {
+                "security": {
+                    "address-book": [
+                        {
+                            "name": address_book,
+                            "address-set": [
+                                {
+                                    "name": name,
+                                    "address": [
+                                        {"name": member} for member in members
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+
+        return self._add_config(config_template)
 
     def get_application_groups(
         self
@@ -348,6 +561,59 @@ class DeviceApi:
         )
 
         return app_groups
+
+    def create_app_group(
+        self,
+        name: str,
+        members: list,
+    ) -> str:
+        '''
+        Config template for adding a application group
+
+        Args:
+            name (str): Name of the application group
+            members (list): List of applications to include
+
+        Returns:
+            str: Diff of the changes on the device
+        '''
+
+        # Sanity check for 'members'
+        if not members:
+            print(
+                Fore.RED,
+                'Error: No members provided',
+                Style.RESET_ALL
+            )
+            return None
+
+        if type(members) is not list:
+            print(
+                Fore.RED,
+                'Error: Members should be a list',
+                Style.RESET_ALL
+            )
+            return None
+
+        # Create the configuration template
+        config_template = {
+            "configuration": {
+                "services": {
+                    "application-identification": {
+                        "application-group": [
+                            {
+                                "name": name,
+                                "applications": [
+                                    {"name": member} for member in members
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+
+        return self._add_config(config_template)
 
     def get_services(
         self
@@ -371,6 +637,46 @@ class DeviceApi:
 
         return services
 
+    def create_service(
+        self,
+        name: str,
+        protocol: str,
+        dest_port: str,
+        description: str = '',
+    ) -> str:
+        '''
+        Config template for adding a service object
+            This is an 'application' in junos
+
+        Args:
+            name (str): Name of the service object
+            description (str): Description of the service object
+            protocol (str): Protocol of the service object
+                eg: tcp, udp, icmp
+            dest_port (str): Destination port of the service object
+
+        Returns:
+            str: Diff of the changes on the device
+        '''
+
+        # Create the configuration template
+        config_template = {
+            "configuration": {
+                "applications": {
+                    "application": [
+                        {
+                            "name": name,
+                            "description": description,
+                            "protocol": protocol,
+                            "destination-port": dest_port
+                        }
+                    ]
+                }
+            }
+        }
+
+        return self._add_config(config_template)
+
     def get_service_groups(
         self
     ):
@@ -392,6 +698,61 @@ class DeviceApi:
         )
 
         return service_groups
+
+    def create_service_group(
+        self,
+        name: str,
+        description: str,
+        members: list,
+    ) -> str:
+        '''
+        Config template for adding a service group
+            This is an 'application-set' in junos
+
+        Args:
+            name (str): Name of the service group
+            description (str): Description of the service group
+            members (list): List of service objects to include
+
+        Returns:
+            str: Diff of the changes on the device
+        '''
+
+        # Sanity check for 'members'
+        if not members:
+            print(
+                Fore.RED,
+                'Error: No members provided',
+                Style.RESET_ALL
+            )
+            return None
+
+        if type(members) is not list:
+            print(
+                Fore.RED,
+                'Error: Members should be a list',
+                Style.RESET_ALL
+            )
+            return None
+
+        # Create the configuration template
+        config_template = {
+            "configuration": {
+                "applications": {
+                    "application-set": [
+                        {
+                            "name": name,
+                            "description": description,
+                            "application": [
+                                {"name": member} for member in members
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+
+        return self._add_config(config_template)
 
     def get_nat_policies(
         self
