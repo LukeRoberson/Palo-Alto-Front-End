@@ -29,12 +29,13 @@ from jnpr.junos.exception import (
     ConnectTimeoutError,
 )
 
-from typing import Union, Tuple
-
-from colorama import Fore, Style
 from lxml import etree
 import json
+import xmltodict
 import ipaddress
+
+from typing import Union, Tuple
+from colorama import Fore, Style
 
 
 class DeviceApi:
@@ -63,6 +64,7 @@ class DeviceApi:
         get_nat_policies: Gets NAT policies
         get_security_policies: Gets security policies
         get_qos_policies: Gets QoS policies
+        get_vpn_status: Gets the current IKE SA status
     '''
 
     def __init__(
@@ -915,3 +917,95 @@ class DeviceApi:
         )
 
         return service_groups
+
+    def get_vpn_status(
+        self,
+    ) -> dict:
+        '''
+        Gets the current IKE SA status
+            Sends an RPC to get the IKE SA information
+
+        This is initially an XML element, so it is converted
+
+        Returns:
+            dict: IKE SA status
+        '''
+
+        # Get the IKE gateway configuration
+        ike_gw = self.get_partial_config('security/ike/gateway', inherit=True)
+
+        # Get the current IKE status
+        ike_sa = self.dev.rpc.get_ike_security_associations_information()
+        ike_sa = xmltodict.parse(
+            etree.tostring(
+                ike_sa,
+                encoding='unicode'
+            )
+        )
+        ike_sa = ike_sa["ike-security-associations-information"]
+        ike_sa = ike_sa["ike-security-associations"]
+
+        # Get the IPsec gateway configuration
+        ipsec_gw = self.get_partial_config('security/ipsec/vpn', inherit=True)
+
+        # Get the current IPsec status
+        ipsec_sa = self.dev.rpc.get_security_associations_information()
+        ipsec_sa = xmltodict.parse(
+            etree.tostring(
+                ipsec_sa,
+                encoding='unicode'
+            )
+        )
+        ipsec_sa = ipsec_sa["ipsec-security-associations-information"]
+        ipsec_sa = ipsec_sa["ipsec-security-associations-block"]
+
+        # Select the relevant information
+        vpn_status = []
+        for gateway in ike_gw:
+            vpn = {}
+
+            # Parse through the IKE GW configuration
+            vpn['ike_name'] = gateway["name"]
+            vpn['ike_address'] = gateway["address"][0]
+            vpn['ike_interface'] = gateway["external-interface"]
+
+            # Find matching SA, if any
+            for sa in ike_sa:
+                if sa["ike-sa-remote-address"] == vpn['ike_address']:
+                    vpn['ike_state'] = sa['ike-sa-state']
+                    vpn['ike_version'] = sa['ike-sa-exchange-type']
+                    break
+            if 'ike_state' not in vpn:
+                vpn['ike_state'] = 'DOWN'
+                vpn['ike_version'] = 'N/A'
+
+            # Find matching IPsec VPN, if any
+            for gateway in ipsec_gw:
+                if gateway["ike"]["gateway"] == vpn['ike_name']:
+                    vpn['ipsec_name'] = gateway["name"]
+                    vpn['ipsec_interface'] = gateway["bind-interface"]
+                    break
+            if 'ipsec_name' not in vpn:
+                vpn['ipsec_name'] = 'N/A'
+                vpn['ipsec_interface'] = 'N/A'
+
+            # Find matching IPsec SA, if any
+            for sa in ipsec_sa:
+                details = sa["ipsec-security-associations"][0]
+                if details["sa-remote-gateway"] == vpn['ike_address']:
+                    vpn['ipsec_state'] = sa["sa-block-state"]
+                    vpn['ipsec_port'] = details["sa-port"]
+                    vpn['ipsec_protocol'] = details["sa-protocol"]
+                    vpn['ipsec_alg'] = details["sa-esp-encryption-algorithm"]
+                    vpn['ipsec_hmac'] = details["sa-hmac-algorithm"]
+                    break
+            if 'ipsec_state' not in vpn:
+                vpn['ipsec_state'] = 'DOWN'
+                vpn['ipsec_port'] = 'N/A'
+                vpn['ipsec_protocol'] = 'N/A'
+                vpn['ipsec_alg'] = 'N/A'
+                vpn['ipsec_hmac'] = 'N/A'
+
+            vpn_status.append(vpn)
+
+        return vpn_status

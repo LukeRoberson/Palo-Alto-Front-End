@@ -159,11 +159,7 @@
 
 .dark-mode .header,
 .dark-mode .toggle-btn,
-.dark-mode .w3-card {
-    border: 0.5px solid var(--dark-on-surface);
-    background-color: var(--dark-surface);
-    border: 0px;
-}
+.dark-mode .w3-card,
 .dark-mode .nav-bar,
 .dark-mode .nav-bar a {
     background-color: var(--dark-surface);

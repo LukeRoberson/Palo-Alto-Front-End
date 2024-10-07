@@ -37,7 +37,6 @@ html, body {
     bottom: 0;
     width: 100%;
     background-color: red;
-    color: white;
     text-align: center;
  }
 
@@ -183,4 +182,114 @@ button.highlight-disabled {
 
 .icon-link i {
     font-size: 1.2em;
+}
+
+
+/* VPN cards */
+.vpn-card {
+    margin-bottom: 20px;
+}
+
+/* Styling for fieldset and legend */
+fieldset {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+legend {
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 0 10px;
+}
+
+/* Style for the information icon */
+.info-icon {
+    margin-left: 5px;
+    cursor: pointer;
+    position: relative;
+    display: inline-block;
+}
+
+/* Tooltip container */
+.info-icon::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%; /* Position above the icon */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: #fff;
+    padding: 5px; /* Padding for the tooltip */
+    border-radius: 5px;
+    white-space: normal;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s;
+    z-index: 1;
+    pointer-events: none; /* Prevents tooltip from interfering with hover */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    max-width: 400px;
+    min-width: 200px;
+}
+
+/* Show the tooltip when hovering over the icon */
+.info-icon:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Ensure the modal takes up the full height of the screen */
+.w3-modal-content {
+    display: flex;
+    flex-direction: column;
+    height: 95%;
+}
+
+/* Fixed header */
+.modal-header {
+    position: sticky;
+    top: 0;
+    background-color: white;
+    z-index: 10;
+}
+
+/* Scrollable body */
+.modal-body {
+    overflow-y: auto;
+    flex-grow: 1;
+    padding: 16px;
+}
+
+/* Fixed footer */
+.modal-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+}
+
+/* Custom scrollbar for WebKit-based browsers (Chrome, Safari) */
+.modal-body::-webkit-scrollbar {
+    width: 12px; /* Width of the scrollbar */
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Background of the scrollbar track */
+    border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: #888; /* Color of the scrollbar thumb */
+    border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: #555; /* Color of the scrollbar thumb on hover */
+}
+
+/* Custom scrollbar for Firefox */
+.modal-body {
+    scrollbar-width: thin; /* Width of the scrollbar */
+    scrollbar-color: #888 #f1f1f1; /* Color of the scrollbar thumb and track */
 }
