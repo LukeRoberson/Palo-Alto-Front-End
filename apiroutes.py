@@ -31,6 +31,7 @@ from colorama import Fore, Style
 import os
 
 from device import DeviceManager, SiteManager, device_manager, site_manager
+from vpn import vpn_manager
 from settings import AppSettings, config
 from sql import SqlServer
 from encryption import CryptoSecret
@@ -2748,7 +2749,7 @@ class VpnView(MethodView):
             # Get the body of the request
             data = request.json
 
-            print(data)
+            vpn_manager.add_vpn(data)
 
             # Success message
             return jsonify(

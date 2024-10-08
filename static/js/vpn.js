@@ -63,6 +63,21 @@ function openModal(modal) {
     const dropAddEndpointB = document.getElementById("addEndpointB");
     const dropAddFwB = document.getElementById("addFirewallB");
 
+    // Clear fields
+    document.getElementById("addTunnelName").value = "";
+    document.getElementById("addTunnelDestA").value = "";
+    document.getElementById("addFirewallAEnable").checked = false;
+    document.getElementById("addFirewallATypeUnmanaged").checked = true;
+    document.getElementById("addInsideNatA").value = "";
+    document.getElementById("addOutsideNatA").value = "";
+    document.getElementById("addEndpointBUnmanaged").checked = true;
+    document.getElementById("addCloudIpB").value = "";
+    document.getElementById("addTunnelDestB").value = "";
+    document.getElementById("addFirewallBEnable").checked = false;
+    document.getElementById("addFirewallBTypeUnmanaged").checked = true;
+    document.getElementById("addInsideNatB").value = "";
+    document.getElementById("addOutsideNatB").value = "";
+
     // Populate dropdowns with devices
     devicesArray.forEach((device) => {
         // Add devices to dropdowns
@@ -216,6 +231,10 @@ async function fetchAndStoreDevices() {
 }
 
 
+/**
+ * Add a VPN tunnel
+ * Sends details from the form to the API
+ */
 function addVpn() {
     // Get the form elements
     const form = document.getElementById("addVpnForm");
@@ -252,6 +271,8 @@ function addVpn() {
         // FW-A and Endpoint-A cannot be the same
         if ((data.addFirewallAType == 'managed') && (data.addEndpointA == data.addFirewallA)) {
             showNotification("Endpoint A device and firewall cannot be the same", "Failure");
+            console.log("Endpoint A:", data.addEndpointA);
+            console.log("Firewall A:", data.addFirewallA);
             return;
         }
 
@@ -267,12 +288,9 @@ function addVpn() {
     }
 
     // Sanity checking - Unmanaged Endpoint B
-    if (data.addCloudIpB == data.addTunnelDestA) {
-        showNotification("Endpoint-B and Endpoint-A cannot be the same", "Failure");
-        return;
-    }
-    if (data.addCloudIpB == data.addOutsideNatA) {
-        showNotification("Destination conflicts with NAT IP", "Failure");
+    if ((data.addEndpointBManaged == 'managed') && (data.addOutsideNatA != "") && (data.addCloudIpB == data.addOutsideNatA)) {
+        showNotification("Cloud VPN IP conflicts with NAT IP", "Failure");
+        console.log(`Cloud VPN IP (${data.addCloudIpB}) conflicts with NAT IP (${data.addOutsideNatA})`)
         return;
     }
 
@@ -281,12 +299,16 @@ function addVpn() {
         // Endpoint-B cannot be the same as Endpoint-A
         if (data.addEndpointB == data.addEndpointA) {
             showNotification("Endpoint-A and Endpoint-B cannot be the same", "Failure");
+            console.log("Endpoint A:", data.addEndpointA);
+            console.log("Endpoint B:", data.addEndpointB);
             return;
         }
 
         // Endpoint-B and FW-A cannot be the same
         if ((data.addFirewallAEnable == 'on') && (data.addFirewallAType == 'managed') && (data.addFirewallA == data.addEndpointB)) {
             showNotification("Firewall A and Endpoint B cannot be the same", "Failure");
+            console.log("Firewall A:", data.addFirewallA);
+            console.log("Endpoint B:", data.addEndpointB);
             return;
         }
 
@@ -310,18 +332,24 @@ function addVpn() {
             // FW-B and Endpoint-B cannot be the same
             if ((data.addEndpointBManaged == 'managed') && (data.addEndpointB == data.addFirewallB)) {
                 showNotification("Endpoint B device and firewall cannot be the same", "Failure");
+                console.log("Endpoint B:", data.addEndpointB);
+                console.log("Firewall B:", data.addFirewallB);
                 return;
             }
 
             // FW-B and FW-A cannot be the same
             if ((data.addFirewallAType == 'managed') && (data.addFirewallA == data.addFirewallB)) {
                 showNotification("Firewall A and Firewall B cannot be the same", "Failure");
+                console.log("Firewall A:", data.addFirewallA);
+                console.log("Firewall B:", data.addFirewallB);
                 return;
             }
 
             // FW-B cannot be the same as Endpoint-A
             if ((data.addEndpointA == data.addFirewallB)) {
                 showNotification("Endpoint A and firewall B cannot be the same", "Failure");
+                console.log("Endpoint A:", data.addEndpointA);
+                console.log("Firewall B:", data.addFirewallB);
                 return;
             }
         }
@@ -338,6 +366,7 @@ function addVpn() {
     }
 
     // API call
+    showLoadingSpinner('modalAddVpn');
     fetch("/api/vpn?action=add&type=ipsec", {
         method: "POST",
         headers: {
@@ -357,9 +386,11 @@ function addVpn() {
         .catch((error) => {
             console.error("Error adding VPN tunnel:", error);
             showNotification("Failed to add VPN tunnel", "Failure");
+            hideLoadingSpinner('modalAddVpn');
+        })
+        .finally(() => {
+            hideLoadingSpinner('modalAddVpn');
+            const modalAddVpn = document.getElementById("modalAddVpn");
+            modalAddVpn.style.display = "none";
         });
-
-    // Close the modal
-    const modalAddVpn = document.getElementById("modalAddVpn");
-    modalAddVpn.style.display = "none";
 }

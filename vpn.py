@@ -1,0 +1,291 @@
+'''
+Classes to manage IPSec VPNs
+
+Each managed VPN:
+    * Is stored in an SQL database.
+    * Has an object to represent it
+
+When starting up the database is read, and objects are created
+When adding a VPN, an object is created and details are written to the database
+When editing, the object is updated and the database is updated
+'''
+
+
+from settings import AppSettings
+from settings import config
+from sql import SqlServer
+from colorama import Fore, Style
+
+
+class ManagedVPN:
+    '''
+    Class to manage individual VPNs
+
+    Methods:
+        __init__():
+            Constructor
+        __str__():
+            String representation of the VPN
+        update_db():
+            Update the database with the current object
+    '''
+
+    def __init__(
+        self,
+        name: str,
+        endpoint_a: str,
+        destination_a: str,
+        firewall_a: str,
+        inside_nat_a: str,
+        outside_nat_a: str,
+        endpoint_b_type: str,
+        endpoint_b: str,
+        cloud_b: str,
+        destination_b: str,
+        firewall_b: str,
+        inside_nat_b: str,
+        outside_nat_b: str,
+    ) -> None:
+        '''
+        Constructor
+
+        Parameters:
+            name: str (required)
+                Friendly name of the VPN
+
+            endpoint_a: str (required)
+                Device at endpoint A
+            destination_a: str (required)
+                Destination IP of tunnel on endpoint A
+            firewall_a: str (optional)
+                Managed firewall at endpoint A (if any)
+            inside_nat_a: str (optional)
+                Real IP of endpoint A, before NAT
+            outside_nat_a: str (optional)
+                Public IP of endpoint A, after NAT
+
+            endpoint_b_type: str (required)
+                Type of device at endpoint B (managed, or unmanaged)
+            endpoint_b: str (optional)
+                Device at endpoint B, if managed
+            cloud_b: str (optional)
+                The IP of cloud VPN, if unmanaged
+            destination_b: str (required)
+                Destination IP of tunnel on endpoint B
+            firewall_b: str (optional)
+                Managed firewall at endpoint B (if any)
+            inside_nat_b: str (optional)
+                Real IP of endpoint B, before NAT
+            outside_nat_b: str (optional)
+                Public IP of endpoint B, after NAT
+        '''
+
+        # General details
+        self.name = name
+
+        # Endpoint A
+        self.a_device = endpoint_a
+        self.a_dest = destination_a
+        self.a_fw = firewall_a
+        self.a_inside_nat = inside_nat_a
+        self.a_outside_nat = outside_nat_a
+
+        # Endpoint B
+        self.b_type = endpoint_b_type
+        self.b_device = endpoint_b
+        self.b_cloud = cloud_b
+        self.b_dest = destination_b
+        self.b_fw = firewall_b
+        self.b_inside_nat = inside_nat_b
+        self.b_outside_nat = outside_nat_b
+
+    def __str__(
+        self
+    ) -> str:
+        '''
+        String representation of the VPN
+        '''
+
+        return self.name
+
+    def update_db(
+        self
+    ) -> None:
+        '''
+        Update the database with the current object
+        '''
+
+        # Connection settings
+        settings = AppSettings()
+        table = 'tunnels'
+
+        # SQL query to see if the VPN exists
+        with SqlServer(
+            server=settings.sql_server,
+            database=settings.sql_database,
+            table=table,
+            config=config
+        ) as sql:
+            output = sql.read(
+                field='tunnel_name',
+                value=self.name,
+            )
+
+        # If entry exists, handle updating
+        if output:
+            print("VPN already exists in the database")
+            print(output)
+
+        # If entry does not exist, handle adding
+        else:
+            print(
+                Fore.GREEN,
+                f"Adding {self.name} to the database",
+                Style.RESET_ALL
+            )
+
+            with SqlServer(
+                server=settings.sql_server,
+                database=settings.sql_database,
+                table=table,
+                config=config
+            ) as sql:
+                result = sql.add(
+                    fields={
+                        'tunnel_name': self.name,
+                        'A_endpoint_id': self.a_device,
+                        'A_dest_ip': self.a_dest,
+                        'A_fw_id': self.a_fw,
+                        'A_fw_nat_inside': self.a_inside_nat,
+                        'A_fw_nat_outside': self.a_outside_nat,
+                        'B_type': self.b_type,
+                        'B_endpoint_id': self.b_device,
+                        'B_cloud_ip': self.b_cloud,
+                        'B_dest_ip': self.b_dest,
+                        'B_fw_id': self.b_fw,
+                        'B_fw_nat_inside': self.b_inside_nat,
+                        'B_fw_nat_outside': self.b_outside_nat,
+                    }
+                )
+
+            if result:
+                print("VPN added successfully")
+
+
+class VPNManager:
+    '''
+    Class to manage all VPNs
+    Uses ManagedVPN objects
+
+    Methods:
+        __init__():
+            Constructor
+        load_vpn():
+            Load VPNs from the database
+            Used on startup or refresh
+        add_vpn():
+            Define a new VPN
+            Used when adding a VPN
+    '''
+
+    def __init__(
+        self
+    ) -> None:
+        '''
+        Constructor
+        '''
+
+        # Track all ManagedVpn objects
+        self.vpn_list = []
+
+    def load_vpn(
+        self
+    ) -> None:
+        '''
+        Load VPNs from the database
+
+        PLACEHOLDER
+            READ FROM DATABASE
+            CREATE OBJECT
+            ADD TO LIST
+            LOOP
+        '''
+
+        pass
+
+    def add_vpn(
+        self,
+        data: dict,
+    ) -> None:
+        '''
+        Define a new VPN
+
+        A dict of VPN details is passed here from the API
+        A ManagedVPN object is created and added to the list
+
+        Parameters:
+            data: dict (required)
+                Details of the VPN
+        '''
+
+        # Get mandatory details
+        name = data['addTunnelName']
+        endpoint_a = data['addEndpointA']
+        destination_a = data['addTunnelDestA']
+
+        # Managed firewall at endpoint A
+        if data['addFirewallAEnable'] == 'on':
+            a_fw_device = data['addFirewallA']
+            a_inside_nat = data['addInsideNatA']
+            a_outside_nat = data['addOutsideNatA']
+        else:
+            a_fw_device = None
+            a_inside_nat = None
+            a_outside_nat = None
+
+        # Get details of endpoint B
+        if data['addEndpointBManaged'] == 'managed':
+            b_type = True
+            endpoint_b = data['addEndpointB']
+            cloud_b = None
+            destination_b = data['addTunnelDestB']
+        else:
+            b_type = False
+            endpoint_b = None
+            cloud_b = data['addCloudIpB']
+            destination_b = None
+
+        # Managed firewall at endpoint B
+        if data['addFirewallBEnable'] == 'on':
+            b_fw_device = data['addFirewallB']
+            b_inside_nat = data['addInsideNatB']
+            b_outside_nat = data['addOutsideNatB']
+        else:
+            b_fw_device = None
+            b_inside_nat = None
+            b_outside_nat = None
+
+        # Create a new ManagedVPN object
+        new_vpn = ManagedVPN(
+            name=name,
+            endpoint_a=endpoint_a,
+            destination_a=destination_a,
+            firewall_a=a_fw_device,
+            inside_nat_a=a_inside_nat,
+            outside_nat_a=a_outside_nat,
+            endpoint_b_type=b_type,
+            endpoint_b=endpoint_b,
+            cloud_b=cloud_b,
+            destination_b=destination_b,
+            firewall_b=b_fw_device,
+            inside_nat_b=b_inside_nat,
+            outside_nat_b=b_outside_nat,
+        )
+
+        # Add the new VPN to the list
+        self.vpn_list.append(new_vpn)
+        new_vpn.update_db()
+
+
+# Create a VPNManager object
+vpn_manager = VPNManager()

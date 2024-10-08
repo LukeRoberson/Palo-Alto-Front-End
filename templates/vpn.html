@@ -50,7 +50,7 @@
                         <span class="info-icon" data-tooltip="A Unique friendly name of the VPN tunnel."><i
                                 class="fa-regular fa-circle-question"></i></span>
                         <input class="w3-input w3-border w3-margin-bottom" type="text" placeholder="Friendly Name"
-                            name="addTunnelName" required>
+                            id="addTunnelName" name="addTunnelName" required>
                     </label>
                 </fieldset>
 
@@ -76,7 +76,8 @@
                         <b>Destination</b>
                         <span class="info-icon" data-tooltip="The destination IP of the tunnel"><i
                                 class="fa-regular fa-circle-question"></i></span>
-                        <input class="w3-input w3-border w3-margin-bottom" type="text" name="addTunnelDestA" required>
+                        <input class="w3-input w3-border w3-margin-bottom" type="text" id="addTunnelDestA"
+                            name="addTunnelDestA" required>
                     </label>
 
                     <!-- Enable Firewall A (Checkbox) -->
@@ -127,8 +128,8 @@
                             <span class="info-icon"
                                 data-tooltip="The internal IP address of the tunnel endpoint. This is used for NAT"><i
                                     class="fa-regular fa-circle-question"></i></span>
-                            <input class="w3-input w3-border w3-margin-bottom" type="text" name="addInsideNatA"
-                                required>
+                            <input class="w3-input w3-border w3-margin-bottom" type="text" id="addInsideNatA"
+                                name="addInsideNatA" required>
                         </div>
                     </label>
 
@@ -139,8 +140,8 @@
                             <span class="info-icon"
                                 data-tooltip="The external IP address of the tunnel endpoint. This is used for NAT"><i
                                     class="fa-regular fa-circle-question"></i></span>
-                            <input class="w3-input w3-border w3-margin-bottom" type="text" name="addOutsideNatA"
-                                required>
+                            <input class="w3-input w3-border w3-margin-bottom" type="text" id="addOutsideNatA"
+                                name="addOutsideNatA" required>
                         </div>
                     </label>
                 </fieldset>
@@ -171,7 +172,8 @@
                             <b>Cloud IP</b>
                             <span class="info-icon" data-tooltip="The IP address of the cloud-based VPN endpoint"><i
                                     class="fa-regular fa-circle-question"></i></span>
-                            <input class="w3-input w3-border w3-margin-bottom" type="text" name="addCloudIpB" required>
+                            <input class="w3-input w3-border w3-margin-bottom" type="text" id="addCloudIpB"
+                                name="addCloudIpB" required>
                         </div>
                     </label>
 
@@ -195,8 +197,8 @@
                             <b>Destination</b>
                             <span class="info-icon" data-tooltip="The destination IP of the tunnel"><i
                                     class="fa-regular fa-circle-question"></i></span>
-                            <input class="w3-input w3-border w3-margin-bottom" type="text" name="addTunnelDestB"
-                                required>
+                            <input class="w3-input w3-border w3-margin-bottom" type="text" id="addTunnelDestB"
+                                name="addTunnelDestB" required>
                         </div>
                     </label>
 
@@ -247,8 +249,8 @@
                             <span class="info-icon"
                                 data-tooltip="The internal IP address of the tunnel endpoint. This is used for NAT"><i
                                     class="fa-regular fa-circle-question"></i></span>
-                            <input class="w3-input w3-border w3-margin-bottom" type="text" name="addInsideNatB"
-                                required>
+                            <input class="w3-input w3-border w3-margin-bottom" type="text" id="addInsideNatB"
+                                name="addInsideNatB" required>
                         </div>
                     </label>
 
@@ -259,8 +261,8 @@
                             <span class="info-icon"
                                 data-tooltip="The external IP address of the tunnel endpoint. This is used for NAT"><i
                                     class="fa-regular fa-circle-question"></i></span>
-                            <input class="w3-input w3-border w3-margin-bottom" type="text" name="addOutsideNatB"
-                                required>
+                            <input class="w3-input w3-border w3-margin-bottom" type="text" id="addOutsideNatB"
+                                name="addOutsideNatB" required>
                         </div>
                     </label>
                 </fieldset>
