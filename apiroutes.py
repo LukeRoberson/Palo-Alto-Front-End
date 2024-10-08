@@ -1745,6 +1745,7 @@ class ObjectsView(MethodView):
                 }
             ), 500
 
+    @ login_required
     def post(
         self,
         config: AppSettings,
@@ -2597,7 +2598,7 @@ class VpnView(MethodView):
     Class to get and manage VPN tunnels for a device.
         Includes GP and IPSec
 
-    Methods: GET
+    Methods: GET, POST
 
     Parameters:
         type (str): The type of VPN to get.
@@ -2718,6 +2719,52 @@ class VpnView(MethodView):
                     "message": "Unknown policy type supplied"
                 }
             ), 500
+
+    @ login_required
+    def post(
+        self,
+        config: AppSettings,
+        device_manager: DeviceManager,
+    ) -> jsonify:
+        '''
+        Handle POST requests for VPN settings.
+
+        Parameters:
+            type (str): The type of VPN to update.
+                ipsec: Update the IPSec tunnels for a device
+
+            action (str): The action to take.
+                add: Add a new VPN definition
+        '''
+
+        # Get the action parameter from the request
+        action = request.args.get('action')
+
+        # Get the type of VPN to update
+        vpn_type = request.args.get('type')
+
+        # Add a VPN definition
+        if action == 'add' and vpn_type == 'ipsec':
+            # Get the body of the request
+            data = request.json
+
+            print(data)
+
+            # Success message
+            return jsonify(
+                {
+                    "result": "Success",
+                    "message": "Managed VPN added"
+                }
+            ), 200
+
+        # Unknown or missing action
+        return jsonify(
+            {
+                "result": "Failure",
+                "message": "Unknown VPN action or type"
+            }
+        ), 500
 
 
 # Register Azure view

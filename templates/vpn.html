@@ -39,7 +39,7 @@
 
         <!-- Form for VPN details -->
         <div class="modal-body">
-            <form class="w3-container w3-section">
+            <form id="addVpnForm" class="w3-container w3-section">
                 <!-- VPN tunnel group -->
                 <fieldset class="w3-container">
                     <legend><b>VPN Tunnel Details</b></legend>
@@ -79,7 +79,7 @@
                         <input class="w3-input w3-border w3-margin-bottom" type="text" name="addTunnelDestA" required>
                     </label>
 
-                    <!-- Enable Firewall A -->
+                    <!-- Enable Firewall A (Checkbox) -->
                     <label>
                         <b>External Firewall?</b>
                         <input class="w3-check w3-padding w3-margin-bottom" type="checkbox" id="addFirewallAEnable"
@@ -89,7 +89,7 @@
                                 class="fa-regular fa-circle-question"></i></span><br>
                     </label>
 
-                    <!-- Endpoint-A Firewall radio button -->
+                    <!-- Endpoint-A Firewall (radio button) -->
                     <label>
                         <div id="firewallATypeContainer" style="display: none;">
                             <b>Managed?</b>
@@ -120,7 +120,7 @@
                         </div>
                     </label>
 
-                    <!-- Inside NAT IP -->
+                    <!-- Inside NAT IP (text box) -->
                     <label>
                         <div id="firewallAInsideNatContainer" style="display: none;">
                             <b>Inside NAT IP</b>
@@ -132,7 +132,7 @@
                         </div>
                     </label>
 
-                    <!-- Outside NAT IP -->
+                    <!-- Outside NAT IP (text box) -->
                     <label>
                         <div id="firewallAOutsideNatContainer" style="display: none;">
                             <b>Outside NAT IP</b>
@@ -150,7 +150,7 @@
                 <fieldset class="w3-container">
                     <legend><b>Endpoint-B</b></legend>
 
-                    <!-- Endpoint-B Managed radio button -->
+                    <!-- Endpoint-B Managed (radio button) -->
                     <label>
                         <b>Managed Endpoint?</b>
                         <input class="w3-radio w3-margin-bottom" type="radio" name="addEndpointBManaged" value="managed"
@@ -165,7 +165,7 @@
                                 class="fa-regular fa-circle-question"></i></span><br><br>
                     </label>
 
-                    <!-- Endpoint IP -->
+                    <!-- Endpoint IP (text box) -->
                     <label>
                         <div id="devBCloudIpContainer" style="display: block;">
                             <b>Cloud IP</b>
@@ -174,8 +174,6 @@
                             <input class="w3-input w3-border w3-margin-bottom" type="text" name="addCloudIpB" required>
                         </div>
                     </label>
-
-
 
                     <!-- Endpoint-B (Dropdown) -->
                     <label>
@@ -202,7 +200,7 @@
                         </div>
                     </label>
 
-                    <!-- Enable Firewall B -->
+                    <!-- Enable Firewall B (checkbox) -->
                     <label>
                         <b>External Firewall?</b>
                         <input class="w3-check w3-padding w3-margin-bottom" type="checkbox" id="addFirewallBEnable"
@@ -212,7 +210,7 @@
                                 class="fa-regular fa-circle-question"></i></span><br>
                     </label>
 
-                    <!-- Endpoint-B Firewall radio button -->
+                    <!-- Endpoint-B Firewall (radio button) -->
                     <label>
                         <div id="firewallBTypeContainer" style="display: none;">
                             <b>Managed?</b>
@@ -242,7 +240,7 @@
                         </div>
                     </label>
 
-                    <!-- Inside NAT IP -->
+                    <!-- Inside NAT IP (text box) -->
                     <label>
                         <div id="firewallBInsideNatContainer" style="display: none;">
                             <b>Inside NAT IP</b>
@@ -254,7 +252,7 @@
                         </div>
                     </label>
 
-                    <!-- Outside NAT IP -->
+                    <!-- Outside NAT IP (text box) -->
                     <label>
                         <div id="firewallBOutsideNatContainer" style="display: none;">
                             <b>Outside NAT IP</b>
@@ -271,7 +269,8 @@
 
         <!-- Submit and cancel buttons -->
         <footer class="w3-container w3-border-top w3-padding modal-footer">
-            <button id="modalVpnSubmit" class="w3-button w3-block w3-green w3-section" type="submit">Create
+            <button onclick="addVpn()" id="modalVpnSubmit" class="w3-button w3-block w3-green w3-section"
+                type="submit">Create
                 VPN</button>
             <button onclick="document.getElementById('modalAddVpn').style.display='none'" type="button"
                 class="w3-button w3-red">Cancel</button>
