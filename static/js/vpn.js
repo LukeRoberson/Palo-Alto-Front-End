@@ -8,32 +8,206 @@ let devicesArray = [];
 fetchAndStoreDevices();
 
 setupPage();
-vpnCard();
-vpnCard();
+getVpnList();
 
 
 /**
  * Function to get the list of VPN Tunnels
  */
 function getVpnList() {
-    console.log("Placeholder for VPN List");
+    // API call to get the list of VPN tunnels
+    fetch("/api/vpn?type=ipsec")
+        .then((response) => response.json())
+        .then((data) => {
+            // Create cards for each VPN tunnel
+            data.forEach((vpn) => {
+                vpnCard(vpn);
+            })
+        })
+        .catch((error) => {
+            console.error("Error fetching VPN list:", error);
+        });
 }
 
 
 /**
  * Function to display VPN details in a card
+ * 
+ * @param {Array} vpnArray - Array of VPN tunnel details
  */
-function vpnCard() {
+function vpnCard(vpnArray) {
+    // Define Images
+    const imgRouterA = document.createElement("img");
+    imgRouterA.src = "static/img/router.png";
+    imgRouterA.alt = "VPN Router A";
+    imgRouterA.className = "vpn-router-image";
+
+    const imgRouterB = document.createElement("img");
+    imgRouterB.src = "static/img/router.png";
+    imgRouterB.alt = "VPN Router B";
+    imgRouterB.className = "vpn-router-image";
+
+    const imgFirewallA = document.createElement("img");
+    imgFirewallA.src = "static/img/firewall.png";
+    imgFirewallA.alt = "Firewall A";
+    imgFirewallA.className = "vpn-firewall-image";
+
+    const imgFirewallB = document.createElement("img");
+    imgFirewallB.src = "static/img/firewall.png";
+    imgFirewallB.alt = "Firewall B";
+    imgFirewallB.className = "vpn-firewall-image";
+
+    const imgCloudB = document.createElement("img");
+    imgCloudB.src = "static/img/cloud.png";
+    imgCloudB.alt = "Cloud VPN Endpoint";
+    imgCloudB.className = "vpn-cloud-image";
+
+    const imgInternet = document.createElement("img");
+    imgInternet.src = "static/img/internet.png";
+    imgInternet.alt = "Internet";
+    imgInternet.className = "vpn-cloud-image";
+
+    // Create a card for the VPN tunnel
     const parentContainer = document.getElementById("vpnContainer");
     const card = document.createElement("div");
     card.className = "vpn-card";
     card.classList.add("w3-card");
     card.classList.add("w3-padding");
+
+    // Add a title to the card
     card.innerHTML = `
-        <h3>Sample VPN Tunnel</h3>
-        <p>Placeholder text for VPN tunnel details.</p>
+        <h3>${vpnArray.name}</h3>
     `;
+
+    // Create a container for the grid elements
+    const divGridContainer = document.createElement("div");
+    divGridContainer.className = "w3-row vpn-grid-container";
+
+    // Grid for Endpoint A
+    const divGridEndA = document.createElement("div");
+    divGridEndA.className = "w3-col m2 l2 vpn-grid-item";
+    divGridEndA.id = `gridEndA${sanitizeName(vpnArray.name)}`;
+    divGridEndA.appendChild(imgRouterA);
+
+    const divEndAContent = document.createElement("div");
+    divEndAContent.style = "text-align: center;";
+    divEndAContent.innerHTML = `
+        <b>${vpnArray.a_endpoint.name}</b>
+        `;
+    divGridEndA.appendChild(divEndAContent);
+
+    divGridContainer.appendChild(divGridEndA);
+
+    // Grid for Firewall A
+    const divGridFwA = document.createElement("div");
+    divGridFwA.className = "w3-col m2 l2 vpn-grid-item";
+    divGridFwA.id = `gridFwA${sanitizeName(vpnArray.name)}`;
+
+    if (vpnArray.a_endpoint.fw_name == null) {
+        vpnArray.a_endpoint.fw_name = 'None';
+    }
+    if (vpnArray.a_endpoint.nat_inside == null) {
+        vpnArray.a_endpoint.nat_inside = 'None';
+    }
+    if (vpnArray.a_endpoint.nat_outside == null) {
+        vpnArray.a_endpoint.nat_outside = 'None';
+    }
+
+    if (vpnArray.a_endpoint.fw_id == 'None') {
+        divGridFwA.classList.add("grayscale-image");
+    }
+    divGridFwA.appendChild(imgFirewallA);
+
+    const divFwAContent = document.createElement("div");
+    divFwAContent.style = "text-align: center;";
+    divFwAContent.innerHTML = `
+        <b>${vpnArray.a_endpoint.fw_name}</b><br>
+        `;
+    if (vpnArray.a_endpoint.nat_outside != 'None' && vpnArray.a_endpoint.nat_inside != 'None') {
+        divFwAContent.insertAdjacentHTML('beforeend', `${vpnArray.a_endpoint.nat_inside} ⇒ ${vpnArray.a_endpoint.nat_outside}`);
+    }
+    divGridFwA.appendChild(divFwAContent);
+
+    divGridContainer.appendChild(divGridFwA);
+
+    // Internet grid
+    const divGridInternet = document.createElement("div");
+    divGridInternet.className = "w3-col m2 l2 vpn-grid-item";
+    divGridInternet.appendChild(imgInternet);
+
+    const divTestContent = document.createElement("div");
+    divTestContent.style = "text-align: center;";
+    divGridInternet.appendChild(divTestContent);
+
+    divGridContainer.appendChild(divGridInternet);
+
+    // Grid for Firewall B
+    const divGridFwB = document.createElement("div");
+    divGridFwB.className = "w3-col m2 l2 vpn-grid-item";
+    divGridFwB.id = `gridFwB${sanitizeName(vpnArray.name)}`;
+
+    if (vpnArray.b_endpoint.fw_name == null) {
+        vpnArray.b_endpoint.fw_name = 'None';
+    }
+    if (vpnArray.b_endpoint.nat_inside == null) {
+        vpnArray.b_endpoint.nat_inside = 'None';
+    }
+    if (vpnArray.b_endpoint.nat_outside == null) {
+        vpnArray.b_endpoint.nat_outside = 'None';
+    }
+
+    if (vpnArray.b_endpoint.fw_id == 'None') {
+        divGridFwB.classList.add("grayscale-image");
+    }
+    divGridFwB.appendChild(imgFirewallB);
+
+    const divFwBContent = document.createElement("div");
+    divFwBContent.style = "text-align: center;";
+    divFwBContent.innerHTML = `
+        <b>${vpnArray.b_endpoint.fw_name}</b><br>
+        `;
+    if (vpnArray.b_endpoint.nat_outside != 'None' && vpnArray.b_endpoint.nat_inside != 'None') {
+        divFwBContent.insertAdjacentHTML('beforeend', `${vpnArray.b_endpoint.nat_outside} ⇐ ${vpnArray.b_endpoint.nat_inside}`);
+    }
+    divGridFwB.appendChild(divFwBContent);
+
+    divGridContainer.appendChild(divGridFwB);
+
+    // Grid for Endpoint B
+    const divGridEndB = document.createElement("div");
+    divGridEndB.className = "w3-col m2 l2 vpn-grid-item";
+    divGridEndB.id = `gridEndB${sanitizeName(vpnArray.name)}`;
+    if (vpnArray.b_endpoint.id != 'None' && vpnArray.b_endpoint.id != null) {
+        divGridEndB.appendChild(imgRouterB);
+        endBName = vpnArray.b_endpoint.name;
+    } else {
+        divGridEndB.appendChild(imgCloudB);
+        endBName = vpnArray.b_endpoint.cloud_ip;
+    }
+
+    const divEndBContent = document.createElement("div");
+    divEndBContent.style = "text-align: center;";
+    divEndBContent.innerHTML = `
+        <b>${endBName}</b>
+        `;
+    divGridEndB.appendChild(divEndBContent);
+
+    divGridContainer.appendChild(divGridEndB);
+
+    // Append the card to the parent container
+    card.appendChild(divGridContainer);
     parentContainer.appendChild(card);
+}
+
+
+/**
+ * Sanitize a name by replacing invalid characters with underscores
+ * 
+ * @param {*} name 
+ * @returns the sanitized name
+ */
+function sanitizeName(name) {
+    return name.replace(/[^a-zA-Z0-9-_]/g, '_');
 }
 
 

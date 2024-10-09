@@ -703,14 +703,15 @@ class DeviceManager():
         __len__: Returns the number of devices
         __iter__: Iterate through the device list
         _create_device: Create a new Device object from a tuple
+        _new_uuid: Generate a new UUID for a device
+        _site_assignment: Assign devices to sites
+        _ha_pairs: Find devices that are paired in an HA configuration
         get_devices: Get all devices from the database
         add_device: Add a new device to the database
         delete_device: Delete a device from the database
         update_device: Update a device in the database
         reset_password: Reset the password for a device
-        _new_uuid: Generate a new UUID for a device
-        _site_assignment: Assign devices to sites
-        _ha_pairs: Find devices that are paired in an HA configuration
+        id_to_name: Convert a device ID to a device name
     '''
 
     def __init__(
@@ -824,6 +825,86 @@ class DeviceManager():
 
         # Return the device object
         return this_device
+
+    def _new_uuid(
+        self
+    ) -> uuid:
+        '''
+        Generate a new UUID for a device
+        Ensures the UUID is unique in the database
+
+        Returns:
+            UUID: A unique device UUID
+        '''
+
+        # Loop until a unique ID is found
+        collision = True
+        while collision:
+            id = uuid.uuid4()
+            collision = False
+
+            for device in self.device_list:
+                # If there is a collision, set the flag and break
+                if id == device.id:
+                    collision = True
+                    break
+
+        return id
+
+    def _site_assignment(
+        self,
+    ) -> None:
+        '''
+        Assign devices to sites
+
+        Go through devices, and match to a site object
+        Update the site object with the device ID
+        '''
+
+        # Reset the device list per site
+        for site in self.site_manager.site_list:
+            site.devices = []
+
+        # Loop through devices and sites to find a match
+        for device in self.device_list:
+            # Reset the site name
+            device.site_name = ''
+
+            for site in self.site_manager.site_list:
+                if device.site == site.id:
+                    # Track the device in the site's list
+                    site.devices.append(device.id)
+
+                    # Track the site name in the device
+                    device.site_name = site.name
+                    break
+
+    def _ha_pairs(
+        self,
+    ) -> None:
+        '''
+        Find devices that are paired in an HA configuration
+
+        Loops devices to find active devices
+        When one is found, loop through devices to find the passive device
+        Store both in a dictionary, and append to a list
+        '''
+
+        # Loop through devices
+        self.ha_pairs = []
+        for device in self.device_list:
+            # Find actice devices
+            if device.ha_peer_serial and device.ha_local_state == 'active':
+                # Loop through devices
+                for peer in self.device_list:
+                    # Find matching passive devices
+                    if device.ha_peer_serial == peer.serial:
+                        # Save the pair
+                        self.ha_pairs.append({
+                            'active': device,
+                            'passive': peer
+                        })
+                        break
 
     def get_devices(
         self,
@@ -1107,85 +1188,27 @@ class DeviceManager():
             print("Could not update device in the database.")
             return False
 
-    def _new_uuid(
-        self
-    ) -> uuid:
+    def id_to_name(
+        self,
+        id: uuid,
+    ) -> str:
         '''
-        Generate a new UUID for a device
-        Ensures the UUID is unique in the database
+        Convert a device ID to a device name
+
+        Args:
+            id (uuid): The unique identifier for the device
 
         Returns:
-            UUID: A unique device UUID
+            str: The device name
         '''
 
-        # Loop until a unique ID is found
-        collision = True
-        while collision:
-            id = uuid.uuid4()
-            collision = False
-
-            for device in self.device_list:
-                # If there is a collision, set the flag and break
-                if id == device.id:
-                    collision = True
-                    break
-
-        return id
-
-    def _site_assignment(
-        self,
-    ) -> None:
-        '''
-        Assign devices to sites
-
-        Go through devices, and match to a site object
-        Update the site object with the device ID
-        '''
-
-        # Reset the device list per site
-        for site in self.site_manager.site_list:
-            site.devices = []
-
-        # Loop through devices and sites to find a match
+        # Check if the ID matches a device
         for device in self.device_list:
-            # Reset the site name
-            device.site_name = ''
+            if str(id) == str(device.id):
+                return device.hostname
 
-            for site in self.site_manager.site_list:
-                if device.site == site.id:
-                    # Track the device in the site's list
-                    site.devices.append(device.id)
-
-                    # Track the site name in the device
-                    device.site_name = site.name
-                    break
-
-    def _ha_pairs(
-        self,
-    ) -> None:
-        '''
-        Find devices that are paired in an HA configuration
-
-        Loops devices to find active devices
-        When one is found, loop through devices to find the passive device
-        Store both in a dictionary, and append to a list
-        '''
-
-        # Loop through devices
-        self.ha_pairs = []
-        for device in self.device_list:
-            # Find actice devices
-            if device.ha_peer_serial and device.ha_local_state == 'active':
-                # Loop through devices
-                for peer in self.device_list:
-                    # Find matching passive devices
-                    if device.ha_peer_serial == peer.serial:
-                        # Save the pair
-                        self.ha_pairs.append({
-                            'active': device,
-                            'passive': peer
-                        })
-                        break
+        # If no match is found, return None
+        return None
 
 
 # Manage the sites and devices

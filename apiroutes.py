@@ -2674,39 +2674,54 @@ class VpnView(MethodView):
             # Return the security policies as JSON
             return jsonify(session_list)
 
-        # Get the IPSec tunnels for a device
+        # Get the managed IPSec tunnels
         elif vpn_type == 'ipsec':
-            # Get the VPN tunnels from the device
-            device_id = request.args.get('id')
-            for device in device_manager.device_list:
-                if str(device.id) == device_id:
-                    hostname = device.hostname
-                    username = device.username
-                    password = device.decrypted_pw
-                    break
-
-            api_pass = base64.b64encode(
-                f'{username}:{password}'.encode()
-            ).decode()
-
-            # Create the device object
-            device_api = PaDeviceApi(
-                hostname=hostname,
-                xml_key=api_pass,
-            )
-
-            # Get the VPN tunnels
             vpn_list = []
-            vpn_tunnels = device_api.get_vpn_tunnels()
-            for vpn in vpn_tunnels:
+
+            for vpn in vpn_manager:
+                # Get device names, if they exist
+                a_name = device_manager.id_to_name(vpn.a_device)
+                if a_name is not None and '.' in a_name:
+                    a_name = a_name.split('.')[0]
+
+                b_name = device_manager.id_to_name(vpn.b_device)
+                if b_name is not None and '.' in b_name:
+                    b_name = b_name.split('.')[0]
+
+                a_fw_name = device_manager.id_to_name(vpn.a_fw)
+                if a_fw_name is not None and '.' in a_fw_name:
+                    a_fw_name = a_fw_name.split('.')[0]
+
+                b_fw_name = device_manager.id_to_name(vpn.b_fw)
+                if b_fw_name is not None and '.' in b_fw_name:
+                    b_fw_name = b_fw_name.split('.')[0]
+
+                # Build dictionary of details
                 entry = {}
-                entry["firewall"] = device.hostname
-                entry["name"] = vpn.get('name', 'None')
-                entry["status"] = vpn.get('state', 'None')
-                entry["inner_if"] = vpn.get('inner-if', 'None')
-                entry["outer_if"] = vpn.get('outer-if', 'None')
-                entry["local_ip"] = vpn.get('localip', 'None')
-                entry["peer_ip"] = vpn.get('peerip', 'None')
+                entry["name"] = vpn.name
+
+                a_endpoint = {}
+                a_endpoint["id"] = vpn.a_device
+                a_endpoint["name"] = a_name
+                a_endpoint["destination"] = vpn.a_dest
+                a_endpoint["fw_id"] = vpn.a_fw
+                a_endpoint["fw_name"] = a_fw_name
+                a_endpoint["nat_inside"] = vpn.a_inside_nat
+                a_endpoint["nat_outside"] = vpn.a_outside_nat
+                entry["a_endpoint"] = a_endpoint
+
+                b_endpoint = {}
+                b_endpoint['type'] = vpn.b_type
+                b_endpoint['id'] = vpn.b_device
+                b_endpoint['name'] = b_name
+                b_endpoint['cloud_ip'] = vpn.b_cloud
+                b_endpoint['destination'] = vpn.b_dest
+                b_endpoint['fw_id'] = vpn.b_fw
+                b_endpoint['fw_name'] = b_fw_name
+                b_endpoint['nat_inside'] = vpn.b_inside_nat
+                b_endpoint['nat_outside'] = vpn.b_outside_nat
+                entry['b_endpoint'] = b_endpoint
+
                 vpn_list.append(entry)
 
             # Return the VPN tunnels as JSON

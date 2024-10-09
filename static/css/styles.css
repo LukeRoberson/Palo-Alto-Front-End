@@ -293,3 +293,33 @@ legend {
     scrollbar-width: thin; /* Width of the scrollbar */
     scrollbar-color: #888 #f1f1f1; /* Color of the scrollbar thumb and track */
 }
+
+/* VPN card styling */
+/* Container for the grid elements */
+.vpn-grid-container {
+    display: flex;
+    flex-wrap: wrap; /* Ensure items wrap to the next line if necessary */
+    justify-content: space-between; /* Distribute space between items */
+}
+
+/* Grid items */
+.vpn-grid-item {
+    flex: 1 1 auto;     /* Allow items to grow and shrink as needed */
+    margin: 10px;       /* Optional: Add some margin for spacing */
+}
+
+/* VPN router and firewall images */
+.vpn-router-image,
+.vpn-cloud-image,
+.vpn-firewall-image {
+    width: 30%;         /* Make the images take up the full width of their container */
+    height: auto;       /* Maintain aspect ratio */
+    display: block;     /* Ensure the images are treated as block elements */
+    margin: 0 auto;     /* Center the images horizontally */
+}
+
+/* Apply grayscale filter to the image */
+.grayscale-image {
+    filter: grayscale(100%);
+    opacity: 0.5;
+}

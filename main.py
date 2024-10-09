@@ -33,6 +33,7 @@ from webroutes import web_bp
 from apiroutes import api_bp
 from device import site_manager, device_manager
 from azure import azure_bp
+from vpn import vpn_manager
 
 
 # Create a Flask web app
@@ -62,6 +63,7 @@ else:
 if config.config_exists and config.config_valid:
     site_manager.get_sites()
     device_manager.get_devices()
+    vpn_manager.load_vpn()
     print("Sites and devices loaded")
 
     debug = config.web_debug
