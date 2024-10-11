@@ -16,6 +16,14 @@ let securityListB = [];
 let qosListA = [];
 let qosListB = [];
 
+// Flags to check table population
+let natFlagA = false;
+let natFlagB = false;
+let securityFlagA = false;
+let securityFlagB = false;
+let qosFlagA = false;
+let qosFlagB = false;
+
 
 // Fetch the device list once and populate dropdowns for all subpages
 // The two lists use different hover colors
@@ -139,11 +147,11 @@ function addChildTableItem(tableName, heading, value) {
 function updateNatTable(deviceId, divId) {
     let natList = [];
 
-    // Show loading spinner
-    document.getElementById('natLoadingSpinner').style.display = 'block';
-
     // The div element to populate with the list of addresses
     const divElement = document.getElementById(divId);
+
+    // Show the loading spinner
+    showLoadingSpinner(divId);
 
     // Clear any existing content in the div
     divElement.innerHTML = '';
@@ -228,18 +236,25 @@ function updateNatTable(deviceId, divId) {
                 natList.push(natObject);
             });
 
+            // Store the list of NAT policies in the appropriate list
+            // Manage comparison button
             if (divId.includes('natAccordionA')) {
                 natListA = natList;
+                natFlagA = true;
             } else {
                 natListB = natList;
+                natFlagB = true;
+            }
+            if (natFlagA && natFlagB) {
+                document.getElementById('natCompare').disabled = false;
             }
 
             // Hide loading spinner when the response is received
-            document.getElementById('natLoadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
         })
         .catch(error => {
             // Hide loading spinner when the response is received
-            document.getElementById('natLoadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
             console.error('Error fetching NAT Policies:', error)
         });
 }
@@ -255,11 +270,11 @@ function updateNatTable(deviceId, divId) {
 function updateSecurityTable(deviceId, divId) {
     let securityList = []
 
-    // Show loading spinner
-    document.getElementById('securityLoadingSpinner').style.display = 'block';
-
     // The div element to populate with the list of addresses
     const divElement = document.getElementById(divId);
+
+    // Show the loading spinner
+    showLoadingSpinner(divId);
 
     // Clear any existing content in the div
     divElement.innerHTML = '';
@@ -354,18 +369,25 @@ function updateSecurityTable(deviceId, divId) {
                 securityList.push(securityObject);
             });
 
+            // Store the list of security policies in the appropriate list
+            // Manage comparison button
             if (divId.includes('securityAccordionA')) {
                 securityListA = securityList;
+                securityFlagA = true;
             } else {
                 securityListB = securityList;
+                securityFlagB = true;
+            }
+            if (securityFlagA && securityFlagB) {
+                document.getElementById('securityCompare').disabled = false;
             }
 
             // Hide loading spinner when the response is received
-            document.getElementById('securityLoadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
         })
         .catch(error => {
             // Hide loading spinner when the response is received
-            document.getElementById('securityLoadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
             console.error('Error fetching Security Policies:', error)
         });
 }
@@ -381,11 +403,11 @@ function updateSecurityTable(deviceId, divId) {
 function updateQosTable(deviceId, divId) {
     let qosList = [];
 
-    // Show loading spinner
-    document.getElementById('qosLoadingSpinner').style.display = 'block';
-
     // The div element to populate with the list of addresses
     const divElement = document.getElementById(divId);
+
+    // Show the loading spinner
+    showLoadingSpinner(divId);
 
     // Clear any existing content in the div
     divElement.innerHTML = '';
@@ -469,18 +491,25 @@ function updateQosTable(deviceId, divId) {
                 qosList.push(qosObject);
             });
 
+            // Store the list of QoS policies in the appropriate list
+            // Manage comparison button
             if (divId.includes('qosAccordionA')) {
                 qosListA = qosList;
+                qosFlagA = true;
             } else {
                 qosListB = qosList;
+                qosFlagB = true;
+            }
+            if (qosFlagA && qosFlagB) {
+                document.getElementById('qosCompare').disabled = false;
             }
 
             // Hide loading spinner when the response is received
-            document.getElementById('qosLoadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
         })
         .catch(error => {
             // Hide loading spinner when the response is received
-            document.getElementById('qosLoadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
             console.error('Error fetching QoS Policies:', error)
         });
 }

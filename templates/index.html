@@ -3,35 +3,103 @@
 
 {% block content %}
 
-<table class="w3-table w3-striped w3-white w3-half w3-display-middle">
-    <tr>
-        <td><b>Flask Version</b></td>
-        <td><i>{{ flask_version }}</i></td>
-    </tr>
-    <tr>
-        <td><b>IP Address</b></td>
-        <td><i>{{ ip_address }}</i></td>
-    </tr>
-    <tr>
-        <td><b>OS Version</b></td>
-        <td><i>{{ os_version }}</i></td>
-    </tr>
-    <tr>
-        <td><b>Python Version</b></td>
-        <td><i>{{ python_version }}</i></td>
-    </tr>
-    <tr>
-        <td><b>User</b></td>
-        <td><i>{{ user }}</i></td>
-    </tr>
-    <tr>
-        <td><b>Username</b></td>
-        <td><i>{{ user_name }}</i></td>
-    </tr>
-    <tr>
-        <td><b>Groups</b></td>
-        <td><i>{{ groups }}</i></td>
-    </tr>
-</table>
+<div class="w3-row">
+    <!-- Empty column for centering -->
+    <div class="w3-col m2" style="visibility: hidden;">
+        empty
+    </div>
+
+    <!-- Stats column -->
+    <div class="w3-col m8">
+        <div class="w3-display-container w3-border">
+            <header class="w3-container w3-teal">
+                <h2>Stats</h2>
+            </header>
+            <div class="w3-card-4 w3-padding-large">
+                <table class="theme-table">
+                    <tr>
+                        <td><b>App Version</b></td>
+                        <td><i>{{ app_version }}</i></td>
+                    </tr>
+                    <tr>
+                        <td><b>Flask Version</b></td>
+                        <td><i>{{ flask_version }}</i></td>
+                    </tr>
+                    <tr>
+                        <td><b>IP Address</b></td>
+                        <td><i>{{ ip_address }}</i></td>
+                    </tr>
+                    <tr>
+                        <td><b>OS Version</b></td>
+                        <td><i>{{ os_version }}</i></td>
+                    </tr>
+                    <tr>
+                        <td><b>Python Version</b></td>
+                        <td><i>{{ python_version }}</i></td>
+                    </tr>
+                    <tr>
+                        <td><b>User</b></td>
+                        <td><i>{{ user }}</i></td>
+                    </tr>
+                    <tr>
+                        <td><b>Username</b></td>
+                        <td><i>{{ user_name }}</i></td>
+                    </tr>
+                    <tr>
+                        <td><b>Groups</b></td>
+                        <td><i>{{ groups }}</i></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty column for centering -->
+    <div class="w3-col m2" style="visibility: hidden;">
+        empty
+    </div>
+</div>
+
+<br><br>
+<!-- Changelog -->
+<div class="w3-row">
+    <!-- Empty column for centering -->
+    <div class="w3-col m2" style="visibility: hidden;">
+        empty
+    </div>
+
+    <!-- Changelog column -->
+    <div class="w3-col m8">
+        <div class="w3-display-container w3-border">
+            <header class="w3-container w3-teal">
+                <h2>Changelog</h2>
+            </header>
+
+            <!-- Changelog content, loaded from JSON -->
+            <div class="w3-card-4 w3-padding w3-two-thirds w3-display-center">
+                <div class="changelog">
+                    {% for entry in changelog %}
+                    <div class="changelog-entry">
+                        <h3>{{ entry.version }}</h3>
+                        <p>{{ entry.date }}</p>
+                        <ul>
+                            {% for change in entry.changes %}
+                            <li>{{ change }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <br>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Empty column for centering -->
+    <div class="w3-col m2" style="visibility: hidden;">
+        empty
+    </div>
+</div>
 
 {% endblock %}

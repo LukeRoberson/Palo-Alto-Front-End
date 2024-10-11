@@ -103,6 +103,28 @@
     border: 0.5px solid var(--light-on-surface);
 }
 
+/* Light mode table styles */
+.light-mode .theme-table {
+    background-color: var(--light-surface);
+    color: var(--light-on-surface);
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.light-mode .theme-table th,
+.light-mode .theme-table td {
+    border: 1px solid var(--light-on-surface);
+    padding: 8px;
+}
+
+.light-mode .theme-table tr:nth-child(even) {
+    background-color: var(--light-background);
+}
+
+.light-mode .theme-table tr:hover {
+    background-color: var(--light-primary);
+    color: var(--light-on-primary);
+}
 
 
 /* Dark mode styles */
@@ -137,10 +159,7 @@
 
 .dark-mode .header,
 .dark-mode .toggle-btn,
-.dark-mode .w3-card {
-    border: 0.5px solid var(--dark-on-surface);
-    background-color: var(--dark-surface);
-}
+.dark-mode .w3-card,
 .dark-mode .nav-bar,
 .dark-mode .nav-bar a {
     background-color: var(--dark-surface);
@@ -172,4 +191,27 @@
     background-color: var(--dark-surface);
     color: var(--dark-on-surface);
     border: 0.5px solid var(--dark-on-surface);
+}
+
+/* Dark mode table styles */
+.dark-mode .theme-table {
+    background-color: var(--dark-surface);
+    color: var(--dark-on-surface);
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.dark-mode .theme-table th,
+.dark-mode .theme-table td {
+    border: 1px solid var(--dark-on-surface);
+    padding: 8px;
+}
+
+.dark-mode .theme-table tr:nth-child(even) {
+    background-color: var(--dark-background);
+}
+
+.dark-mode .theme-table tr:hover {
+    background-color: var(--dark-primary);
+    color: var(--dark-on-primary);
 }

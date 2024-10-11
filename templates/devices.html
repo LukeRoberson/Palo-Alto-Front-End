@@ -89,11 +89,20 @@
         <div class="w3-container w3-padding-16 device-card">
             <div class="w3-card">
                 <header class="w3-container">
-                    <h3>
-                        <a href="http://{{ device.hostname }}" target="_blank">{{ device.name }}</a>
-                    </h3>
-                </header>
-                <br>
+                    <div class="header-content">
+                        <h3>{{ device.name }}</h3>
+                        <div class="icon-links">
+                            <a href="http://{{ device.hostname }}" target="_blank" class="icon-link"
+                                title="Open {{ device.hostname }} in a new tab">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                            <a href="ssh://{{ device.hostname }}" target="_blank" class="icon-link"
+                                title="Connect to {{ device.hostname }} via SSH">
+                                <i class="fas fa-terminal"></i>
+                            </a>
+                        </div>
+                    </div>
+                </header> <br>
                 <div class="w3-container">
                     <table class="w3-table">
                         <tr>
@@ -106,7 +115,7 @@
                         </tr>
                         <tr>
                             <td><b>Vendor</b></td>
-                            <td>{{ device.vendor }}</td>
+                            <td>{{ device.full_vendor }}</td>
                         </tr>
                         <tr>
                             <td><b>Model</b></td>
@@ -124,6 +133,7 @@
                             <td><b>HA enabled</b></td>
                             <td>{{ device.ha_enabled }}</td>
                         </tr>
+                        {% if device.ha_enabled %}
                         <tr>
                             <td><b>HA State</b></td>
                             <td>{{ device.ha_local_state }}</td>
@@ -136,6 +146,7 @@
                             <td><b>HA Partner State</b></td>
                             <td>{{ device.ha_peer_state }}</td>
                         </tr>
+                        {% endif %}
                     </table>
                 </div>
                 <br>
@@ -145,7 +156,8 @@
                             style="width:30%">Download Config</button>
                         <button data-id="{{ device.id }}" data-device-name="{{ device.name }}"
                             data-device-hostname="{{ device.hostname }}" data-device-site="{{ device.site }}"
-                            data-device-key="{{ device.key }}" class="w3-button w3-round device-edit-button"
+                            data-device-vendor="{{ device.vendor }}" data-device-key="{{ device.key }}"
+                            data-device-user="{{ device.username }}" class="w3-button w3-round device-edit-button"
                             style="width:30%">Edit</button>
                         <button data-id="{{ device.id }}" class="w3-button w3-round device-delete-button"
                             style="width:30%">Delete</button>
@@ -165,8 +177,6 @@
     {% endfor %}
     <button class="w3-button w3-block w3-green" id="add_device">Add Device</button>
     <button class="w3-button w3-block w3-blue" id="refresh_device">Refresh Device List</button>
-    <!-- Loading Spinner -->
-    <div id="loadingSpinner" class="loading-spinner" style="display: none;"></div>
 </div>
 
 <!-- HA Pair List -->
@@ -296,6 +306,15 @@
                                 <!-- Content dynamically added here -->
                             </select>
 
+                            <!-- The vendor selection drop-down -->
+                            <label><b>Vendor</b></label>
+                            <select id="deviceVendor" class="w3-input w3-border w3-margin-bottom" type="text"
+                                name="deviceVendor" required>
+                                <option value="" selected disabled>Select device vendor...</option>
+                                <option value="paloalto">Palo Alto</option>
+                                <option value="juniper">Juniper</option>
+                            </select>
+
                             <label><b>API Key (REST API)</b></label>
                             <input class="w3-input w3-border w3-margin-bottom" type="text"
                                 placeholder="API key to access the device" name="apiKey" required>
@@ -346,6 +365,14 @@
                                 <!-- Content dynamically added here -->
                             </select>
 
+                            <!-- The vendor selection drop-down -->
+                            <label><b>Vendor</b></label>
+                            <select id="deviceVendorEdit" class="w3-input w3-border w3-margin-bottom" type="text"
+                                name="deviceVendorEdit" required>
+                                <option value="paloalto">Palo Alto</option>
+                                <option value="juniper">Juniper</option>
+                            </select>
+
                             <label><b>API Key (REST API)</b></label>
                             <input class="w3-input w3-border w3-margin-bottom" type="text" name="apiKeyEdit" required>
 
@@ -366,8 +393,6 @@
                             class="w3-button w3-red">Cancel</button>
                     </div>
                 </div>
-                <!-- Loading Spinner -->
-                <div id="loadingSpinner" class="loading-spinner" style="display: none;"></div>
             </div>
 
             <!-- The Add Site Modal -->
@@ -426,12 +451,12 @@
 
             <!-- Confirmation Modal -->
             <div id="confirmModal" class="w3-modal">
-                <div class="w3-modal-content w3-card w3-animate-zoom" style="max-width:600px">
+                <div class="w3-card confirm-modal w3-animate-zoom">
                     <div class="w3-center"><br>
                         <h3>Are you sure?</h3>
                     </div>
 
-                    <div class="w3-container">
+                    <div class="button-container">
                         <button id="confirmDelete"
                             class="w3-button w3-block w3-red w3-section w3-padding">Delete</button>
                         <button id="confirmCancel"

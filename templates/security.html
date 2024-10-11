@@ -58,10 +58,16 @@
     <!-- Compare Button -->
     <div class="w3-container w3-padding-16">
         <div class="w3-container w3-center w3-margin">
-            <button class="w3-button w3-block w3-yellow" id="securityCompare">Compare</button>
+            <button class="w3-button w3-block w3-yellow" id="securityCompare" disabled>Compare</button>
         </div>
     </div>
 
-    <!-- Loading Spinner -->
-    <div id="securityLoadingSpinner" class="loading-spinner" style="display: none;"></div>
+    <!-- Notice -->
+    <div class="w3-col m12 w3-center w3-padding">
+        <div class="w3-panel w3-yellow w3-card-4 w3-padding-large w3-round-large"
+            style="max-width: 50%; margin: 0 auto 20px auto; display: flex; align-items: center; justify-content: center;">
+            <p class="w3-large w3-text-black"><strong>Notice:</strong> This feature is not yet supported for SRX
+                firewalls.</p>
+        </div>
+    </div>
 </div>

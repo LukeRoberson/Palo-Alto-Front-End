@@ -31,6 +31,7 @@ from colorama import Fore, Style
 import os
 
 from device import DeviceManager, SiteManager, device_manager, site_manager
+from vpn import vpn_manager
 from settings import AppSettings, config
 from sql import SqlServer
 from encryption import CryptoSecret
@@ -82,6 +83,8 @@ class AzureView(MethodView):
                 config.azure_app = request.form['app_id']
                 config.azure_secret = request.form['app_secret']
                 config.redirect_uri = request.form['callback_url']
+                config.azure_admin_group = request.form['admin_group']
+                config.azure_helpdesk_group = request.form['helpdesk_group']
                 config.write_config()
 
                 # If it's all good, return a nice message
@@ -449,7 +452,6 @@ class SiteView(MethodView):
         # Add a site to the database
         if parameters == 'add':
             # Get the site name from the form
-            print(request.form)
             site_name = request.form['siteName']
 
             # Add the site to the database
@@ -604,7 +606,6 @@ class DeviceView(MethodView):
             # If there is a device parameter, return the device entry
             device_entry = None
             for entry in device_list:
-                print(entry)
                 if str(entry['device_id']) == device:
                     device_entry = entry
 
@@ -678,6 +679,7 @@ class DeviceView(MethodView):
                 name=device_name,
                 hostname=request.form['hostName'],
                 site=request.form['siteMember'],
+                vendor=request.form['deviceVendor'],
                 key=request.form['apiKey'],
                 username=request.form['apiUser'],
                 password=encrypted_key,
@@ -764,6 +766,7 @@ class DeviceView(MethodView):
                 name=device_name,
                 hostname=request.form['hostNameEdit'],
                 site=request.form['siteMemberEdit'],
+                vendor=request.form['deviceVendorEdit'],
                 key=request.form['apiKeyEdit'],
                 username=request.form['apiUserEdit'],
                 password=encrypted_key,
@@ -976,7 +979,7 @@ class ObjectsView(MethodView):
             service_groups: Get the service groups for a device.
 
     POST Parameters:
-        object (str): The object type to get.
+        object (str): The object type.
             tags: Get the tags for a device.
         action (str): The action to perform.
             create: Add a device to the database.
@@ -1093,43 +1096,108 @@ class ObjectsView(MethodView):
             # Extract the details from the SQL output
             hostname = output[0][1]
             token = output[0][9]
+            vendor = output[0][3]
+            username = output[0][6]
+            password = output[0][7]
+            salt = output[0][8]
 
-            # Create the device object
-            device_api = PaDeviceApi(
-                hostname=hostname,
-                rest_key=token,
-                version='v11.0'
-            )
-
-            # The address objects from the device
-            raw_addresses = device_api.get_addresses()
-
-            # A cleaned up list of address objects
-            address_list = []
-            for address in raw_addresses:
-                entry = {}
-                entry["name"] = address['@name']
-
-                if 'ip-netmask' in address:
-                    entry["addr"] = address['ip-netmask']
-                elif 'ip-range' in address:
-                    entry["addr"] = address['ip-range']
-                elif 'fqdn' in address:
-                    entry["addr"] = address['fqdn']
-                else:
-                    entry["addr"] = 'No IP'
-                    print(
-                        Fore.RED,
-                        f'No IP for object {entry['name']}',
-                        Style.RESET_ALL
+            # Decrypt the password
+            try:
+                with CryptoSecret() as decryptor:
+                    print(f"Decrypting password for device '{hostname}'.")
+                    # Decrypt the password
+                    real_pw = decryptor.decrypt(
+                        secret=password,
+                        salt=base64.urlsafe_b64decode(salt.encode())
                     )
 
-                entry["description"] = address.get(
-                    'description',
-                    'No description',
+            except Exception as e:
+                print(
+                    Fore.RED,
+                    f"Could not decrypt password for device '{hostname}'.",
+                    Style.RESET_ALL
                 )
-                entry["tag"] = address.get('tag', 'No tag')
-                address_list.append(entry)
+                print(e)
+                real_pw = None
+
+            # Create the device object
+            if vendor == 'paloalto':
+                device_api = PaDeviceApi(
+                    hostname=hostname,
+                    rest_key=token,
+                    version='v11.0'
+                )
+
+                # The address objects from the device
+                raw_addresses = device_api.get_addresses()
+
+                # A cleaned up list of address objects
+                address_list = []
+                for address in raw_addresses:
+                    entry = {}
+                    entry["name"] = address['@name']
+
+                    if 'ip-netmask' in address:
+                        entry["addr"] = address['ip-netmask']
+                    elif 'ip-range' in address:
+                        entry["addr"] = address['ip-range']
+                    elif 'fqdn' in address:
+                        entry["addr"] = address['fqdn']
+                    else:
+                        entry["addr"] = 'No IP'
+                        print(
+                            Fore.RED,
+                            f'No IP for object {entry['name']}',
+                            Style.RESET_ALL
+                        )
+
+                    entry["description"] = address.get(
+                        'description',
+                        'No description',
+                    )
+                    entry["tag"] = address.get('tag', 'No tag')
+                    address_list.append(entry)
+
+            elif vendor == 'juniper':
+                device_api = JunosDeviceApi(
+                    hostname=hostname,
+                    username=username,
+                    password=real_pw,
+                )
+
+                # The address objects from the device
+                raw_addresses = device_api.get_addresses()
+                if raw_addresses is None:
+                    return jsonify(
+                        {
+                            "result": "Success",
+                            "message": "No addresses found"
+                        }
+                    ), 200
+
+                # A cleaned up list of address objects
+                address_list = []
+                for address_book in raw_addresses:
+                    for address in address_book['address']:
+                        entry = {}
+                        entry["name"] = address['name']
+                        entry["addr"] = address.get(
+                            'ip-prefix',
+                            'No IP'
+                        )
+                        entry["description"] = address.get(
+                            'description',
+                            'No description',
+                        )
+                        address_list.append(entry)
+
+            else:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Unknown vendor"
+                    }
+                ), 500
 
             # Sort the addresses by name
             address_list.sort(key=lambda x: x['name'])
@@ -1169,32 +1237,112 @@ class ObjectsView(MethodView):
             # Extract the details from the SQL output
             hostname = output[0][1]
             token = output[0][9]
+            vendor = output[0][3]
+            username = output[0][6]
+            password = output[0][7]
+            salt = output[0][8]
+
+            # Decrypt the password
+            try:
+                with CryptoSecret() as decryptor:
+                    print(f"Decrypting password for device '{hostname}'.")
+                    # Decrypt the password
+                    real_pw = decryptor.decrypt(
+                        secret=password,
+                        salt=base64.urlsafe_b64decode(salt.encode())
+                    )
+
+            except Exception as e:
+                print(
+                    Fore.RED,
+                    f"Could not decrypt password for device '{hostname}'.",
+                    Style.RESET_ALL
+                )
+                print(e)
+                real_pw = None
 
             # Create the device object
-            device_api = PaDeviceApi(
-                hostname=hostname,
-                rest_key=token,
-                version='v11.0'
-            )
-
-            # The address groups from the device
-            raw_address_groups = device_api.get_address_groups()
-
-            # A cleaned up list of address groups
-            address_group_list = []
-            for address_group in raw_address_groups:
-                entry = {}
-                entry["name"] = address_group['@name']
-                entry["static"] = address_group.get('static', 'None')
-                entry["description"] = address_group.get('description', 'None')
-                entry["tag"] = address_group.get(
-                    'tag',
-                    {'member': ['No tags']}
+            if vendor == 'paloalto':
+                device_api = PaDeviceApi(
+                    hostname=hostname,
+                    rest_key=token,
+                    version='v11.0'
                 )
-                address_group_list.append(entry)
+
+                # The address groups from the device
+                raw_address_groups = device_api.get_address_groups()
+
+                # A cleaned up list of address groups
+                address_group_list = []
+                for address_group in raw_address_groups:
+                    entry = {}
+                    entry["name"] = address_group['@name']
+                    entry["static"] = address_group.get('static', 'None')
+                    entry["description"] = address_group.get(
+                        'description',
+                        'None'
+                    )
+                    entry["tag"] = address_group.get(
+                        'tag',
+                        {'member': ['No tags']}
+                    )
+                    address_group_list.append(entry)
+
+            elif vendor == 'juniper':
+                device_api = JunosDeviceApi(
+                    hostname=hostname,
+                    username=username,
+                    password=real_pw,
+                )
+
+                # The address groups from the device
+                raw_address_groups = device_api.get_address_groups()
+
+                # The address objects from the device
+                raw_addresses = device_api.get_addresses()
+                if raw_addresses is None:
+                    return jsonify(
+                        {
+                            "result": "Success",
+                            "message": "No address groups found"
+                        }
+                    ), 200
+
+                # A cleaned up list of address groups
+                address_group_list = []
+                for address_book in raw_addresses:
+                    if 'address-set' in address_book:
+                        for address in address_book['address-set']:
+                            entry = {}
+                            entry["name"] = address['name']
+                            entry["static"] = address.get(
+                                'address',
+                                'None'
+                            )
+                            entry["description"] = address.get(
+                                'description',
+                                'None'
+                            )
+                            address_group_list.append(entry)
+
+            else:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Unknown vendor"
+                    }
+                ), 500
 
             # Sort the address groups by name
-            address_group_list.sort(key=lambda x: x['name'])
+            if address_group_list == []:
+                return jsonify(
+                    {
+                        "result": "Success",
+                        "message": "No address groups found"
+                    }
+                ), 200
+            else:
+                address_group_list.sort(key=lambda x: x['name'])
 
             # Return the address groups as JSON
             return jsonify(address_group_list)
@@ -1231,27 +1379,94 @@ class ObjectsView(MethodView):
             # Extract the details from the SQL output
             hostname = output[0][1]
             token = output[0][9]
+            vendor = output[0][3]
+            username = output[0][6]
+            password = output[0][7]
+            salt = output[0][8]
+
+            # Decrypt the password
+            try:
+                with CryptoSecret() as decryptor:
+                    print(f"Decrypting password for device '{hostname}'.")
+                    # Decrypt the password
+                    real_pw = decryptor.decrypt(
+                        secret=password,
+                        salt=base64.urlsafe_b64decode(salt.encode())
+                    )
+
+            except Exception as e:
+                print(
+                    Fore.RED,
+                    f"Could not decrypt password for device '{hostname}'.",
+                    Style.RESET_ALL
+                )
+                print(e)
+                real_pw = None
 
             # Create the device object
-            device_api = PaDeviceApi(
-                hostname=hostname,
-                rest_key=token,
-                version='v11.0'
-            )
-
-            # The application groups from the device
-            raw_application_groups = device_api.get_application_groups()
-
-            # A cleaned up list of application groups
-            application_group_list = []
-            for application_group in raw_application_groups:
-                entry = {}
-                entry["name"] = application_group['@name']
-                entry["members"] = application_group.get(
-                    'members',
-                    'No members'
+            if vendor == 'paloalto':
+                device_api = PaDeviceApi(
+                    hostname=hostname,
+                    rest_key=token,
+                    version='v11.0'
                 )
-                application_group_list.append(entry)
+
+                # The application groups from the device
+                raw_application_groups = device_api.get_application_groups()
+                if raw_application_groups is None:
+                    return jsonify(
+                        {
+                            "result": "Success",
+                            "message": "No application groups found"
+                        }
+                    ), 200
+
+                # A cleaned up list of application groups
+                application_group_list = []
+                for application_group in raw_application_groups:
+                    entry = {}
+                    entry["name"] = application_group['@name']
+                    entry["members"] = application_group.get(
+                        'members',
+                        'No members'
+                    )
+                    application_group_list.append(entry)
+
+            elif vendor == 'juniper':
+                device_api = JunosDeviceApi(
+                    hostname=hostname,
+                    username=username,
+                    password=real_pw,
+                )
+
+                # The application groups from the device
+                raw_application_groups = device_api.get_application_groups()
+                if raw_application_groups is None:
+                    return jsonify(
+                        {
+                            "result": "Success",
+                            "message": "No application groups found"
+                        }
+                    ), 200
+
+                # A cleaned up list of application groups
+                application_group_list = []
+                for application_group in raw_application_groups:
+                    entry = {}
+                    entry["name"] = application_group['name']
+                    entry["members"] = application_group.get(
+                        'applications',
+                        'No members'
+                    )
+                    application_group_list.append(entry)
+
+            else:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Unknown vendor"
+                    }
+                ), 500
 
             # Sort the application groups by name
             application_group_list.sort(key=lambda x: x['name'])
@@ -1291,29 +1506,101 @@ class ObjectsView(MethodView):
             # Extract the details from the SQL output
             hostname = output[0][1]
             token = output[0][9]
+            vendor = output[0][3]
+            username = output[0][6]
+            password = output[0][7]
+            salt = output[0][8]
+
+            # Decrypt the password
+            try:
+                with CryptoSecret() as decryptor:
+                    print(f"Decrypting password for device '{hostname}'.")
+                    # Decrypt the password
+                    real_pw = decryptor.decrypt(
+                        secret=password,
+                        salt=base64.urlsafe_b64decode(salt.encode())
+                    )
+
+            except Exception as e:
+                print(
+                    Fore.RED,
+                    f"Could not decrypt password for device '{hostname}'.",
+                    Style.RESET_ALL
+                )
+                print(e)
+                real_pw = None
 
             # Create the device object
-            device_api = PaDeviceApi(
-                hostname=hostname,
-                rest_key=token,
-                version='v11.0'
-            )
-
-            # The service objects from the device
-            raw_services = device_api.get_services()
-
-            # A cleaned up list of service objects
-            services_list = []
-            for service in raw_services:
-                entry = {}
-                entry["name"] = service['@name']
-                entry["protocol"] = service['protocol']
-                entry["description"] = service.get(
-                    'description',
-                    'No description'
+            if vendor == 'paloalto':
+                device_api = PaDeviceApi(
+                    hostname=hostname,
+                    rest_key=token,
+                    version='v11.0'
                 )
-                entry["tag"] = service.get('tag', 'No tag')
-                services_list.append(entry)
+
+                # The service objects from the device
+                raw_services = device_api.get_services()
+                if raw_services is None:
+                    return jsonify(
+                        {
+                            "result": "Success",
+                            "message": "No services found"
+                        }
+                    ), 200
+
+                # A cleaned up list of service objects
+                services_list = []
+                for service in raw_services:
+                    entry = {}
+                    entry["name"] = service['@name']
+                    entry["protocol"] = service['protocol']
+                    entry["description"] = service.get(
+                        'description',
+                        'No description'
+                    )
+                    entry["tag"] = service.get('tag', 'No tag')
+                    services_list.append(entry)
+
+            elif vendor == 'juniper':
+                device_api = JunosDeviceApi(
+                    hostname=hostname,
+                    username=username,
+                    password=real_pw,
+                )
+
+                # The service objects from the device
+                raw_services = device_api.get_services()
+                if raw_services is None:
+                    return jsonify(
+                        {
+                            "result": "Success",
+                            "message": "No services found"
+                        }
+                    ), 200
+
+                # A cleaned up list of service objects
+                services_list = []
+                for service in raw_services:
+                    entry = {}
+                    entry["name"] = service['name']
+                    entry["protocol"] = service['protocol']
+                    entry["description"] = service.get(
+                        'description',
+                        'No description'
+                    )
+                    entry["dest_port"] = service.get(
+                        'destination-port',
+                        'No port'
+                    )
+                    services_list.append(entry)
+
+            else:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Unknown vendor"
+                    }
+                ), 500
 
             # Sort the service objects by name
             services_list.sort(key=lambda x: x['name'])
@@ -1353,25 +1640,96 @@ class ObjectsView(MethodView):
             # Extract the details from the SQL output
             hostname = output[0][1]
             token = output[0][9]
+            vendor = output[0][3]
+            username = output[0][6]
+            password = output[0][7]
+            salt = output[0][8]
+
+            # Decrypt the password
+            try:
+                with CryptoSecret() as decryptor:
+                    print(f"Decrypting password for device '{hostname}'.")
+                    # Decrypt the password
+                    real_pw = decryptor.decrypt(
+                        secret=password,
+                        salt=base64.urlsafe_b64decode(salt.encode())
+                    )
+
+            except Exception as e:
+                print(
+                    Fore.RED,
+                    f"Could not decrypt password for device '{hostname}'.",
+                    Style.RESET_ALL
+                )
+                print(e)
+                real_pw = None
 
             # Create the device object
-            device_api = PaDeviceApi(
-                hostname=hostname,
-                rest_key=token,
-                version='v11.0'
-            )
+            if vendor == 'paloalto':
+                device_api = PaDeviceApi(
+                    hostname=hostname,
+                    rest_key=token,
+                    version='v11.0'
+                )
 
-            # The service groups from the device
-            raw_service_groups = device_api.get_service_groups()
+                # The service groups from the device
+                raw_service_groups = device_api.get_service_groups()
+                if raw_service_groups is None:
+                    return jsonify(
+                        {
+                            "result": "Success",
+                            "message": "No service groups found"
+                        }
+                    ), 200
 
-            # A cleaned up list of service groups
-            service_groups_list = []
-            for service in raw_service_groups:
-                entry = {}
-                entry["name"] = service['@name']
-                entry["members"] = service.get('members', 'No members')
-                entry["tag"] = service.get('tag', 'No tags')
-                service_groups_list.append(entry)
+                # A cleaned up list of service groups
+                service_groups_list = []
+                for service in raw_service_groups:
+                    entry = {}
+                    entry["name"] = service['@name']
+                    entry["members"] = service.get('members', 'No members')
+                    entry["tag"] = service.get('tag', 'No tags')
+                    service_groups_list.append(entry)
+
+            elif vendor == 'juniper':
+                device_api = JunosDeviceApi(
+                    hostname=hostname,
+                    username=username,
+                    password=real_pw,
+                )
+
+                # The service groups from the device
+                raw_service_groups = device_api.get_service_groups()
+                if raw_service_groups is None:
+                    return jsonify(
+                        {
+                            "result": "Success",
+                            "message": "No service groups found"
+                        }
+                    ), 200
+
+                # A cleaned up list of service groups
+                service_groups_list = []
+                for service in raw_service_groups:
+                    entry = {}
+                    entry["name"] = service['name']
+                    entry["description"] = service.get(
+                        'description',
+                        'No description'
+                    )
+                    entry["members"] = service.get(
+                        'application',
+                        'No applications'
+                    )
+                    service_groups_list.append(entry)
+
+            else:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Unknown vendor"
+                    }
+                ), 500
 
             # Sort the service groups by name
             service_groups_list.sort(key=lambda x: x['name'])
@@ -1388,6 +1746,7 @@ class ObjectsView(MethodView):
                 }
             ), 500
 
+    @ login_required
     def post(
         self,
         config: AppSettings,
@@ -1402,6 +1761,7 @@ class ObjectsView(MethodView):
         # Get the action parameter from the request
         action = request.args.get('action')
 
+        # Create a new tag
         if object_type == 'tags' and action == 'create':
             # Get device information
             device = request.args.get('id')
@@ -1449,6 +1809,542 @@ class ObjectsView(MethodView):
             )
 
             return jsonify(result)
+
+        # Create a new address object
+        if object_type == 'addresses' and action == 'create':
+            # Get device information
+            device = request.args.get('id')
+            sql_server = config.sql_server
+            sql_database = config.sql_database
+            table = 'devices'
+
+            # Read the device details from the database
+            with SqlServer(
+                server=sql_server,
+                database=sql_database,
+                table=table,
+                config=config,
+            ) as sql:
+                output = sql.read(
+                    field='id',
+                    value=device,
+                )
+
+            # Return a failure message if the database read failed
+            if not output:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Problems reading from the database"
+                    }
+                ), 500
+
+            # Extract the details from the SQL output
+            hostname = output[0][1]
+            token = output[0][9]
+            vendor = output[0][3]
+            username = output[0][6]
+            password = output[0][7]
+            salt = output[0][8]
+
+            # Decrypt the password
+            try:
+                with CryptoSecret() as decryptor:
+                    print(f"Decrypting password for device '{hostname}'.")
+                    # Decrypt the password
+                    real_pw = decryptor.decrypt(
+                        secret=password,
+                        salt=base64.urlsafe_b64decode(salt.encode())
+                    )
+
+            except Exception as e:
+                print(
+                    Fore.RED,
+                    f"Could not decrypt password for device '{hostname}'.",
+                    Style.RESET_ALL
+                )
+                print(e)
+                real_pw = None
+
+            # Create the device object
+            if vendor == 'paloalto':
+                device_api = PaDeviceApi(
+                    hostname=hostname,
+                    rest_key=token,
+                    version='v11.0'
+                )
+
+                device_api.create_address(
+                    name=request.json['name'],
+                    address=request.json['address'],
+                    description=request.json['description'],
+                    tags=request.json['tag']
+                )
+
+            elif vendor == 'juniper':
+                device_api = JunosDeviceApi(
+                    hostname=hostname,
+                    username=username,
+                    password=real_pw,
+                )
+
+                device_api.create_address(
+                    name=request.json['name'],
+                    address=request.json['address'],
+                    description=request.json['description'],
+                )
+
+            else:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Unknown vendor"
+                    }
+                ), 500
+
+            return jsonify(
+                {
+                    "result": "Success",
+                    "message": "Created address object"
+                }
+            ), 200
+
+        # Create a new address group
+        if object_type == 'address_groups' and action == 'create':
+            # Get device information
+            device = request.args.get('id')
+            sql_server = config.sql_server
+            sql_database = config.sql_database
+            table = 'devices'
+
+            # Read the device details from the database
+            with SqlServer(
+                server=sql_server,
+                database=sql_database,
+                table=table,
+                config=config,
+            ) as sql:
+                output = sql.read(
+                    field='id',
+                    value=device,
+                )
+
+            # Return a failure message if the database read failed
+            if not output:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Problems reading from the database"
+                    }
+                ), 500
+
+            # Extract the details from the SQL output
+            hostname = output[0][1]
+            token = output[0][9]
+            vendor = output[0][3]
+            username = output[0][6]
+            password = output[0][7]
+            salt = output[0][8]
+
+            # Decrypt the password
+            try:
+                with CryptoSecret() as decryptor:
+                    print(f"Decrypting password for device '{hostname}'.")
+                    # Decrypt the password
+                    real_pw = decryptor.decrypt(
+                        secret=password,
+                        salt=base64.urlsafe_b64decode(salt.encode())
+                    )
+
+            except Exception as e:
+                print(
+                    Fore.RED,
+                    f"Could not decrypt password for device '{hostname}'.",
+                    Style.RESET_ALL
+                )
+                print(e)
+                real_pw = None
+
+            # Create the device object
+            if vendor == 'paloalto':
+                device_api = PaDeviceApi(
+                    hostname=hostname,
+                    rest_key=token,
+                    version='v11.0'
+                )
+
+                # Get the members, which should be a list
+                members = request.json['members']
+                if type(members) is not list and ',' in members:
+                    members = [member.strip() for member in members.split(',')]
+                elif type(members) is not list:
+                    members = [members]
+
+                device_api.create_addr_group(
+                    name=request.json['name'],
+                    members=members,
+                    description=request.json['description'],
+                    tags=request.json['tag']
+                )
+
+            elif vendor == 'juniper':
+                device_api = JunosDeviceApi(
+                    hostname=hostname,
+                    username=username,
+                    password=real_pw,
+                )
+
+                # Get the members, which should be a list
+                members = request.json['members']
+                if type(members) is not list and ',' in members:
+                    members = [member.strip() for member in members.split(',')]
+                elif type(members) is not list:
+                    members = [members]
+
+                # Create the address group
+                device_api.create_addr_group(
+                    name=request.json['name'],
+                    members=members,
+                )
+
+            else:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Unknown vendor"
+                    }
+                ), 500
+
+            return jsonify(
+                {
+                    "result": "Success",
+                    "message": "Placeholder for creating address groups"
+                }
+            ), 200
+
+        # Create a new application group
+        if object_type == 'app_groups' and action == 'create':
+            # Get device information
+            device = request.args.get('id')
+            sql_server = config.sql_server
+            sql_database = config.sql_database
+            table = 'devices'
+
+            # Read the device details from the database
+            with SqlServer(
+                server=sql_server,
+                database=sql_database,
+                table=table,
+                config=config,
+            ) as sql:
+                output = sql.read(
+                    field='id',
+                    value=device,
+                )
+
+            # Return a failure message if the database read failed
+            if not output:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Problems reading from the database"
+                    }
+                ), 500
+
+            # Extract the details from the SQL output
+            hostname = output[0][1]
+            token = output[0][9]
+            vendor = output[0][3]
+            username = output[0][6]
+            password = output[0][7]
+            salt = output[0][8]
+
+            # Decrypt the password
+            try:
+                with CryptoSecret() as decryptor:
+                    print(f"Decrypting password for device '{hostname}'.")
+                    # Decrypt the password
+                    real_pw = decryptor.decrypt(
+                        secret=password,
+                        salt=base64.urlsafe_b64decode(salt.encode())
+                    )
+
+            except Exception as e:
+                print(
+                    Fore.RED,
+                    f"Could not decrypt password for device '{hostname}'.",
+                    Style.RESET_ALL
+                )
+                print(e)
+                real_pw = None
+
+            # Create the device object
+            if vendor == 'paloalto':
+                device_api = PaDeviceApi(
+                    hostname=hostname,
+                    rest_key=token,
+                    version='v11.0'
+                )
+
+            elif vendor == 'juniper':
+                device_api = JunosDeviceApi(
+                    hostname=hostname,
+                    username=username,
+                    password=real_pw,
+                )
+
+            else:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Unknown vendor"
+                    }
+                ), 500
+
+            # Get the members, which should be a list
+            members = request.json['members']
+            if type(members) is not list and ',' in members:
+                members = [member.strip() for member in members.split(',')]
+            elif type(members) is not list:
+                members = [members]
+
+            device_api.create_app_group(
+                name=request.json['name'],
+                members=members,
+            )
+
+            return jsonify(
+                {
+                    "result": "Success",
+                    "message": "Placeholder for creating application groups"
+                }
+            ), 200
+
+        # Create a new service object
+        if object_type == 'services' and action == 'create':
+            # Get device information
+            device = request.args.get('id')
+            sql_server = config.sql_server
+            sql_database = config.sql_database
+            table = 'devices'
+
+            # Read the device details from the database
+            with SqlServer(
+                server=sql_server,
+                database=sql_database,
+                table=table,
+                config=config,
+            ) as sql:
+                output = sql.read(
+                    field='id',
+                    value=device,
+                )
+
+            # Return a failure message if the database read failed
+            if not output:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Problems reading from the database"
+                    }
+                ), 500
+
+            # Extract the details from the SQL output
+            hostname = output[0][1]
+            token = output[0][9]
+            vendor = output[0][3]
+            username = output[0][6]
+            password = output[0][7]
+            salt = output[0][8]
+
+            # Decrypt the password
+            try:
+                with CryptoSecret() as decryptor:
+                    print(f"Decrypting password for device '{hostname}'.")
+                    # Decrypt the password
+                    real_pw = decryptor.decrypt(
+                        secret=password,
+                        salt=base64.urlsafe_b64decode(salt.encode())
+                    )
+
+            except Exception as e:
+                print(
+                    Fore.RED,
+                    f"Could not decrypt password for device '{hostname}'.",
+                    Style.RESET_ALL
+                )
+                print(e)
+                real_pw = None
+
+            # Create the device object
+            if vendor == 'paloalto':
+                device_api = PaDeviceApi(
+                    hostname=hostname,
+                    rest_key=token,
+                    version='v11.0'
+                )
+
+                device_api.create_service(
+                    name=request.json['name'],
+                    protocol=request.json['protocol'],
+                    dest_port=request.json['port'],
+                    description=request.json['description'],
+                    tags=request.json['tag']
+                )
+
+            elif vendor == 'juniper':
+                device_api = JunosDeviceApi(
+                    hostname=hostname,
+                    username=username,
+                    password=real_pw,
+                )
+
+                device_api.create_service(
+                    name=request.json['name'],
+                    protocol=request.json['protocol'],
+                    dest_port=request.json['port'],
+                    description=request.json['description'],
+                )
+
+            else:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Unknown vendor"
+                    }
+                ), 500
+
+            return jsonify(
+                {
+                    "result": "Success",
+                    "message": "Placeholder for creating services"
+                }
+            ), 200
+
+        # Create a new service group
+        if object_type == 'service_groups' and action == 'create':
+            # Get device information
+            device = request.args.get('id')
+            sql_server = config.sql_server
+            sql_database = config.sql_database
+            table = 'devices'
+
+            # Read the device details from the database
+            with SqlServer(
+                server=sql_server,
+                database=sql_database,
+                table=table,
+                config=config,
+            ) as sql:
+                output = sql.read(
+                    field='id',
+                    value=device,
+                )
+
+            # Return a failure message if the database read failed
+            if not output:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Problems reading from the database"
+                    }
+                ), 500
+
+            # Extract the details from the SQL output
+            hostname = output[0][1]
+            token = output[0][9]
+            vendor = output[0][3]
+            username = output[0][6]
+            password = output[0][7]
+            salt = output[0][8]
+
+            # Decrypt the password
+            try:
+                with CryptoSecret() as decryptor:
+                    print(f"Decrypting password for device '{hostname}'.")
+                    # Decrypt the password
+                    real_pw = decryptor.decrypt(
+                        secret=password,
+                        salt=base64.urlsafe_b64decode(salt.encode())
+                    )
+
+            except Exception as e:
+                print(
+                    Fore.RED,
+                    f"Could not decrypt password for device '{hostname}'.",
+                    Style.RESET_ALL
+                )
+                print(e)
+                real_pw = None
+
+            # Create the device object
+            if vendor == 'paloalto':
+                device_api = PaDeviceApi(
+                    hostname=hostname,
+                    rest_key=token,
+                    version='v11.0'
+                )
+
+                # Get the members, which should be a list
+                members = request.json['members']
+                if type(members) is not list and ',' in members:
+                    members = [member.strip() for member in members.split(',')]
+                elif type(members) is not list:
+                    members = [members]
+
+                # Create the service group
+                device_api.create_service_group(
+                    name=request.json['name'],
+                    members=members,
+                    tags=request.json['tag'],
+                )
+
+            elif vendor == 'juniper':
+                device_api = JunosDeviceApi(
+                    hostname=hostname,
+                    username=username,
+                    password=real_pw,
+                )
+
+                # Check if description exists in the request
+                description = request.json.get('description', 'no description')
+
+                # Get the members, which should be a list
+                members = request.json['members']
+                if type(members) is not list and ',' in members:
+                    members = [member.strip() for member in members.split(',')]
+                elif type(members) is not list:
+                    members = [members]
+
+                # Create the service group
+                device_api.create_service_group(
+                    name=request.json['name'],
+                    members=members,
+                    description=description,
+                )
+
+            else:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Unknown vendor"
+                    }
+                ), 500
+
+            return jsonify(
+                {
+                    "result": "Success",
+                    "message": "Placeholder for creating service groups"
+                }
+            ), 200
+
+        # Unknown or missing action
+        return jsonify(
+            {
+                "result": "Failure",
+                "message": "Unknown action supplied"
+            }
+        ), 500
 
 
 class PolicyView(MethodView):
@@ -1703,7 +2599,7 @@ class VpnView(MethodView):
     Class to get and manage VPN tunnels for a device.
         Includes GP and IPSec
 
-    Methods: GET
+    Methods: GET, POST
 
     Parameters:
         type (str): The type of VPN to get.
@@ -1727,8 +2623,10 @@ class VpnView(MethodView):
             jsonify: The Global Protect sessions for the device.
         '''
 
-        # Get the action parameter from the request
+        # Get parameters from the request
         vpn_type = request.args.get('type')
+        action = request.args.get('action')
+        id = request.args.get('id')
 
         # Get the Global Protect sessions for a device
         if vpn_type == 'gp':
@@ -1778,43 +2676,222 @@ class VpnView(MethodView):
             # Return the security policies as JSON
             return jsonify(session_list)
 
-        # Get the IPSec tunnels for a device
+        # If IPSec tunnels are requested
         elif vpn_type == 'ipsec':
-            # Get the VPN tunnels from the device
-            device_id = request.args.get('id')
-            for device in device_manager.device_list:
-                if str(device.id) == device_id:
-                    hostname = device.hostname
-                    username = device.username
-                    password = device.decrypted_pw
-                    break
+            # If there is no action, return the list of managed VPN tunnels
+            if action is None:
+                vpn_list = []
 
-            api_pass = base64.b64encode(
-                f'{username}:{password}'.encode()
-            ).decode()
+                for vpn in vpn_manager:
+                    # Get device names, if they exist
+                    a_name = device_manager.id_to_name(vpn.a_device)
+                    if a_name is not None and '.' in a_name:
+                        a_name = a_name.split('.')[0]
 
-            # Create the device object
-            device_api = PaDeviceApi(
-                hostname=hostname,
-                xml_key=api_pass,
-            )
+                    b_name = device_manager.id_to_name(vpn.b_device)
+                    if b_name is not None and '.' in b_name:
+                        b_name = b_name.split('.')[0]
 
-            # Get the VPN tunnels
-            vpn_list = []
-            vpn_tunnels = device_api.get_vpn_tunnels()
-            for vpn in vpn_tunnels:
-                entry = {}
-                entry["firewall"] = device.hostname
-                entry["name"] = vpn.get('name', 'None')
-                entry["status"] = vpn.get('state', 'None')
-                entry["inner_if"] = vpn.get('inner-if', 'None')
-                entry["outer_if"] = vpn.get('outer-if', 'None')
-                entry["local_ip"] = vpn.get('localip', 'None')
-                entry["peer_ip"] = vpn.get('peerip', 'None')
-                vpn_list.append(entry)
+                    a_fw_name = device_manager.id_to_name(vpn.a_fw)
+                    if a_fw_name is not None and '.' in a_fw_name:
+                        a_fw_name = a_fw_name.split('.')[0]
 
-            # Return the VPN tunnels as JSON
-            return jsonify(vpn_list)
+                    b_fw_name = device_manager.id_to_name(vpn.b_fw)
+                    if b_fw_name is not None and '.' in b_fw_name:
+                        b_fw_name = b_fw_name.split('.')[0]
+
+                    # Build dictionary of details
+                    entry = {}
+                    entry["name"] = vpn.name
+
+                    a_endpoint = {}
+                    a_endpoint["id"] = vpn.a_device
+                    a_endpoint["name"] = a_name
+                    a_endpoint["destination"] = vpn.a_dest
+                    a_endpoint["fw_id"] = vpn.a_fw
+                    a_endpoint["fw_name"] = a_fw_name
+                    a_endpoint["nat_inside"] = vpn.a_inside_nat
+                    a_endpoint["nat_outside"] = vpn.a_outside_nat
+                    entry["a_endpoint"] = a_endpoint
+
+                    b_endpoint = {}
+                    b_endpoint['type'] = vpn.b_type
+                    b_endpoint['id'] = vpn.b_device
+                    b_endpoint['name'] = b_name
+                    b_endpoint['cloud_ip'] = vpn.b_cloud
+                    b_endpoint['destination'] = vpn.b_dest
+                    b_endpoint['fw_id'] = vpn.b_fw
+                    b_endpoint['fw_name'] = b_fw_name
+                    b_endpoint['nat_inside'] = vpn.b_inside_nat
+                    b_endpoint['nat_outside'] = vpn.b_outside_nat
+                    entry['b_endpoint'] = b_endpoint
+
+                    vpn_list.append(entry)
+
+                # Return the VPN tunnels as JSON
+                return jsonify(vpn_list)
+
+            # If the action is 'status', return the status of the VPN tunnel
+            elif action == 'status':
+                # Check that an ID was supplied
+                if id is None:
+                    return jsonify(
+                        {
+                            "result": "Failure",
+                            "message": (
+                                "A VPN ID must be supplied if the "
+                                "VPN status is requested"
+                            )
+                        }
+                    ), 500
+
+                # Get the device from device manager
+                vpn_device = None
+                for device in device_manager:
+                    if str(device.id) == str(id):
+                        vpn_device = device
+                        break
+
+                if vpn_device is None:
+                    print('VPN ID not found')
+                    return jsonify(
+                        {
+                            "result": "Failure",
+                            "message": "VPN ID not found"
+                        }
+                    ), 500
+
+                # Get device details from SQL
+                table = 'devices'
+                with SqlServer(
+                    server=config.sql_server,
+                    database=config.sql_database,
+                    table=table,
+                    config=config,
+                ) as sql:
+                    output = sql.read(
+                        field='id',
+                        value=id,
+                    )
+
+                # Return a failure message if the database read failed
+                if not output:
+                    return jsonify(
+                        {
+                            "result": "Failure",
+                            "message": "Problems reading from the database"
+                        }
+                    ), 500
+
+                # Parse the device details
+                hostname = output[0][1]
+                vendor = output[0][3]
+                username = output[0][6]
+                password = output[0][7]
+                salt = output[0][8]
+
+                # Decrypt the password
+                with CryptoSecret() as decryptor:
+                    # Decrypt the password
+                    real_pw = decryptor.decrypt(
+                        secret=password,
+                        salt=base64.urlsafe_b64decode(salt.encode())
+                    )
+                api_pass = base64.b64encode(
+                    f'{username}:{real_pw}'.encode()
+                ).decode()
+
+                # Select the right vendor
+                if vendor == 'paloalto':
+                    device_api = PaDeviceApi(
+                        hostname=hostname,
+                        xml_key=api_pass,
+                    )
+
+                elif vendor == 'juniper':
+                    device_api = JunosDeviceApi(
+                        hostname=hostname,
+                        username=username,
+                        password=real_pw,
+                    )
+
+                else:
+                    return jsonify(
+                        {
+                            "result": "Failure",
+                            "message": "Unknown vendor"
+                        }
+                    ), 500
+
+                # Get the VPN status
+                vpn_status = device_api.get_vpn_status()
+                if vpn_status:
+                    tunnel_list = []
+                    for tunnel in vpn_status:
+                        entry = {}
+
+                        entry['ike_name'] = tunnel.get('ike-name', 'None')
+                        entry['ike_status'] = tunnel.get('ike_state', 'None')
+                        entry['local_ip'] = tunnel.get('localip', 'None')
+
+                        if 'ipsec-name' in tunnel:
+                            entry['ipsec_name'] = tunnel.get('ipsec-name')
+                        elif 'name' in tunnel:
+                            entry['ipsec_name'] = tunnel.get('name')
+                        else:
+                            entry['ipsec_name'] = 'None'
+
+                        if 'peerip' in tunnel:
+                            entry['destination'] = tunnel.get('peerip')
+                        elif 'ike_address' in tunnel:
+                            entry['destination'] = tunnel.get('ike_address')
+                        else:
+                            entry['destination'] = 'None'
+
+                        if 'ipsec_state' in tunnel:
+                            entry['ipsec_status'] = tunnel.get('ipsec_state')
+                        elif 'state' in tunnel:
+                            entry['ipsec_status'] = tunnel.get('state')
+                        else:
+                            entry['ipsec_status'] = 'None'
+
+                        if entry['ipsec_status'] == 'active':
+                            entry['ipsec_status'] = 'up'
+
+                        if 'outer-if' in tunnel:
+                            entry['physical_if'] = tunnel.get('outer-if')
+                        elif 'ike_interface' in tunnel:
+                            entry['physical_if'] = tunnel.get('ike_interface')
+                        else:
+                            entry['physical_if'] = 'None'
+
+                        if 'inner-if' in tunnel:
+                            entry['tunnel_if'] = tunnel.get('inner-if')
+                        elif 'ipsec_interface' in tunnel:
+                            entry['tunnel_if'] = tunnel.get('ipsec_interface')
+                        else:
+                            entry['tunnel_if'] = 'None'
+
+                        tunnel_list.append(entry)
+
+                    return jsonify(tunnel_list)
+
+                else:
+                    return jsonify(
+                        {
+                            "result": "Failure",
+                            "message": "VPN status not found"
+                        }
+                    ), 500
+
+            # Unknown action
+            else:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Unknown action supplied"
+                    }
+                ), 500
 
         # Unknown or missing policy type
         else:
@@ -1822,6 +2899,86 @@ class VpnView(MethodView):
                 {
                     "result": "Failure",
                     "message": "Unknown policy type supplied"
+                }
+            ), 500
+
+    @ login_required
+    def post(
+        self,
+        config: AppSettings,
+        device_manager: DeviceManager,
+    ) -> jsonify:
+        '''
+        Handle POST requests for VPN settings.
+
+        Parameters:
+            type (str): The type of VPN to update.
+                ipsec: Update the IPSec tunnels for a device
+
+            action (str): The action to take.
+                add: Add a new VPN definition
+        '''
+
+        # Get the action parameter from the request
+        action = request.args.get('action')
+
+        # Get the type of VPN to update
+        vpn_type = request.args.get('type')
+
+        # Add a VPN definition
+        if action == 'add' and vpn_type == 'ipsec':
+            # Get the body of the request
+            data = request.json
+
+            vpn_manager.add_vpn(data)
+
+            # Success message
+            return jsonify(
+                {
+                    "result": "Success",
+                    "message": "Managed VPN added"
+                }
+            ), 200
+
+        # Unknown or missing action
+        return jsonify(
+            {
+                "result": "Failure",
+                "message": "Unknown VPN action or type"
+            }
+        ), 500
+
+    @ login_required
+    def delete(
+        self,
+        config: AppSettings,
+        device_manager: DeviceManager,
+    ):
+        '''
+        Handle DELETE requests for VPN settings.
+
+        Parameters:
+            config (AppSettings): The application settings object.
+            device_manager (DeviceManager): The device manager object.
+        '''
+
+        # Get the body of the request
+        data = request.json
+        result = vpn_manager.delete_vpn(data)
+
+        # Return the result
+        if result:
+            return jsonify(
+                {
+                    "result": "Success",
+                    "message": "Managed VPN deleted"
+                }
+            ), 200
+        else:
+            return jsonify(
+                {
+                    "result": "Failure",
+                    "message": "Managed VPN not found"
                 }
             ), 500
 

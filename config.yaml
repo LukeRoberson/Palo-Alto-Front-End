@@ -1,0 +1,20 @@
+azure:
+  app-id: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+  app-secret: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  redirect-uri: /getAToken
+  tenant-id: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+  admin-group: Admins
+  helpdesk-group: Helpdesk
+sql:
+  auth-type: SQL
+  database: DB_NAME
+  password: xxxx
+  port: '1433'
+  salt: xxxx
+  server: db_server
+  username: db_user
+web:
+  debug: false
+  ip: 0.0.0.0
+  port: '5000'
+  ssl: false

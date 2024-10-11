@@ -31,6 +31,15 @@ html, body {
     justify-content: space-between;
 }
 
+.footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: red;
+    text-align: center;
+ }
+
 .debug-icon {
     color: red;
     font-size: 32px;
@@ -148,4 +157,216 @@ button.highlight-disabled {
 }
 .input-group button {
     margin-left: 10px;
+}
+
+/* Dropdown styling */
+.deviceDropdown {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Icon link styling */
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.icon-links {
+    display: flex;
+}
+
+.icon-link {
+    margin-left: 10px;
+}
+
+.icon-link i {
+    font-size: 1.2em;
+}
+
+
+/* VPN cards */
+.vpn-card {
+    margin-bottom: 20px;
+}
+
+/* Styling for fieldset and legend */
+fieldset {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+legend {
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 0 10px;
+}
+
+/* Style for the information icon */
+.info-icon {
+    margin-left: 5px;
+    cursor: pointer;
+    position: relative;
+    display: inline-block;
+}
+
+/* Tooltip container */
+.info-icon::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%; /* Position above the icon */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: #fff;
+    padding: 5px; /* Padding for the tooltip */
+    border-radius: 5px;
+    white-space: normal;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s;
+    z-index: 1;
+    pointer-events: none; /* Prevents tooltip from interfering with hover */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    max-width: 400px;
+    min-width: 200px;
+}
+
+/* Show the tooltip when hovering over the icon */
+.info-icon:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Confirm modal */
+.w3-modal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.confirm-modal {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;                      /* Center the modal vertically */
+    align-items: center;                          /* Center the modal horizontally */
+    height: auto;                                 /* Allow the modal to be only as tall as its content */
+    max-width: 600px;                             /* Set a max width for the modal */
+    margin: auto;                                 /* Center the modal within the viewport */
+    padding: 20px;                                /* Add some padding for better appearance */
+    border-radius: 8px;                           /* Add rounded corners */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);  /* Add a subtle shadow */
+}
+
+/* Button container to align buttons horizontally */
+.button-container {
+    display: flex;
+    justify-content: center; /* Center the buttons horizontally */
+    gap: 10px; /* Add some space between the buttons */
+}
+
+/* Ensure the modal takes up the full height of the screen */
+.w3-modal-content {
+    display: flex;
+    flex-direction: column;
+    height: 95%;
+}
+
+/* Fixed header */
+.modal-header {
+    position: sticky;
+    top: 0;
+    background-color: white;
+    z-index: 10;
+}
+
+/* Scrollable body */
+.modal-body {
+    overflow-y: auto;
+    flex-grow: 1;
+    padding: 16px;
+}
+
+/* Fixed footer */
+.modal-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+}
+
+/* Custom scrollbar for WebKit-based browsers (Chrome, Safari) */
+.modal-body::-webkit-scrollbar {
+    width: 12px; /* Width of the scrollbar */
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Background of the scrollbar track */
+    border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: #888; /* Color of the scrollbar thumb */
+    border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: #555; /* Color of the scrollbar thumb on hover */
+}
+
+/* Custom scrollbar for Firefox */
+.modal-body {
+    scrollbar-width: thin; /* Width of the scrollbar */
+    scrollbar-color: #888 #f1f1f1; /* Color of the scrollbar thumb and track */
+}
+
+/* VPN card styling */
+/* Container for the grid elements */
+.vpn-grid-container {
+    display: flex;
+    flex-wrap: wrap; /* Ensure items wrap to the next line if necessary */
+    justify-content: space-between; /* Distribute space between items */
+}
+
+/* Grid items */
+.vpn-grid-item {
+    flex: 1 1 auto;     /* Allow items to grow and shrink as needed */
+    margin: 10px;       /* Optional: Add some margin for spacing */
+}
+
+/* VPN router and firewall images */
+.vpn-router-image,
+.vpn-cloud-image,
+.vpn-firewall-image {
+    width: 30%;         /* Make the images take up the full width of their container */
+    height: auto;       /* Maintain aspect ratio */
+    display: block;     /* Ensure the images are treated as block elements */
+    margin: 0 auto;     /* Center the images horizontally */
+}
+
+/* Apply grayscale filter to the image */
+.grayscale-image {
+    filter: grayscale(100%);
+    opacity: 0.5;
+}
+
+.status-icon {
+    width: 20%;         /* Make the images take up the full width of their container */
+    height: auto;       /* Maintain aspect ratio */
+    display: block;     /* Ensure the images are treated as block elements */
+    margin: 0 auto;     /* Center the images horizontally */
+}
+
+/* Tooltip container */
+.tooltip {
+    position: absolute;
+    display: none;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 5px;
+    padding: 5px;
+    z-index: 1000;
+    font-size: 12px;
 }

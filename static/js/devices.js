@@ -44,7 +44,7 @@ for (let i = 0; i < closeButtons.length; i++) {                             // '
 }
 
 setupDeleteButton('.site-delete-button', '/api/site?action=delete');        // Delete site buttons
-setupDeleteButton('.device-delete-button', '/api/device?action=delete');               // Delete device buttons
+setupDeleteButton('.device-delete-button', '/api/device?action=delete');    // Delete device buttons
 
 siteSubmitBtn.addEventListener(                                             // Add site submit button
     'click', (event) => handleSubmitButtonClick(event, '/api/site?action=add', siteSubmitBtn)
@@ -360,27 +360,41 @@ function openDeviceEditModal(event) {
     let deviceHostname = event.currentTarget.getAttribute('data-device-hostname');
     let deviceKey = event.currentTarget.getAttribute('data-device-key');
     let deviceSite = event.currentTarget.getAttribute('data-device-site');
+    let deviceVendor = event.currentTarget.getAttribute('data-device-vendor');
+    let deviceUser = event.currentTarget.getAttribute('data-device-user');
 
     // Select the input fields
     const deviceEditIdInput = document.querySelector('input[name="deviceEditId"]');
     const deviceEditNameInput = document.querySelector('input[name="deviceEditName"]');
     const deviceHostNameInput = document.querySelector('input[name="hostNameEdit"]');
     const deviceKeyNameInput = document.querySelector('input[name="apiKeyEdit"]');
+    const deviceUserInput = document.querySelector('input[name="apiUserEdit"]');
 
     // Select the dropdown element
     const dropdown = document.getElementById('siteMemberEdit');
+    const dropVendor = document.getElementById('deviceVendorEdit');
 
     // Populate the input fields
     deviceEditIdInput.value = deviceId;
     deviceEditNameInput.value = deviceName;
     deviceHostNameInput.value = deviceHostname;
     deviceKeyNameInput.value = deviceKey;
+    deviceUserInput.value = deviceUser;
 
-    // Convert dropdown.options to an array and then loop through each option
+    // Convert dropdown options to an array and then loop through each option
     // A slight timeout is needed for asynchronous reasons
     setTimeout(() => {
         Array.from(dropdown.options).forEach(option => {
             if (option.value === deviceSite) {
+                option.selected = true;
+            }
+        });
+    }, 500)
+
+    // Convert vendor dropdown to an array and then loop through each option
+    setTimeout(() => {
+        Array.from(dropVendor.options).forEach(option => {
+            if (option.value === deviceVendor) {
                 option.selected = true;
             }
         });

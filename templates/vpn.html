@@ -2,19 +2,299 @@
 
 {% block content %}
 
+<!-- Main div for all content -->
 <div class="w3-container">
+    <!-- Page header -->
     <header class="w3-container">
-        <h2>VPN Tunnels</h2>
+        <h2>Site-to-Site VPN Tunnels</h2>
     </header>
 
+    <!-- Container for VPN cards -->
     <div class="w3-container w3-padding-16" id="vpnContainer">
         <div class="w3-card">
             <!-- Dynamic Content goes here -->
         </div>
     </div>
 
+    <!-- Add VPN Button -->
+    <br>
+    <button class="w3-button w3-block w3-green" id="buttonAddVpn">Add VPN</button>
+
     <br><br>
 </div>
+
+
+<!-- The Add VPN Modal -->
+<div id="modalAddVpn" class="w3-modal">
+    <div class="w3-modal-content w3-card w3-animate-zoom" style="max-width:700px">
+        <!-- Close button -->
+        <span onclick="document.getElementById('modalAddVpn').style.display='none'"
+            class="w3-button w3-xlarge w3-hover-red w3-display-topright w3-red" title="Close">&times;</span>
+
+        <!-- Heading and text -->
+        <header class="w3-container modal-header">
+            <h3 style="text-align: center;">Add VPN</h3>
+            <p style="text-align: center;">Add a VPN to monitor. This will not create a VPN on the devices</p>
+        </header>
+
+        <!-- Form for VPN details -->
+        <div class="modal-body">
+            <form id="addVpnForm" class="w3-container w3-section">
+                <!-- VPN tunnel group -->
+                <fieldset class="w3-container">
+                    <legend><b>VPN Tunnel Details</b></legend>
+
+                    <!-- The tunnel friendly name (text field) -->
+                    <label>
+                        <b>Tunnel Name</b>
+                        <span class="info-icon" data-tooltip="A Unique friendly name of the VPN tunnel."><i
+                                class="fa-regular fa-circle-question"></i></span>
+                        <input class="w3-input w3-border w3-margin-bottom" type="text" placeholder="Friendly Name"
+                            id="addTunnelName" name="addTunnelName" required>
+                    </label>
+                </fieldset>
+
+                <!-- Endpoint-A Group -->
+                <br>
+                <fieldset class="w3-container">
+                    <legend><b>Endpoint-A</b></legend>
+
+                    <!-- Endpoint-A (Dropdown) -->
+                    <label>
+                        <b>Local VPN Endpoint</b>
+                        <span class="info-icon"
+                            data-tooltip="The main endpoint of the tunnel. Select a managed device"><i
+                                class="fa-regular fa-circle-question"></i></span>
+                        <select id="addEndpointA" name="addEndpointA" class="w3-input w3-border w3-margin-bottom"
+                            type="text" placeholder="Select a device" required>
+                            <!-- List of devices generated here -->
+                        </select>
+                    </label>
+
+                    <!-- Endpoint-A Destination (text field) -->
+                    <label>
+                        <b>Destination</b>
+                        <span class="info-icon" data-tooltip="The destination IP of the tunnel"><i
+                                class="fa-regular fa-circle-question"></i></span>
+                        <input class="w3-input w3-border w3-margin-bottom" type="text" id="addTunnelDestA"
+                            name="addTunnelDestA" required>
+                    </label>
+
+                    <!-- Enable Firewall A (Checkbox) -->
+                    <label>
+                        <b>External Firewall?</b>
+                        <input class="w3-check w3-padding w3-margin-bottom" type="checkbox" id="addFirewallAEnable"
+                            name="addFirewallAEnable" onchange="toggleExternalFw(this.id)">
+                        <span class="info-icon"
+                            data-tooltip="(Optional) Define a firewall in front of the local endpoint"><i
+                                class="fa-regular fa-circle-question"></i></span><br>
+                    </label>
+
+                    <!-- Endpoint-A Firewall (radio button) -->
+                    <label>
+                        <div id="firewallATypeContainer" style="display: none;">
+                            <b>Managed?</b>
+                            <input class="w3-radio w3-margin-bottom" type="radio" name="addFirewallAType"
+                                value="managed" id="addFirewallATypeManaged" onchange="toggleManagedFw(this.id)">
+                            <label for="addFirewallATypeManaged">Managed</label>
+                            <input class="w3-radio w3-margin-bottom" type="radio" name="addFirewallAType"
+                                value="unmanaged" id="addFirewallATypeUnmanaged" checked
+                                onchange="toggleManagedFw(this.id)">
+                            <label for="addFirewallATypeUnmanaged">Unmanaged
+                            </label>
+                            <span class="info-icon"
+                                data-tooltip="Select if this is a managed (listed in the 'devices' page) or unmanaged firewall"><i
+                                    class="fa-regular fa-circle-question"></i></span><br><br>
+                        </div>
+                    </label>
+
+                    <!-- Endpoint-A Firewall (Dropdown) -->
+                    <label>
+                        <div id="firewallAManagedContainer" style="display: none;">
+                            <b>Managed Firewall</b>
+                            <span class="info-icon" data-tooltip="A managed firewall that the tunnel passes through"><i
+                                    class="fa-regular fa-circle-question"></i></span>
+                            <select id="addFirewallA" name="addFirewallA" class="w3-input w3-border w3-margin-bottom"
+                                type="text" placeholder="Select a device">
+                                <!-- List of devices generated here -->
+                            </select>
+                        </div>
+                    </label>
+
+                    <!-- Inside NAT IP (text box) -->
+                    <label>
+                        <div id="firewallAInsideNatContainer" style="display: none;">
+                            <b>Inside NAT IP</b>
+                            <span class="info-icon"
+                                data-tooltip="The internal IP address of the tunnel endpoint. This is used for NAT"><i
+                                    class="fa-regular fa-circle-question"></i></span>
+                            <input class="w3-input w3-border w3-margin-bottom" type="text" id="addInsideNatA"
+                                name="addInsideNatA" required>
+                        </div>
+                    </label>
+
+                    <!-- Outside NAT IP (text box) -->
+                    <label>
+                        <div id="firewallAOutsideNatContainer" style="display: none;">
+                            <b>Outside NAT IP</b>
+                            <span class="info-icon"
+                                data-tooltip="The external IP address of the tunnel endpoint. This is used for NAT"><i
+                                    class="fa-regular fa-circle-question"></i></span>
+                            <input class="w3-input w3-border w3-margin-bottom" type="text" id="addOutsideNatA"
+                                name="addOutsideNatA" required>
+                        </div>
+                    </label>
+                </fieldset>
+
+                <!-- Endpoint-B Group -->
+                <br>
+                <fieldset class="w3-container">
+                    <legend><b>Endpoint-B</b></legend>
+
+                    <!-- Endpoint-B Managed (radio button) -->
+                    <label>
+                        <b>Managed Endpoint?</b>
+                        <input class="w3-radio w3-margin-bottom" type="radio" name="addEndpointBManaged" value="managed"
+                            id="addEndpointBManaged" onchange="toggleManagedEndpointB(this.id)">
+                        <label for="addEndpointBManaged">Managed</label>
+                        <input class="w3-radio w3-margin-bottom" type="radio" name="addEndpointBManaged"
+                            value="unmanaged" id="addEndpointBUnmanaged" checked
+                            onchange="toggleManagedEndpointB(this.id)">
+                        <label for="addEndpointBUnmanaged">Unmanaged</label>
+                        <span class="info-icon"
+                            data-tooltip="Select if this is a managed (listed in the 'devices' page) or unmanaged (3rd party) endpoint"><i
+                                class="fa-regular fa-circle-question"></i></span><br><br>
+                    </label>
+
+                    <!-- Endpoint IP (text box) -->
+                    <label>
+                        <div id="devBCloudIpContainer" style="display: block;">
+                            <b>Cloud IP</b>
+                            <span class="info-icon" data-tooltip="The IP address of the cloud-based VPN endpoint"><i
+                                    class="fa-regular fa-circle-question"></i></span>
+                            <input class="w3-input w3-border w3-margin-bottom" type="text" id="addCloudIpB"
+                                name="addCloudIpB" required>
+                        </div>
+                    </label>
+
+                    <!-- Endpoint-B (Dropdown) -->
+                    <label>
+                        <div id="devBManagedContainer" style="display: none;">
+                            <b>Remote VPN Endpoint</b>
+                            <span class="info-icon"
+                                data-tooltip="The remote endpoint of the tunnel. Select a managed device"><i
+                                    class="fa-regular fa-circle-question"></i></span>
+                            <select id="addEndpointB" name="addEndpointB" class="w3-input w3-border w3-margin-bottom"
+                                type="text" placeholder="Select a device" required>
+                                <!-- List of devices generated here -->
+                            </select>
+                        </div>
+                    </label>
+
+                    <!-- Endpoint-B Destination (text field) -->
+                    <label>
+                        <div id="devBManagedDest" style="display: none;">
+                            <b>Destination</b>
+                            <span class="info-icon" data-tooltip="The destination IP of the tunnel"><i
+                                    class="fa-regular fa-circle-question"></i></span>
+                            <input class="w3-input w3-border w3-margin-bottom" type="text" id="addTunnelDestB"
+                                name="addTunnelDestB" required>
+                        </div>
+                    </label>
+
+                    <!-- Enable Firewall B (checkbox) -->
+                    <label>
+                        <b>External Firewall?</b>
+                        <input class="w3-check w3-padding w3-margin-bottom" type="checkbox" id="addFirewallBEnable"
+                            name="addFirewallBEnable" onchange="toggleExternalFw(this.id)">
+                        <span class="info-icon"
+                            data-tooltip="(Optional) Define a firewall in front of the local endpoint"><i
+                                class="fa-regular fa-circle-question"></i></span><br>
+                    </label>
+
+                    <!-- Endpoint-B Firewall (radio button) -->
+                    <label>
+                        <div id="firewallBTypeContainer" style="display: none;">
+                            <b>Managed?</b>
+                            <input class="w3-radio w3-margin-bottom" type="radio" name="addFirewallBType"
+                                value="managed" id="addFirewallBTypeManaged" onchange="toggleManagedFw(this.id)">
+                            <label for="addFirewallBTypeManaged">Managed</label>
+                            <input class="w3-radio w3-margin-bottom" type="radio" name="addFirewallBType"
+                                value="unmanaged" id="addFirewallBTypeUnmanaged" checked
+                                onchange="toggleManagedFw(this.id)">
+                            <label for="addFirewallBTypeUnmanaged">Unmanaged</label>
+                            <span class="info-icon"
+                                data-tooltip="Select if this is a managed (listed in the 'devices' page) or unmanaged firewall"><i
+                                    class="fa-regular fa-circle-question"></i></span><br><br>
+                        </div>
+                    </label>
+
+                    <!-- Endpoint-B Firewall (Dropdown) -->
+                    <label>
+                        <div id="firewallBManagedContainer" style="display: none;">
+                            <b>Managed Firewall</b>
+                            <span class="info-icon" data-tooltip="A managed firewall that the tunnel passes through"><i
+                                    class="fa-regular fa-circle-question"></i></span>
+                            <select id="addFirewallB" name="addFirewallB" class="w3-input w3-border w3-margin-bottom"
+                                type="text" placeholder="Select a device">
+                                <!-- List of devices generated here -->
+                            </select>
+                        </div>
+                    </label>
+
+                    <!-- Inside NAT IP (text box) -->
+                    <label>
+                        <div id="firewallBInsideNatContainer" style="display: none;">
+                            <b>Inside NAT IP</b>
+                            <span class="info-icon"
+                                data-tooltip="The internal IP address of the tunnel endpoint. This is used for NAT"><i
+                                    class="fa-regular fa-circle-question"></i></span>
+                            <input class="w3-input w3-border w3-margin-bottom" type="text" id="addInsideNatB"
+                                name="addInsideNatB" required>
+                        </div>
+                    </label>
+
+                    <!-- Outside NAT IP (text box) -->
+                    <label>
+                        <div id="firewallBOutsideNatContainer" style="display: none;">
+                            <b>Outside NAT IP</b>
+                            <span class="info-icon"
+                                data-tooltip="The external IP address of the tunnel endpoint. This is used for NAT"><i
+                                    class="fa-regular fa-circle-question"></i></span>
+                            <input class="w3-input w3-border w3-margin-bottom" type="text" id="addOutsideNatB"
+                                name="addOutsideNatB" required>
+                        </div>
+                    </label>
+                </fieldset>
+            </form>
+        </div>
+
+        <!-- Submit and cancel buttons -->
+        <footer class="w3-container w3-border-top w3-padding modal-footer">
+            <button onclick="addVpn()" id="modalVpnSubmit" class="w3-button w3-block w3-green w3-section"
+                type="submit">Create
+                VPN</button>
+            <button onclick="document.getElementById('modalAddVpn').style.display='none'" type="button"
+                class="w3-button w3-red">Cancel</button>
+        </footer>
+    </div>
+</div>
+
+
+<!-- Confirmation Modal -->
+<div id="vpnConfirmModal" class="w3-modal">
+    <div class="w3-card confirm-modal w3-animate-zoom">
+        <div class="w3-center"><br>
+            <h3>Are you sure?</h3>
+        </div>
+
+        <div class="button-container">
+            <button id="confirmDelete" class="w3-button w3-block w3-red w3-section w3-padding">Delete</button>
+            <button id="confirmCancel" class="w3-button w3-block w3-green w3-section w3-padding">Cancel</button>
+        </div>
+    </div>
+</div>
+
 
 <script src="{{ url_for('static', filename='js/vpn.js') }}"></script>
 

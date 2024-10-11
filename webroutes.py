@@ -27,6 +27,7 @@ from flask.views import MethodView
 
 import platform
 from importlib.metadata import version
+import json
 
 from device import DeviceManager, SiteManager, device_manager, site_manager
 from settings import AppSettings, config
@@ -35,10 +36,6 @@ from azure import login_required
 
 # Define a blueprint for the web routes
 web_bp = Blueprint('web', __name__)
-
-# Admins group
-ADMIN_GROUP = 'Network Admins'
-HELPDESK_GROUP = 'HelpDesk Team'
 
 
 class BaseView(MethodView):
@@ -53,7 +50,9 @@ class BaseView(MethodView):
 
     template_name = None
 
-    @login_required(groups=[ADMIN_GROUP, HELPDESK_GROUP])
+    @login_required(
+        groups=[config.azure_admin_group, config.azure_helpdesk_group]
+    )
     def get(
         self,
         *args: list,
@@ -96,6 +95,10 @@ class IndexView(BaseView):
     template_name = 'index.html'
 
     def get_context_data(self, *args, **kwargs):
+        # Get changelog information
+        with open('changelog.json', 'r') as f:
+            changelog = json.load(f)
+
         # Collect user information, if in debug mode use a default user
         if config.web_debug:
             user = 'N/A - Debug Mode'
@@ -107,6 +110,7 @@ class IndexView(BaseView):
             groups = session['groups']
 
         return {
+            'app_version': config.version,
             'flask_version': version("flask"),
             'ip_address': request.remote_addr,
             'os_version': platform.platform(),
@@ -114,6 +118,7 @@ class IndexView(BaseView):
             'user': user,
             'user_name': user_name,
             'groups': groups,
+            'changelog': changelog,
         }
 
 
@@ -161,7 +166,7 @@ class VpnView(BaseView):
 class SettingsView(BaseView):
     template_name = 'settings.html'
 
-    @login_required(groups=[ADMIN_GROUP])
+    @login_required(groups=[config.azure_admin_group])
     def get_context_data(self, config: AppSettings, *args, **kwargs):
         return {
             'tenant_id': config.azure_tenant,
@@ -176,7 +181,9 @@ class SettingsView(BaseView):
             'sql_pass': config.sql_password,
             'web_ip': config.web_ip,
             'web_port': config.web_port,
-            'web_debug': config.web_debug
+            'web_debug': config.web_debug,
+            'web_admin_group': config.azure_admin_group,
+            'web_helpdesk_group': config.azure_helpdesk_group,
         }
 
 

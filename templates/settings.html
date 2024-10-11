@@ -24,6 +24,14 @@
             <input class="w3-input w3-border" type="text" name="callback_url" value="{{ callback_url }}">
         </p>
         <p>
+            <label>Admin Group</label>
+            <input class="w3-input w3-border" type="text" name="admin_group" value="{{ web_admin_group }}">
+        </p>
+        <p>
+            <label>Helpdesk Group</label>
+            <input class="w3-input w3-border" type="text" name="helpdesk_group" value="{{ web_helpdesk_group }}">
+        </p>
+        <p>
             <button type="submit" id="saveAzure" class="w3-btn w3-green w3-round">Save</button>
         </p>
     </form>
@@ -105,7 +113,7 @@
     <div class="w3-container">
         <h2>Master Password</h2>
     </div>
-    <div class="alert alert-warning" role="alert">
+    <div class="w3-panel w3-pale-yellow w3-padding w3-border" role="alert">
         <strong>Warning!</strong>
         <p>The master password is used to encrypt and decrypt passwords and API keys stored in the database.</p>
         <p>If the master password is lost, a new one will need to be set. All devices will need to have secure

@@ -112,6 +112,7 @@ class Device:
         password: str,
         salt: str,
         vendor: str,
+        full_vendor: str = '',
         name: str = '',
         serial: str = '',
         ha_partner_serial: str = '',
@@ -128,7 +129,8 @@ class Device:
             username (str): Username for the device (XML API)
             password (str): Encrypted password for the device (XML API)
             salt (str): Salt for the encrypted (XML API)
-            vendor (str): Vendor of the device
+            vendor (str): Vendor of the device (short form in DB)
+            full_vendor (str): Full vendor name (for display)
             name (str): Friendly name of the device
             serial (str): Serial number of the device
             ha_partner_serial (str): Serial number of the HA partner
@@ -143,6 +145,7 @@ class Device:
         self.hostname = hostname
         self.site = site
         self.vendor = vendor
+        self.full_vendor = full_vendor
         self.serial = serial
         self.ha_partner_serial = ha_partner_serial
         self.model = None
@@ -700,14 +703,15 @@ class DeviceManager():
         __len__: Returns the number of devices
         __iter__: Iterate through the device list
         _create_device: Create a new Device object from a tuple
+        _new_uuid: Generate a new UUID for a device
+        _site_assignment: Assign devices to sites
+        _ha_pairs: Find devices that are paired in an HA configuration
         get_devices: Get all devices from the database
         add_device: Add a new device to the database
         delete_device: Delete a device from the database
         update_device: Update a device in the database
         reset_password: Reset the password for a device
-        _new_uuid: Generate a new UUID for a device
-        _site_assignment: Assign devices to sites
-        _ha_pairs: Find devices that are paired in an HA configuration
+        id_to_name: Convert a device ID to a device name
     '''
 
     def __init__(
@@ -791,6 +795,14 @@ class DeviceManager():
             Device: A new Device object
         '''
 
+        # Get the full vendor name (DB entry is in short form)
+        vendor_list = {
+            'paloalto': 'Palo Alto',
+            'juniper': 'Juniper',
+        }
+        vendor = device[3]
+        vendor_full_name = vendor_list.get(vendor, vendor)
+
         # Create the device object
         this_device = Device(
             id=device[0],
@@ -802,6 +814,7 @@ class DeviceManager():
             salt=device[8],
             name=device[10] if device[10] is not None else "no-name",
             vendor=device[3],
+            full_vendor=vendor_full_name,
             serial=device[11],
             ha_partner_serial=device[12],
             config=config,
@@ -812,282 +825,6 @@ class DeviceManager():
 
         # Return the device object
         return this_device
-
-    def get_devices(
-        self,
-    ) -> None:
-        '''
-        Get all Palo Alto devices from the database
-
-        (1) Read all devices from SQL Server
-            Filter: Vendor must be 'paloalto'
-        (2) Create class objects for each site
-        (3) Append each object to a list
-            This is done in a multithreaded manner
-        '''
-
-        # Read paloalto devices from the database
-        with SqlServer(
-            server=self.sql_server,
-            database=self.sql_database,
-            table=self.table,
-            config=self.config,
-        ) as sql:
-            output = sql.read(
-                field='type',
-                value='firewall',
-            )
-
-        if not output:
-            print("Could not read from the database.")
-            return
-
-        # Create a list of Device objects
-        #   Iterate through the device list in SQL output
-        self.device_list = []
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = [
-                executor.submit(
-                    self._create_device, device, self.config
-                ) for device in output
-            ]
-            for future in concurrent.futures.as_completed(futures):
-                self.device_list.append(future.result())
-
-        # Assign devices to sites
-        self._site_assignment()
-
-        # Find HA pairs
-        self._ha_pairs()
-
-    def add_device(
-        self,
-        name: str,
-        hostname: str,
-        site: uuid,
-        key: str,
-        username: str,
-        password: str,
-        salt: str,
-    ) -> Device:
-        '''
-        Add a new device to the database
-        Assigns a new unique ID to the device
-        Checks if the device name already exists
-
-        Args:
-            friendly_name (str): The name of the device
-            hostname (str): The hostname of the device
-            site (uuid): The site identifier for the device
-            key (str): The REST API key for the device
-            username (str): The username for the device (XML API)
-            password (str): The encrypted password for the device (XML API)
-            salt (str): The salt for the password (XML API)
-
-        Returns:
-            Device: A new Device object if successful, otherwise None
-        '''
-
-        # Confirm the API key is valid
-        if key == '' or len(key) < 32:
-            print(
-                Fore.RED,
-                f"API key '{key}' is invalid.",
-                Style.RESET_ALL
-            )
-            return None
-
-        # Check if the site exists
-        site_ids = []
-        for site_id in self.site_manager.site_list:
-            site_ids.append(str(site_id.id))
-
-        if site not in site_ids:
-            print(
-                Fore.RED,
-                f"Site '{site}' does not exist in the database.",
-                Style.RESET_ALL
-            )
-            return None
-
-        # Create a new unique ID for the device
-        id = self._new_uuid()
-
-        # Check if the name already exists in the database
-        for device in self.device_list:
-            # Names must be unique
-            if hostname == device.hostname:
-                print(
-                    Fore.RED,
-                    f"Device '{hostname}' already exists in the database.",
-                    Style.RESET_ALL
-                )
-                return None
-
-        with CryptoSecret() as encryptor:
-            # Encrypt the password
-            encrypted = encryptor.encrypt(password)
-            password_encoded = encrypted[0].decode()
-            salt_encoded = base64.b64encode(encrypted[1]).decode()
-
-        # Create a new Device object
-        print(
-            Fore.GREEN,
-            f"Adding device '{hostname}' with ID '{id}' to the database.",
-            Style.RESET_ALL
-        )
-        new_device = Device(
-            name=name,
-            id=id,
-            hostname=hostname,
-            site=site,
-            key=key,
-            username=username,
-            password=password_encoded,
-            salt=salt_encoded,
-            config=self.config,
-        )
-
-        # Add to the database
-        with SqlServer(
-            server=self.sql_server,
-            database=self.sql_database,
-            table=self.table,
-            config=self.config,
-        ) as sql:
-            result = sql.add(
-                fields={
-                    'id': new_device.id,
-                    'name': new_device.hostname,
-                    'friendly_name': new_device.name,
-                    'site': new_device.site,
-                    'vendor': 'paloalto',
-                    'type': 'firewall',
-                    'auth_type': 'token',
-                    'username': username,
-                    'secret': password,
-                    'salt': salt,
-                    'token': new_device.key,
-                }
-            )
-
-        if result:
-            return new_device
-
-        else:
-            print("Could not add device to the database.")
-            return False
-
-    def delete_device(
-        self,
-        id: uuid,
-    ) -> bool:
-        '''
-        Delete a device from the database
-
-        Args:
-            id (uuid): The unique identifier for the device
-
-        Returns:
-            bool: True if successful, otherwise False
-        '''
-
-        # Delete the device from the database, based on the ID
-        with SqlServer(
-            server=self.sql_server,
-            database=self.sql_database,
-            table=self.table,
-            config=self.config,
-        ) as sql:
-            result = sql.delete(
-                field='id',
-                value=id,
-            )
-
-        if result:
-            # Refresh the site list
-            # self.get_devices()
-            return True
-
-        else:
-            print("Could not delete device from the database.")
-            return False
-
-    def update_device(
-        self,
-        id: uuid,
-        name: str,
-        hostname: str,
-        site: uuid,
-        key: str,
-        username: str,
-        password: str,
-        salt: str,
-    ) -> bool:
-        '''
-        Update a device in the database
-
-        Args:
-            id (uuid): The unique identifier for the device
-            name (str): The new name for the device
-            hostname (str): The new hostname for the device
-            site (uuid): The new site for the device
-            key (str): The new REST API key for the device
-            username (str): The new username for the device (XML API)
-            password (str): The new encrypted password for the device (XML API)
-            salt (str): The new salt for the password (XML API)
-
-        Returns:
-            bool: True if successful, otherwise False
-        '''
-
-        # Refresh the device list from the database
-        print(
-            Fore.CYAN,
-            "Refreshing device list before update.",
-            Style.RESET_ALL
-        )
-        self.get_devices()
-
-        # Update the device in the database, based on the ID
-        with SqlServer(
-            server=self.sql_server,
-            database=self.sql_database,
-            table=self.table,
-            config=self.config,
-        ) as sql:
-            try:
-                result = sql.update(
-                    field='id',
-                    value=id,
-                    body={
-                        'friendly_name': name,
-                        'name': hostname,
-                        'site': site,
-                        'token': key,
-                        'username': username,
-                        'secret': password,
-                        'salt': salt,
-                    }
-                )
-
-            except Exception as e:
-                print(
-                    Fore.RED,
-                    "Could not update device in the database.",
-                    Style.RESET_ALL,
-                    e,
-                )
-                result = False
-
-        if result:
-            # Refresh the device list
-            self.get_devices()
-            return True
-
-        else:
-            print("Could not update device in the database.")
-            return False
 
     def _new_uuid(
         self
@@ -1168,6 +905,310 @@ class DeviceManager():
                             'passive': peer
                         })
                         break
+
+    def get_devices(
+        self,
+    ) -> None:
+        '''
+        Get all Palo Alto devices from the database
+
+        (1) Read all devices from SQL Server
+            Filter: Vendor must be 'paloalto'
+        (2) Create class objects for each site
+        (3) Append each object to a list
+            This is done in a multithreaded manner
+        '''
+
+        # Read paloalto devices from the database
+        with SqlServer(
+            server=self.sql_server,
+            database=self.sql_database,
+            table=self.table,
+            config=self.config,
+        ) as sql:
+            output = sql.read(
+                field='type',
+                value='firewall',
+            )
+
+        if not output:
+            print("Could not read from the database.")
+            return
+
+        # Create a list of Device objects
+        #   Iterate through the device list in SQL output
+        self.device_list = []
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = [
+                executor.submit(
+                    self._create_device, device, self.config
+                ) for device in output
+            ]
+            for future in concurrent.futures.as_completed(futures):
+                self.device_list.append(future.result())
+
+        # Assign devices to sites
+        self._site_assignment()
+
+        # Find HA pairs
+        self._ha_pairs()
+
+    def add_device(
+        self,
+        name: str,
+        hostname: str,
+        site: uuid,
+        vendor: str,
+        key: str,
+        username: str,
+        password: str,
+        salt: str,
+    ) -> Device:
+        '''
+        Add a new device to the database
+        Assigns a new unique ID to the device
+        Checks if the device name already exists
+
+        Args:
+            friendly_name (str): The name of the device
+            hostname (str): The hostname of the device
+            site (uuid): The site identifier for the device
+            vendor (str): The vendor of the device
+            key (str): The REST API key for the device
+            username (str): The username for the device (XML API)
+            password (str): The encrypted password for the device (XML API)
+            salt (str): The salt for the password (XML API)
+
+        Returns:
+            Device: A new Device object if successful, otherwise None
+        '''
+
+        # Confirm the API key is valid
+        if key == '' or len(key) < 32:
+            print(
+                Fore.RED,
+                f"API key '{key}' is invalid.",
+                Style.RESET_ALL
+            )
+            return None
+
+        # Check if the site exists
+        site_ids = []
+        for site_id in self.site_manager.site_list:
+            site_ids.append(str(site_id.id))
+
+        if site not in site_ids:
+            print(
+                Fore.RED,
+                f"Site '{site}' does not exist in the database.",
+                Style.RESET_ALL
+            )
+            return None
+
+        # Create a new unique ID for the device
+        id = self._new_uuid()
+
+        # Check if the name already exists in the database
+        for device in self.device_list:
+            # Names must be unique
+            if hostname == device.hostname:
+                print(
+                    Fore.RED,
+                    f"Device '{hostname}' already exists in the database.",
+                    Style.RESET_ALL
+                )
+                return None
+
+        with CryptoSecret() as encryptor:
+            # Encrypt the password
+            encrypted = encryptor.encrypt(password)
+            password_encoded = encrypted[0].decode()
+            salt_encoded = base64.b64encode(encrypted[1]).decode()
+
+        # Create a new Device object
+        print(
+            Fore.GREEN,
+            f"Adding device '{hostname}' with ID '{id}' to the database.",
+            Style.RESET_ALL
+        )
+        new_device = Device(
+            name=name,
+            id=id,
+            hostname=hostname,
+            site=site,
+            vendor=vendor,
+            key=key,
+            username=username,
+            password=password_encoded,
+            salt=salt_encoded,
+            config=self.config,
+        )
+
+        # Add to the database
+        with SqlServer(
+            server=self.sql_server,
+            database=self.sql_database,
+            table=self.table,
+            config=self.config,
+        ) as sql:
+            result = sql.add(
+                fields={
+                    'id': new_device.id,
+                    'name': new_device.hostname,
+                    'friendly_name': new_device.name,
+                    'site': new_device.site,
+                    'vendor': vendor,
+                    'type': 'firewall',
+                    'auth_type': 'token',
+                    'username': username,
+                    'secret': password,
+                    'salt': salt,
+                    'token': new_device.key,
+                }
+            )
+
+        if result:
+            return new_device
+
+        else:
+            print("Could not add device to the database.")
+            return False
+
+    def delete_device(
+        self,
+        id: uuid,
+    ) -> bool:
+        '''
+        Delete a device from the database
+
+        Args:
+            id (uuid): The unique identifier for the device
+
+        Returns:
+            bool: True if successful, otherwise False
+        '''
+
+        # Delete the device from the database, based on the ID
+        with SqlServer(
+            server=self.sql_server,
+            database=self.sql_database,
+            table=self.table,
+            config=self.config,
+        ) as sql:
+            result = sql.delete(
+                field='id',
+                value=id,
+            )
+
+        if result:
+            # Refresh the site list
+            # self.get_devices()
+            return True
+
+        else:
+            print("Could not delete device from the database.")
+            return False
+
+    def update_device(
+        self,
+        id: uuid,
+        name: str,
+        hostname: str,
+        site: uuid,
+        vendor: str,
+        key: str,
+        username: str,
+        password: str,
+        salt: str,
+    ) -> bool:
+        '''
+        Update a device in the database
+
+        Args:
+            id (uuid): The unique identifier for the device
+            name (str): The new name for the device
+            hostname (str): The new hostname for the device
+            site (uuid): The new site for the device
+            vendor (str): The new vendor for the device
+            key (str): The new REST API key for the device
+            username (str): The new username for the device (XML API)
+            password (str): The new encrypted password for the device (XML API)
+            salt (str): The new salt for the password (XML API)
+
+        Returns:
+            bool: True if successful, otherwise False
+        '''
+
+        # Refresh the device list from the database
+        print(
+            Fore.CYAN,
+            "Refreshing device list before update.",
+            Style.RESET_ALL
+        )
+        self.get_devices()
+
+        # Update the device in the database, based on the ID
+        with SqlServer(
+            server=self.sql_server,
+            database=self.sql_database,
+            table=self.table,
+            config=self.config,
+        ) as sql:
+            try:
+                result = sql.update(
+                    field='id',
+                    value=id,
+                    body={
+                        'friendly_name': name,
+                        'name': hostname,
+                        'site': site,
+                        'vendor': vendor,
+                        'token': key,
+                        'username': username,
+                        'secret': password,
+                        'salt': salt,
+                    }
+                )
+
+            except Exception as e:
+                print(
+                    Fore.RED,
+                    "Could not update device in the database.",
+                    Style.RESET_ALL,
+                    e,
+                )
+                result = False
+
+        if result:
+            # Refresh the device list
+            self.get_devices()
+            return True
+
+        else:
+            print("Could not update device in the database.")
+            return False
+
+    def id_to_name(
+        self,
+        id: uuid,
+    ) -> str:
+        '''
+        Convert a device ID to a device name
+
+        Args:
+            id (uuid): The unique identifier for the device
+
+        Returns:
+            str: The device name
+        '''
+
+        # Check if the ID matches a device
+        for device in self.device_list:
+            if str(id) == str(device.id):
+                return device.hostname
+
+        # If no match is found, return None
+        return None
 
 
 # Manage the sites and devices

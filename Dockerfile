@@ -19,6 +19,7 @@ WORKDIR /app
 COPY requirements.txt requirements.txt
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
+RUN pip install uwsgi==2.0.26
 
 # Copy the rest of the application code
 COPY . .

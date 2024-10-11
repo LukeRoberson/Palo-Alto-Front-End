@@ -22,12 +22,62 @@ modeToggle.addEventListener('change', toggleDarkMode);
 
 
 /**
+ * Show the loading spinner in a particular div
+ * Clones the generic spinner element and appends it to the target div
+ * 
+ * @param {*} targetDivId 
+ */
+function showLoadingSpinner(targetDivId) {
+    // Clone the existing spinner element
+    const originalSpinner = document.getElementById('loadingSpinner');
+    const clonedSpinner = originalSpinner.cloneNode(true);
+
+    // Generate a unique ID for the cloned spinner
+    const uniqueSpinnerId = `loadingSpinner-${targetDivId}`;
+    clonedSpinner.id = uniqueSpinnerId;
+
+    // Set the position of the cloned spinner relative to the target div
+    const targetDiv = document.getElementById(targetDivId).parentNode;
+    targetDiv.style.position = 'relative';
+    clonedSpinner.style.position = 'absolute';
+    clonedSpinner.style.top = '50%';
+    clonedSpinner.style.left = '50%';
+    clonedSpinner.style.transform = 'translate(-50%, -50%)';
+
+    // Append the cloned spinner to the target div
+    targetDiv.appendChild(clonedSpinner);
+
+    // Display the cloned spinner
+    clonedSpinner.style.display = 'block';
+}
+
+
+/**
+ * Hide the loading spinner in a particular div
+ * Removes the cloned spinner element from the target div
+ * 
+ * @param {*} targetDivId 
+ */
+function hideLoadingSpinner(targetDivId) {
+    // Generate the unique ID for the cloned spinner
+    const uniqueSpinnerId = `loadingSpinner-${targetDivId}`;
+    const clonedSpinner = document.getElementById(uniqueSpinnerId);
+
+    // If the spinner exists, remove it from the DOM
+    if (clonedSpinner) {
+        clonedSpinner.style.display = 'none';
+        clonedSpinner.remove();
+    }
+}
+
+
+/**
  * Adjust the body's margin-top to match the header's height
  */
 function adjustBodyMargin() {
     // Calculate the header's height
     let headerHeight = document.querySelector('.header').offsetHeight;
- 
+
     // Set the body's margin-top to match the header's height
     document.body.style.marginTop = headerHeight + 'px';
 }
@@ -41,7 +91,7 @@ function adjustContentMargin() {
     const navBar = document.querySelector('.nav-bar');
     const mainContent = document.querySelector('#main-content');
     const isCollapsed = navBar.classList.contains('collapsed');
-  
+
     // 'if' to check if the navBar and mainContent exist (fully loaded)
     if (navBar && mainContent) {
         // Set navWidth based on whether the navBar is collapsed, using a ternary operator

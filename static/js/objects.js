@@ -22,6 +22,20 @@ let serviceListB = [];
 let serviceGroupListA = [];
 let serviceGroupListB = [];
 
+// Flags to check table population
+let tagFlagA = false;
+let tagFlagB = false;
+let addressFlagA = false;
+let addressFlagB = false;
+let addressGroupFlagA = false;
+let addressGroupFlagB = false;
+let applicationGroupFlagA = false;
+let applicationGroupFlagB = false;
+let serviceFlagA = false;
+let serviceFlagB = false;
+let serviceGroupFlagA = false;
+let serviceGroupFlagB = false;
+
 
 // Fetch the device list once and populate dropdowns for all subpages
 // The two lists use different hover colors
@@ -53,7 +67,8 @@ fetch('/api/device?action=list')
 function registerRefreshButtonListener(buttonId, accordionId, functionName) {
     document.getElementById(buttonId).addEventListener('click', function () {
         const deviceId = document.getElementById(accordionId).dataset.deviceId;
-        functionName(deviceId, accordionId);
+        const vendor = document.getElementById(accordionId).dataset.vendor;
+        functionName(deviceId, accordionId, vendor);
     });
 }
 
@@ -92,32 +107,35 @@ function populateDropdownWithData(selector, hoverColorClass, devices, divId) {
     dropdown.innerHTML = '';
 
     // Populate the dropdown with the list of devices
+    devices.sort((a, b) => a.device_name.localeCompare(b.device_name));
     devices.forEach(device => {
-        if (device.vendor == 'paloalto') {
-            // Create a new link element for each device
-            const link = document.createElement('a');
-            link.href = '#';
-            link.className = `w3-bar-item w3-button ${hoverColorClass} text`;
-            link.textContent = device.device_name;
+        if (selector.includes('tag') && device.vendor != 'paloalto') {
+            return;
+        }
 
-            // Add click event listener to each link
-            link.addEventListener('click', function () {
-                button.textContent = device.device_name;
-                button.innerHTML += ' <i class="fa fa-caret-down"></i>';
+        // Create a new link element for each device
+        const link = document.createElement('a');
+        link.href = '#';
+        link.className = `w3-bar-item w3-button ${hoverColorClass} text`;
+        link.textContent = device.device_name;
+
+        // Add click event listener to each link
+        link.addEventListener('click', function () {
+            button.textContent = device.device_name;
+            button.innerHTML += ' <i class="fa fa-caret-down"></i>';
 
 
-                // Fetch tags for the selected device using device_id and update the specified table
-                if (divId.includes('tagAccordion')) updateTagsTable(device.device_id, divId);
-                if (divId.includes('addressAccordion')) updateAddressesTable(device.device_id, divId);
-                if (divId.includes('addressGroupAccordion')) updateAddressGroupsTable(device.device_id, divId);
-                if (divId.includes('applicationGroupAccordion')) updateApplicationGroupsTable(device.device_id, divId);
-                if (divId.includes('serviceAccordion')) updateServicesTable(device.device_id, divId);
-                if (divId.includes('serviceGroupAccordion')) updateServiceGroupsTable(device.device_id, divId);
-            })
+            // Fetch tags for the selected device using device_id and update the specified table
+            if (divId.includes('tagAccordion')) updateTagsTable(device.device_id, divId, device.vendor);
+            if (divId.includes('addressAccordion')) updateAddressesTable(device.device_id, divId, device.vendor);
+            if (divId.includes('addressGroupAccordion')) updateAddressGroupsTable(device.device_id, divId, device.vendor);
+            if (divId.includes('applicationGroupAccordion')) updateApplicationGroupsTable(device.device_id, divId, device.vendor);
+            if (divId.includes('serviceAccordion')) updateServicesTable(device.device_id, divId, device.vendor);
+            if (divId.includes('serviceGroupAccordion')) updateServiceGroupsTable(device.device_id, divId, device.vendor);
+        })
 
-            // Append the link to the dropdown
-            dropdown.appendChild(link);
-        };
+        // Append the link to the dropdown
+        dropdown.appendChild(link);
     });
 }
 
@@ -152,19 +170,20 @@ function addChildTableItem(tableName, heading, value) {
  * @param {*} deviceId 
  * @param {*} divId 
  */
-function updateTagsTable(deviceId, divId) {
+function updateTagsTable(deviceId, divId, vendor) {
     // Create lists to track contents
     let objectList = [];
-
-    // Show loading spinner
-    document.getElementById('tagLoadingSpinner').style.display = 'block';
 
     // The div element to populate with the list of addresses
     const divElement = document.getElementById(divId);
 
+    // Show the loading spinner
+    showLoadingSpinner(divId);
+
     // Clear any existing content in the div
     divElement.innerHTML = '';
     divElement.dataset.deviceId = deviceId;
+    divElement.dataset.vendor = vendor;
     clearLines()
 
     // API call to fetch tags for the selected device
@@ -216,19 +235,26 @@ function updateTagsTable(deviceId, divId) {
                 objectList.push(tagObject);
             });
 
+            // Store the list of tags in the appropriate list
+            // Manage comparison button
             if (divId.includes('tagAccordionA')) {
                 tagListA = objectList;
+                tagFlagA = true;
             } else {
                 tagListB = objectList;
+                tagFlagB = true;
+            }
+            if (tagFlagA && tagFlagB) {
+                document.getElementById('tagCompare').disabled = false;
             }
 
             // Hide loading spinner when the response is received
-            document.getElementById('tagLoadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
         })
 
         .catch(error => {
             // Hide loading spinner when the response is received
-            document.getElementById('tagLoadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
             console.error('Error fetching tags:', error)
         });
 }
@@ -241,19 +267,20 @@ function updateTagsTable(deviceId, divId) {
  * @param {*} deviceId 
  * @param {*} divId 
  */
-function updateAddressesTable(deviceId, divId) {
+function updateAddressesTable(deviceId, divId, vendor) {
     // Create lists to track contents
     let addressList = [];
-
-    // Show loading spinner
-    document.getElementById('addressLoadingSpinner').style.display = 'block';
 
     // The div element to populate with the list of addresses
     const divElement = document.getElementById(divId);
 
+    // Show the loading spinner
+    showLoadingSpinner(divId);
+
     // Clear any existing content in the div
     divElement.innerHTML = '';
     divElement.dataset.deviceId = deviceId;
+    divElement.dataset.vendor = vendor;
     clearLines()
 
     // API call to fetch addresses for the selected device
@@ -262,6 +289,26 @@ function updateAddressesTable(deviceId, divId) {
         .then(addresses => {
             // The div element to populate with the list of addresses
             const divElement = document.getElementById(divId);
+
+            // Check that addresses were found
+            if (addresses.message && addresses.message == 'No addresses found') {
+                hideLoadingSpinner(divId);
+
+                // Manage comparison button
+                if (divId.includes('addressAccordionA')) {
+                    addressListA = addressList;
+                    addressFlagA = true;
+                } else {
+                    addressListB = addressList;
+                    addressFlagB = true;
+                }
+                if (addressFlagA && addressFlagB) {
+                    document.getElementById('addressObjectsCompare').disabled = false;
+                }
+
+                showNotification('No addresses found for the selected device', 'Failure');
+                return;
+            }
 
             // Populate with the list of addresses
             addresses.forEach(address => {
@@ -289,7 +336,9 @@ function updateAddressesTable(deviceId, divId) {
                 table.className = 'w3-table indented-table';
                 addChildTableItem(table, 'Address', address.addr);
                 addChildTableItem(table, 'Description', address.description);
-                addChildTableItem(table, 'Tag', address.tag.member.join(", "));
+                if (address.tag) {
+                    addChildTableItem(table, 'Tag', address.tag.member.join(", "));     // Tags do not exist on some platforms
+                }
                 listDiv.appendChild(table);
 
                 // Add items to the div element
@@ -302,23 +351,30 @@ function updateAddressesTable(deviceId, divId) {
                     name: address.name,
                     addr: address.addr,
                     description: address.description,
-                    tag: address.tag.member.join(", "),
+                    ...(address.tag && { tag: address.tag.member.join(", ") }),     // Tags do not exist on some platforms
                 };
                 addressList.push(addressObject);
             });
 
+            // Store the list of addresses in the appropriate list
+            // Manage comparison button
             if (divId.includes('addressAccordionA')) {
                 addressListA = addressList;
+                addressFlagA = true;
             } else {
                 addressListB = addressList;
+                addressFlagB = true;
             }
+            if (addressFlagA && addressFlagB) {
+                document.getElementById('addressObjectsCompare').disabled = false;
+            }
+
             // Hide loading spinner when the response is received
-            document.getElementById('addressLoadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
 
         })
         .catch(error => {
-            // Hide loading spinner when the response is received
-            document.getElementById('addressLoadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
             console.error('Error fetching addresses:', error)
         });
 }
@@ -331,19 +387,20 @@ function updateAddressesTable(deviceId, divId) {
  * @param {*} deviceId 
  * @param {*} divId 
  */
-function updateAddressGroupsTable(deviceId, divId) {
+function updateAddressGroupsTable(deviceId, divId, vendor) {
     // Create a list to track contents
     let addressGroupList = [];
-
-    // Show loading spinner
-    document.getElementById('addressGroupLoadingSpinner').style.display = 'block';
 
     // The div element to populate with the list of addresses
     const divElement = document.getElementById(divId);
 
+    // Show the loading spinner
+    showLoadingSpinner(divId);
+
     // Clear any existing content in the div
     divElement.innerHTML = '';
     divElement.dataset.deviceId = deviceId;
+    divElement.dataset.vendor = vendor;
     clearLines()
 
     // API call to fetch address groups for the selected device
@@ -352,6 +409,24 @@ function updateAddressGroupsTable(deviceId, divId) {
         .then(addresses => {
             // The div element to populate with the list of address groups
             const divElement = document.getElementById(divId);
+
+            // Check that addresses were found
+            if (addresses.message && addresses.message == 'No address groups found') {
+                hideLoadingSpinner(divId);
+
+                // Manage comparison button
+                if (divId.includes('addressGroupAccordionA')) {
+                    addressGroupFlagA = true;
+                } else {
+                    addressGroupFlagB = true;
+                }
+                if (addressGroupFlagA && addressGroupFlagB) {
+                    document.getElementById('addressGroupCompare').disabled = false;
+                }
+
+                showNotification('No address groups found for the selected device', 'Failure');
+                return;
+            }
 
             // Populate with the list of address groups
             addresses.forEach(address => {
@@ -377,9 +452,15 @@ function updateAddressGroupsTable(deviceId, divId) {
                 // Table
                 const table = document.createElement('table');
                 table.className = 'w3-table indented-table';
-                addChildTableItem(table, 'Address', address.static.member.join(", "));
+                if (address.static.member) {                            // Handle different ways the data is returned
+                    addChildTableItem(table, 'Address', address.static.member.join(", "));
+                } else {
+                    addChildTableItem(table, 'Address', address.static.map(item => item.name).join(", "));
+                }
                 addChildTableItem(table, 'Description', address.description);
-                addChildTableItem(table, 'Tag', address.tag.member.join(", "));
+                if (address.tag) {
+                    addChildTableItem(table, 'Tag', address.tag.member.join(", "));     // Tags do not exist on some platforms
+                }
                 listDiv.appendChild(table);
 
                 // Add items to the div element
@@ -390,25 +471,34 @@ function updateAddressGroupsTable(deviceId, divId) {
                 // Create an array of address groups
                 const addressGroupObject = {
                     name: address.name,
-                    static: address.static.member.join(", "),
+                    static: Array.isArray(address.static)                           // Handle different ways the data is returned
+                        ? address.static.map(item => item.name ? item.name : item).join(", ")
+                        : address.static.member.map(item => item.name ? item.name : item).join(", "),
                     description: address.description,
-                    tag: address.tag.member.join(", "),
+                    ...(address.tag && { tag: address.tag.member.join(", ") }),     // Tags do not exist on some platforms
                 };
                 addressGroupList.push(addressGroupObject);
             });
 
+            // Store the list of address groups in the appropriate list
+            // Manage comparison button
             if (divId.includes('addressGroupAccordionA')) {
                 addressGroupListA = addressGroupList;
+                addressGroupFlagA = true;
             } else {
                 addressGroupListB = addressGroupList;
+                addressGroupFlagB = true;
+            }
+            if (addressGroupFlagA && addressGroupFlagB) {
+                document.getElementById('addressGroupCompare').disabled = false;
             }
 
             // Hide loading spinner when the response is received
-            document.getElementById('addressGroupLoadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
         })
         .catch(error => {
             // Hide loading spinner when the response is received
-            document.getElementById('addressGroupLoadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
             console.error('Error fetching addresses:', error)
         });
 }
@@ -421,19 +511,20 @@ function updateAddressGroupsTable(deviceId, divId) {
  * @param {*} deviceId 
  * @param {*} divId 
  */
-function updateApplicationGroupsTable(deviceId, divId) {
+function updateApplicationGroupsTable(deviceId, divId, vendor) {
     // Create a list to track contents
     let applicationGroupList = [];
-
-    // Show loading spinner
-    document.getElementById('applicationsLoadingSpinner').style.display = 'block';
 
     // The div element to populate with the list of addresses
     const divElement = document.getElementById(divId);
 
+    // Show the loading spinner
+    showLoadingSpinner(divId);
+
     // Clear any existing content in the div
     divElement.innerHTML = '';
     divElement.dataset.deviceId = deviceId;
+    divElement.dataset.vendor = vendor;
     clearLines()
 
     // API call to fetch application groups for the selected device
@@ -442,6 +533,24 @@ function updateApplicationGroupsTable(deviceId, divId) {
         .then(appGroups => {
             // The div element to populate with the list of application groups
             const divElement = document.getElementById(divId);
+
+            // Check that addresses were found
+            if (appGroups.message && appGroups.message == 'No application groups found') {
+                hideLoadingSpinner(divId);
+
+                // Manage comparison button
+                if (divId.includes('applicationGroupAccordionA')) {
+                    applicationGroupFlagA = true;
+                } else {
+                    applicationGroupFlagB = true;
+                }
+                if (applicationGroupFlagA && applicationGroupFlagB) {
+                    document.getElementById('applicationGroupCompare').disabled = false;
+                }
+
+                showNotification('No application groups found for the selected device', 'Failure');
+                return;
+            }
 
             // Populate with the list of application groups
             appGroups.forEach(appGroup => {
@@ -467,7 +576,17 @@ function updateApplicationGroupsTable(deviceId, divId) {
                 // Table
                 const table = document.createElement('table');
                 table.className = 'w3-table indented-table';
-                addChildTableItem(table, 'Members', appGroup.members.member.join(", "));
+
+                let membersString = '';
+                if (appGroup.members && appGroup.members.member) {
+                    // Case where appGroup has 'members' and 'member'
+                    membersString = appGroup.members.member.join(", ");
+                } else if (appGroup.name) {
+                    // Case where appGroup has 'name'
+                    membersString = appGroup.name;
+                }
+
+                addChildTableItem(table, 'Members', membersString);
                 listDiv.appendChild(table);
 
                 // Add items to the div element
@@ -478,23 +597,32 @@ function updateApplicationGroupsTable(deviceId, divId) {
                 // Create an array of application groups
                 const appGroupObject = {
                     name: appGroup.name,
-                    members: appGroup.members.member.join(", "),
+                    members: appGroup.members && appGroup.members.member
+                        ? appGroup.members.member.join(", ")
+                        : appGroup.name || '',
                 };
                 applicationGroupList.push(appGroupObject);
             });
 
+            // Store the list of application groups in the appropriate list
+            // Manage comparison button
             if (divId.includes('applicationGroupAccordionA')) {
                 applicationGroupListA = applicationGroupList;
+                applicationGroupFlagA = true;
             } else {
                 applicationGroupListB = applicationGroupList;
+                applicationGroupFlagB = true;
+            }
+            if (applicationGroupFlagA && applicationGroupFlagB) {
+                document.getElementById('applicationGroupCompare').disabled = false;
             }
 
             // Hide loading spinner when the response is received
-            document.getElementById('applicationsLoadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
         })
         .catch(error => {
             // Hide loading spinner when the response is received
-            document.getElementById('applicationsLoadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
             console.error('Error fetching application groups:', error)
         });
 }
@@ -507,19 +635,20 @@ function updateApplicationGroupsTable(deviceId, divId) {
  * @param {*} deviceId 
  * @param {*} divId 
  */
-function updateServicesTable(deviceId, divId) {
+function updateServicesTable(deviceId, divId, vendor) {
     // Create a list to track contents
     let serviceList = [];
-
-    // Show loading spinner
-    document.getElementById('serviceLoadingSpinner').style.display = 'block';
 
     // The div element to populate with the list of addresses
     const divElement = document.getElementById(divId);
 
+    // Show the loading spinner
+    showLoadingSpinner(divId);
+
     // Clear any existing content in the div
     divElement.innerHTML = '';
     divElement.dataset.deviceId = deviceId;
+    divElement.dataset.vendor = vendor;
     clearLines()
 
     // API call to fetch service objects for the selected device
@@ -528,6 +657,24 @@ function updateServicesTable(deviceId, divId) {
         .then(services => {
             // The div element to populate with the list of addresses
             const divElement = document.getElementById(divId);
+
+            // Check that addresses were found
+            if (services.message && services.message == 'No services found') {
+                hideLoadingSpinner(divId);
+
+                // Manage comparison button
+                if (divId.includes('serviceAccordionA')) {
+                    serviceFlagA = true;
+                } else {
+                    serviceFlagB = true;
+                }
+                if (serviceFlagA && serviceFlagB) {
+                    document.getElementById('serviceObjectCompare').disabled = false;
+                }
+
+                showNotification('No services found for the selected device', 'Failure');
+                return;
+            }
 
             // Populate with the list of services
             services.forEach(service => {
@@ -551,15 +698,27 @@ function updateServicesTable(deviceId, divId) {
                 listDiv.style = 'overflow-x: auto;';
 
                 // Table
-                const protocolType = Object.keys(service.protocol)[0];
-                const protocolPort = service.protocol[protocolType]['port'];
+                let protocolType;
+                let protocolPort;
+                if (vendor == 'paloalto') {
+                    protocolType = Object.keys(service.protocol)[0];
+                    protocolPort = service.protocol[protocolType]['port'];
+                } else if (vendor == 'juniper') {
+                    protocolType = service.protocol;
+                    protocolPort = service.dest_port;
+                } else {
+                    console.log("Unknown vendor");
+                    return;
+                }
 
                 const table = document.createElement('table');
                 table.className = 'w3-table indented-table';
                 addChildTableItem(table, 'Protocol', protocolType);
                 addChildTableItem(table, 'Port', protocolPort);
                 addChildTableItem(table, 'Description', service.description);
-                addChildTableItem(table, 'Tag', service.tag.member.join(", "));
+                if (service.tag) {
+                    addChildTableItem(table, 'Tag', service.tag.member.join(", "));         // Tags do not exist on some platforms
+                }
                 listDiv.appendChild(table);
 
                 // Add items to the div element
@@ -570,25 +729,33 @@ function updateServicesTable(deviceId, divId) {
                 // Create an array of services
                 const serviceObject = {
                     name: service.name,
-                    addr: service.addr,
+                    protocol: protocolType,
+                    port: protocolPort,
                     description: service.description,
-                    tag: service.tag.member.join(", "),
+                    ...(service.tag && { tag: service.tag.member.join(", ") }),             // Tags do not exist on some platforms
                 };
                 serviceList.push(serviceObject);
             });
 
+            // Store the list of services in the appropriate list
+            // Manage comparison button
             if (divId.includes('serviceAccordionA')) {
                 serviceListA = serviceList;
+                serviceFlagA = true;
             } else {
                 serviceListB = serviceList;
+                serviceFlagB = true;
+            }
+            if (serviceFlagA && serviceFlagB) {
+                document.getElementById('serviceObjectCompare').disabled = false;
             }
 
             // Hide loading spinner when the response is received
-            document.getElementById('serviceLoadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
         })
         .catch(error => {
             // Hide loading spinner when the response is received
-            document.getElementById('serviceLoadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
             console.error('Error fetching services:', error)
         });
 }
@@ -601,19 +768,20 @@ function updateServicesTable(deviceId, divId) {
  * @param {*} deviceId 
  * @param {*} divId 
  */
-function updateServiceGroupsTable(deviceId, divId) {
+function updateServiceGroupsTable(deviceId, divId, vendor) {
     // Create a list to track contents
     let serviceGroupList = [];
-
-    // Show loading spinner
-    document.getElementById('serviceGroupLoadingSpinner').style.display = 'block';
 
     // The div element to populate with the list of addresses
     const divElement = document.getElementById(divId);
 
+    // Show the loading spinner
+    showLoadingSpinner(divId);
+
     // Clear any existing content in the div
     divElement.innerHTML = '';
     divElement.dataset.deviceId = deviceId;
+    divElement.dataset.vendor = vendor;
     clearLines()
 
     // API call to fetch service groups for the selected device
@@ -622,6 +790,24 @@ function updateServiceGroupsTable(deviceId, divId) {
         .then(serviceGroups => {
             // The div element to populate with the list of groups
             const divElement = document.getElementById(divId);
+
+            // Check that addresses were found
+            if (serviceGroups.message && serviceGroups.message == 'No service groups found') {
+                hideLoadingSpinner(divId);
+
+                // Manage comparison button
+                if (divId.includes('serviceGroupAccordionA')) {
+                    serviceGroupFlagA = true;
+                } else {
+                    serviceGroupFlagB = true;
+                }
+                if (serviceGroupFlagA && serviceGroupFlagB) {
+                    document.getElementById('serviceGroupCompare').disabled = false;
+                }
+
+                showNotification('No service groups found for the selected device', 'Failure');
+                return;
+            }
 
             // Populate with the list of services
             serviceGroups.forEach(group => {
@@ -647,8 +833,20 @@ function updateServiceGroupsTable(deviceId, divId) {
                 // Table
                 const table = document.createElement('table');
                 table.className = 'w3-table indented-table';
-                addChildTableItem(table, 'Members', group.members.member.join(", "));
-                addChildTableItem(table, 'Tag', group.tag.member?.join(", ") ?? 'No tags');
+                let membersString = '';
+
+                if (group.members && Array.isArray(group.members.member)) {
+                    // Case where group.members.member is a list of items
+                    membersString = group.members.member.join(", ");
+                } else if (group.members && Array.isArray(group.members)) {
+                    // Case where group.members is a list of objects with a 'name' key
+                    membersString = group.members.map(member => member.name).join(", ");
+                }
+
+                addChildTableItem(table, 'Members', membersString);
+                if (group.tag) {
+                    addChildTableItem(table, 'Tag', group.tag.member?.join(", ") ?? 'No tags');         // Tags do not exist on some platforms
+                }
                 listDiv.appendChild(table);
 
                 // Add items to the div element
@@ -659,24 +857,36 @@ function updateServiceGroupsTable(deviceId, divId) {
                 // Create an array of services
                 const serviceGroupObject = {
                     name: group.name,
-                    members: group.members.member.join(", "),
-                    tag: group.tag.member?.join(", ") ?? 'No tags',
+                    members: group.members && Array.isArray(group.members.member)
+                        ? group.members.member.join(", ")
+                        : group.members && Array.isArray(group.members)
+                            ? group.members.map(member => member.name).join(", ")
+                            : '',
+                    ...(group.tag && Array.isArray(group.tag.member) && { tag: group.tag.member.join(", ") }), // Tags do not exist on some platforms             // Tags do not exist on some platforms
+
                 };
                 serviceGroupList.push(serviceGroupObject);
             });
 
+            // Store the list of service groups in the appropriate list
+            // Manage comparison button
             if (divId.includes('serviceGroupAccordionA')) {
                 serviceGroupListA = serviceGroupList;
+                serviceGroupFlagA = true;
             } else {
                 serviceGroupListB = serviceGroupList;
+                serviceGroupFlagB = true;
+            }
+            if (serviceGroupFlagA && serviceGroupFlagB) {
+                document.getElementById('serviceGroupCompare').disabled = false;
             }
 
             // Hide loading spinner when the response is received
-            document.getElementById('serviceGroupLoadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
         })
         .catch(error => {
             // Hide loading spinner when the response is received
-            document.getElementById('serviceGroupLoadingSpinner').style.display = 'none';
+            hideLoadingSpinner(divId);
             console.error('Error fetching services:', error)
         });
 }
