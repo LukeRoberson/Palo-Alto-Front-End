@@ -30,6 +30,20 @@ function getVpnList() {
 }
 
 
+// Function to show the tooltip
+function showTooltip(event, tooltipDiv) {
+    tooltipDiv.style.display = "block";
+    tooltipDiv.style.position = "absolute";
+    tooltipDiv.style.left = `${event.pageX + 10}px`;
+    tooltipDiv.style.top = `${event.pageY + 10}px`;
+}
+
+// Function to hide the tooltip
+function hideTooltip(tooltipDiv) {
+    tooltipDiv.style.display = "none";
+}
+
+
 /**
  * Function to display VPN details in a card
  * 
@@ -71,23 +85,36 @@ function vpnCard(vpnArray) {
     const parentContainer = document.getElementById("vpnContainer");
     const card = document.createElement("div");
     card.className = "vpn-card";
-    card.classList.add("w3-card");
-    card.classList.add("w3-padding");
+    card.classList.add("w3-card-4");
 
     // Add a title to the card
     card.innerHTML = `
-        <h3>${vpnArray.name}</h3>
+        <div class="w3-bar w3-light-grey w3-padding">
+            <div class="w3-left">
+                <h3>${vpnArray.name}</h3>
+            </div>
+            <div class="w3-right">
+                <button class="w3-button w3-small w3-red w3-border w3-margin-right" onclick="deleteVpn('${vpnArray.name}')">Delete</button>
+            </div>
+        </div>
     `;
 
     // Create a container for the grid elements
     const divGridContainer = document.createElement("div");
-    divGridContainer.className = "w3-row vpn-grid-container";
+    divGridContainer.className = "w3-row w3-padding-16 vpn-grid-container";
 
     // Grid for Endpoint A
     const divGridEndA = document.createElement("div");
     divGridEndA.className = "w3-col m2 l2 vpn-grid-item";
     divGridEndA.id = `gridEndA${sanitizeName(vpnArray.name)}`;
     divGridEndA.appendChild(imgRouterA);
+
+    const divStatus = document.createElement("div");
+    divStatus.className = "tooltip";
+    divStatus.innerHTML = "Pending...";
+    document.body.appendChild(divStatus);
+    imgRouterA.addEventListener("mouseover", (event) => showTooltip(event, divStatus));
+    imgRouterA.addEventListener("mouseout", () => hideTooltip(divStatus));
 
     const divEndAContent = document.createElement("div");
     divEndAContent.style = "text-align: center;";
@@ -97,6 +124,41 @@ function vpnCard(vpnArray) {
     divGridEndA.appendChild(divEndAContent);
 
     divGridContainer.appendChild(divGridEndA);
+
+    vpnStatus(vpnArray.a_endpoint.id, vpnArray).then((status) => {
+        if (status == null) {
+            const questionMarkIcon = document.createElement("img");
+            questionMarkIcon.src = "static/img/question_mark.png";
+            questionMarkIcon.alt = "Status Unknown";
+            questionMarkIcon.className = "status-icon";
+            divGridEndA.appendChild(questionMarkIcon);
+
+            divStatus.innerHTML = `Status Unknown`;
+        } else if (status.ipsec_status == 'up') {
+            const greenIcon = document.createElement("img");
+            greenIcon.src = "static/img/green_tick.png";
+            greenIcon.alt = "Up";
+            greenIcon.className = "status-icon";
+            divGridEndA.appendChild(greenIcon);
+
+            divStatus.innerHTML = `
+                IPSec Name: ${status.ipsec_name}<br>
+                Destination: ${status.destination}<br>
+                Source Int: ${status.physical_if}<br>
+                Tunnel Int: ${status.tunnel_if}<br>
+            `;
+        } else {
+            const redIcon = document.createElement("img");
+            redIcon.src = "static/img/red_cross.png";
+            redIcon.alt = "Up";
+            redIcon.className = "status-icon";
+            divGridEndA.appendChild(redIcon);
+
+            divStatus.innerHTML = `Down`;
+        }
+    }).catch((error) => {
+        console.error("Error:", error);
+    });
 
     // Grid for Firewall A
     const divGridFwA = document.createElement("div");
@@ -113,7 +175,7 @@ function vpnCard(vpnArray) {
         vpnArray.a_endpoint.nat_outside = 'None';
     }
 
-    if (vpnArray.a_endpoint.fw_id == 'None') {
+    if (vpnArray.a_endpoint.fw_name == 'None') {
         divGridFwA.classList.add("grayscale-image");
     }
     divGridFwA.appendChild(imgFirewallA);
@@ -156,7 +218,7 @@ function vpnCard(vpnArray) {
         vpnArray.b_endpoint.nat_outside = 'None';
     }
 
-    if (vpnArray.b_endpoint.fw_id == 'None') {
+    if (vpnArray.b_endpoint.fw_name == 'None') {
         divGridFwB.classList.add("grayscale-image");
     }
     divGridFwB.appendChild(imgFirewallB);
@@ -197,6 +259,46 @@ function vpnCard(vpnArray) {
     // Append the card to the parent container
     card.appendChild(divGridContainer);
     parentContainer.appendChild(card);
+}
+
+
+/**
+ * Function to get the status of a VPN tunnel on a given device
+ * 
+ * @param {string} id - Device ID
+ * @param {Object} vpn - VPN tunnel details
+ * @returns {Object} The status of the VPN tunnel
+ */
+async function vpnStatus(id, vpn) {
+    try {
+        // API call to get the status of the VPN tunnel
+        const response = await fetch(`/api/vpn?type=ipsec&action=status&id=${id}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!response.ok) {
+            return null;
+        }
+
+        // Wait for the response
+        const body = await response.json();
+
+        // Find the tunnel with the destination matching the VPN tunnel
+        for (const tunnel of body) {
+            if (tunnel.destination === vpn.a_endpoint.destination) {
+                return tunnel;
+            }
+        }
+
+        // If no matching tunnel is found, return null or an appropriate value
+        return null;
+    } catch (error) {
+        console.error("Error getting tunnel status:", error);
+        throw error; // Re-throw the error to be handled by the caller
+    }
 }
 
 
@@ -553,6 +655,9 @@ function addVpn() {
                 showNotification("VPN tunnel added successfully", "Success");
                 const modalAddVpn = document.getElementById("modalAddVpn");
                 modalAddVpn.style.display = "none";
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
             } else {
                 showNotification("Failed to add VPN tunnel", "Failure");
             }
@@ -567,4 +672,78 @@ function addVpn() {
             const modalAddVpn = document.getElementById("modalAddVpn");
             modalAddVpn.style.display = "none";
         });
+}
+
+
+/**
+ * Delete a VPN tunnel
+ * 
+ * @param {*} vpnName - Unique name of the VPN tunnel to delete
+ */
+async function deleteVpn(vpnName) {
+    try {
+        const result = await showConfirmModal();
+        if (result) {
+            // API call
+            showLoadingSpinner('vpnContainer');
+            fetch("/api/vpn", {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(vpnName),
+            })
+                .then((response) => {
+                    if (response.ok) {
+                        showNotification("VPN tunnel removed successfully", "Success");
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showNotification("Failed to remove VPN tunnel", "Failure");
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error removing VPN tunnel:", error);
+                    showNotification("Failed to remove VPN tunnel", "Failure");
+                    hideLoadingSpinner('vpnContainer');
+                })
+                .finally(() => {
+                    hideLoadingSpinner('vpnContainer');
+                });
+        }
+    } catch (error) {
+        console.error("An error occurred:", error);
+    }
+}
+
+
+/**
+ * Show the confirmation modal for deleting a VPN
+ */
+function showConfirmModal() {
+    return new Promise((resolve, reject) => {
+        const confirmModal = document.getElementById('vpnConfirmModal');
+        const confirmYes = document.getElementById('confirmDelete');
+        const confirmCancel = document.getElementById('confirmCancel');
+
+        confirmModal.style.display = 'block';
+
+        function handleYes() {
+            confirmModal.style.display = 'none';
+            resolve(true);
+            confirmYes.removeEventListener('click', handleYes);
+            confirmCancel.removeEventListener('click', handleCancel);
+        }
+
+        function handleCancel() {
+            confirmModal.style.display = 'none';
+            resolve(false);
+            confirmYes.removeEventListener('click', handleYes);
+            confirmCancel.removeEventListener('click', handleCancel);
+        }
+
+        confirmYes.addEventListener('click', handleYes);
+        confirmCancel.addEventListener('click', handleCancel);
+    });
 }

@@ -82,6 +82,7 @@ class ManagedVPN:
 
         # General details
         self.name = name
+        self.table = 'tunnels'
 
         # Endpoint A
         self.a_device = endpoint_a
@@ -98,6 +99,12 @@ class ManagedVPN:
         self.b_fw = firewall_b
         self.b_inside_nat = inside_nat_b
         self.b_outside_nat = outside_nat_b
+
+        # Dictionaries to store additional details
+        self.vpn_a = {}
+        self.vpn_b = {}
+        self.fw_a = {}
+        self.fw_b = {}
 
     def __str__(
         self
@@ -117,13 +124,12 @@ class ManagedVPN:
 
         # Connection settings
         settings = AppSettings()
-        table = 'tunnels'
 
         # SQL query to see if the VPN exists
         with SqlServer(
             server=settings.sql_server,
             database=settings.sql_database,
-            table=table,
+            table=self.table,
             config=config
         ) as sql:
             output = sql.read(
@@ -147,7 +153,7 @@ class ManagedVPN:
             with SqlServer(
                 server=settings.sql_server,
                 database=settings.sql_database,
-                table=table,
+                table=self.table,
                 config=config
             ) as sql:
                 result = sql.add(
@@ -203,6 +209,7 @@ class VPNManager:
 
         # Track all ManagedVpn objects
         self.vpn_list = []
+        self.table = 'tunnels'
 
     def __len__(
         self
@@ -245,12 +252,11 @@ class VPNManager:
         '''
 
         settings = AppSettings()
-        table = 'tunnels'
 
         with SqlServer(
             server=settings.sql_server,
             database=settings.sql_database,
-            table=table,
+            table=self.table,
             config=config
         ) as sql:
             output = sql.read(
@@ -365,6 +371,52 @@ class VPNManager:
         # Add the new VPN to the list
         self.vpn_list.append(new_vpn)
         new_vpn.update_db()
+
+    def delete_vpn(
+        self,
+        name: str,
+    ) -> bool:
+        '''
+        Delete a managed VPN
+
+        NOTE: This does not remove VPN settings from a device
+            This removes the managed VPN from the database
+
+        Parameters:
+            name: str (required)
+                Name of the VPN to delete
+
+        Returns:
+            bool
+                True if the VPN was found and deleted
+                False if the VPN was not found
+        '''
+
+        # Find the vpn in the list
+        for vpn in self.vpn_list:
+            if vpn.name == name:
+                # Delete the device from the database, based on the ID
+                with SqlServer(
+                    server=config.sql_server,
+                    database=config.sql_database,
+                    table=self.table,
+                    config=config,
+                ) as sql:
+                    result = sql.delete(
+                        field='tunnel_name',
+                        value=name,
+                    )
+
+                if result:
+                    self.vpn_list.remove(vpn)
+                    return True
+
+                else:
+                    print("Could not delete device from the database.")
+                    return False
+
+        # If not found
+        return False
 
 
 # Create a VPNManager object

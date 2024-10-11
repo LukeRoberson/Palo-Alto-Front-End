@@ -27,6 +27,7 @@ from jnpr.junos.exception import (
     ConnectError,
     ConnectAuthError,
     ConnectTimeoutError,
+    ConnectClosedError,
 )
 
 from lxml import etree
@@ -110,12 +111,26 @@ class DeviceApi:
                 Style.RESET_ALL
             )
 
-        except ConnectError:
-            print(
-                Fore.RED,
-                f"Error connecting to {self.hostname}",
-                Style.RESET_ALL
-            )
+        except ConnectError as e:
+            if isinstance(e, ConnectClosedError):
+                print(
+                    Fore.RED,
+                    f"Connection to {self.hostname} closed",
+                    "Possibly too many connections",
+                    Style.RESET_ALL,
+                    e,
+                )
+            else:
+                print(
+                    Fore.RED,
+                    f"Error connecting to {self.hostname}",
+                    Style.RESET_ALL
+                )
+                print(
+                    Fore.YELLOW,
+                    f"Exception type: {type(e).__name__}",
+                    Style.RESET_ALL
+                )
 
         except Exception as e:
             print(
@@ -935,7 +950,7 @@ class DeviceApi:
         ike_gw = self.get_partial_config('security/ike/gateway', inherit=True)
 
         # Get the current IKE status
-        ike_sa = self.dev.rpc.get_ike_security_associations_information()
+        ike_sa = self.device.rpc.get_ike_security_associations_information()
         ike_sa = xmltodict.parse(
             etree.tostring(
                 ike_sa,
@@ -949,7 +964,7 @@ class DeviceApi:
         ipsec_gw = self.get_partial_config('security/ipsec/vpn', inherit=True)
 
         # Get the current IPsec status
-        ipsec_sa = self.dev.rpc.get_security_associations_information()
+        ipsec_sa = self.device.rpc.get_security_associations_information()
         ipsec_sa = xmltodict.parse(
             etree.tostring(
                 ipsec_sa,
@@ -966,7 +981,10 @@ class DeviceApi:
 
             # Parse through the IKE GW configuration
             vpn['ike_name'] = gateway["name"]
-            vpn['ike_address'] = gateway["address"][0]
+            if 'address' in gateway:
+                vpn['ike_address'] = gateway["address"][0]
+            else:
+                vpn['ike_address'] = 'dynamic'
             vpn['ike_interface'] = gateway["external-interface"]
 
             # Find matching SA, if any

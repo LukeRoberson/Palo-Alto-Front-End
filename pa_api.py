@@ -54,6 +54,8 @@ class DeviceApi:
         get_config: Get the running configuration of the device
         get_device: Get the device basics
         get_ha: Get high availability details
+        get_gp_sessions: Get active Global Protect sessions
+        get_vpn_status: Get VPN tunnels
         get_tags: Get the tags from the device
         get_addresses: Get address object from the device
         get_address_groups: Get address group objects from the device
@@ -323,7 +325,9 @@ class DeviceApi:
 
         return enabled, local_state, peer_state, peer_serial
 
-    def get_gp_sessions(self) -> Union[list, int]:
+    def get_gp_sessions(
+        self
+    ) -> Union[list, int]:
         '''
         Get active Global Protect sessions using the XML API.
 
@@ -366,9 +370,11 @@ class DeviceApi:
 
         return session_list
 
-    def get_vpn_tunnels(self) -> Union[list, int]:
+    def get_vpn_status(
+        self
+    ) -> Union[list, int]:
         '''
-        Get VPN tunnels using the XML API.
+        Get VPN tunnel status using the XML API.
 
         Returns:
             list of dicts: The active sessions.

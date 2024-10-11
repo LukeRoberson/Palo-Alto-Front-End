@@ -281,6 +281,21 @@
 </div>
 
 
+<!-- Confirmation Modal -->
+<div id="vpnConfirmModal" class="w3-modal">
+    <div class="w3-card confirm-modal w3-animate-zoom">
+        <div class="w3-center"><br>
+            <h3>Are you sure?</h3>
+        </div>
+
+        <div class="button-container">
+            <button id="confirmDelete" class="w3-button w3-block w3-red w3-section w3-padding">Delete</button>
+            <button id="confirmCancel" class="w3-button w3-block w3-green w3-section w3-padding">Cancel</button>
+        </div>
+    </div>
+</div>
+
+
 <script src="{{ url_for('static', filename='js/vpn.js') }}"></script>
 
 {% endblock %}

@@ -2623,8 +2623,10 @@ class VpnView(MethodView):
             jsonify: The Global Protect sessions for the device.
         '''
 
-        # Get the action parameter from the request
+        # Get parameters from the request
         vpn_type = request.args.get('type')
+        action = request.args.get('action')
+        id = request.args.get('id')
 
         # Get the Global Protect sessions for a device
         if vpn_type == 'gp':
@@ -2674,58 +2676,222 @@ class VpnView(MethodView):
             # Return the security policies as JSON
             return jsonify(session_list)
 
-        # Get the managed IPSec tunnels
+        # If IPSec tunnels are requested
         elif vpn_type == 'ipsec':
-            vpn_list = []
+            # If there is no action, return the list of managed VPN tunnels
+            if action is None:
+                vpn_list = []
 
-            for vpn in vpn_manager:
-                # Get device names, if they exist
-                a_name = device_manager.id_to_name(vpn.a_device)
-                if a_name is not None and '.' in a_name:
-                    a_name = a_name.split('.')[0]
+                for vpn in vpn_manager:
+                    # Get device names, if they exist
+                    a_name = device_manager.id_to_name(vpn.a_device)
+                    if a_name is not None and '.' in a_name:
+                        a_name = a_name.split('.')[0]
 
-                b_name = device_manager.id_to_name(vpn.b_device)
-                if b_name is not None and '.' in b_name:
-                    b_name = b_name.split('.')[0]
+                    b_name = device_manager.id_to_name(vpn.b_device)
+                    if b_name is not None and '.' in b_name:
+                        b_name = b_name.split('.')[0]
 
-                a_fw_name = device_manager.id_to_name(vpn.a_fw)
-                if a_fw_name is not None and '.' in a_fw_name:
-                    a_fw_name = a_fw_name.split('.')[0]
+                    a_fw_name = device_manager.id_to_name(vpn.a_fw)
+                    if a_fw_name is not None and '.' in a_fw_name:
+                        a_fw_name = a_fw_name.split('.')[0]
 
-                b_fw_name = device_manager.id_to_name(vpn.b_fw)
-                if b_fw_name is not None and '.' in b_fw_name:
-                    b_fw_name = b_fw_name.split('.')[0]
+                    b_fw_name = device_manager.id_to_name(vpn.b_fw)
+                    if b_fw_name is not None and '.' in b_fw_name:
+                        b_fw_name = b_fw_name.split('.')[0]
 
-                # Build dictionary of details
-                entry = {}
-                entry["name"] = vpn.name
+                    # Build dictionary of details
+                    entry = {}
+                    entry["name"] = vpn.name
 
-                a_endpoint = {}
-                a_endpoint["id"] = vpn.a_device
-                a_endpoint["name"] = a_name
-                a_endpoint["destination"] = vpn.a_dest
-                a_endpoint["fw_id"] = vpn.a_fw
-                a_endpoint["fw_name"] = a_fw_name
-                a_endpoint["nat_inside"] = vpn.a_inside_nat
-                a_endpoint["nat_outside"] = vpn.a_outside_nat
-                entry["a_endpoint"] = a_endpoint
+                    a_endpoint = {}
+                    a_endpoint["id"] = vpn.a_device
+                    a_endpoint["name"] = a_name
+                    a_endpoint["destination"] = vpn.a_dest
+                    a_endpoint["fw_id"] = vpn.a_fw
+                    a_endpoint["fw_name"] = a_fw_name
+                    a_endpoint["nat_inside"] = vpn.a_inside_nat
+                    a_endpoint["nat_outside"] = vpn.a_outside_nat
+                    entry["a_endpoint"] = a_endpoint
 
-                b_endpoint = {}
-                b_endpoint['type'] = vpn.b_type
-                b_endpoint['id'] = vpn.b_device
-                b_endpoint['name'] = b_name
-                b_endpoint['cloud_ip'] = vpn.b_cloud
-                b_endpoint['destination'] = vpn.b_dest
-                b_endpoint['fw_id'] = vpn.b_fw
-                b_endpoint['fw_name'] = b_fw_name
-                b_endpoint['nat_inside'] = vpn.b_inside_nat
-                b_endpoint['nat_outside'] = vpn.b_outside_nat
-                entry['b_endpoint'] = b_endpoint
+                    b_endpoint = {}
+                    b_endpoint['type'] = vpn.b_type
+                    b_endpoint['id'] = vpn.b_device
+                    b_endpoint['name'] = b_name
+                    b_endpoint['cloud_ip'] = vpn.b_cloud
+                    b_endpoint['destination'] = vpn.b_dest
+                    b_endpoint['fw_id'] = vpn.b_fw
+                    b_endpoint['fw_name'] = b_fw_name
+                    b_endpoint['nat_inside'] = vpn.b_inside_nat
+                    b_endpoint['nat_outside'] = vpn.b_outside_nat
+                    entry['b_endpoint'] = b_endpoint
 
-                vpn_list.append(entry)
+                    vpn_list.append(entry)
 
-            # Return the VPN tunnels as JSON
-            return jsonify(vpn_list)
+                # Return the VPN tunnels as JSON
+                return jsonify(vpn_list)
+
+            # If the action is 'status', return the status of the VPN tunnel
+            elif action == 'status':
+                # Check that an ID was supplied
+                if id is None:
+                    return jsonify(
+                        {
+                            "result": "Failure",
+                            "message": (
+                                "A VPN ID must be supplied if the "
+                                "VPN status is requested"
+                            )
+                        }
+                    ), 500
+
+                # Get the device from device manager
+                vpn_device = None
+                for device in device_manager:
+                    if str(device.id) == str(id):
+                        vpn_device = device
+                        break
+
+                if vpn_device is None:
+                    print('VPN ID not found')
+                    return jsonify(
+                        {
+                            "result": "Failure",
+                            "message": "VPN ID not found"
+                        }
+                    ), 500
+
+                # Get device details from SQL
+                table = 'devices'
+                with SqlServer(
+                    server=config.sql_server,
+                    database=config.sql_database,
+                    table=table,
+                    config=config,
+                ) as sql:
+                    output = sql.read(
+                        field='id',
+                        value=id,
+                    )
+
+                # Return a failure message if the database read failed
+                if not output:
+                    return jsonify(
+                        {
+                            "result": "Failure",
+                            "message": "Problems reading from the database"
+                        }
+                    ), 500
+
+                # Parse the device details
+                hostname = output[0][1]
+                vendor = output[0][3]
+                username = output[0][6]
+                password = output[0][7]
+                salt = output[0][8]
+
+                # Decrypt the password
+                with CryptoSecret() as decryptor:
+                    # Decrypt the password
+                    real_pw = decryptor.decrypt(
+                        secret=password,
+                        salt=base64.urlsafe_b64decode(salt.encode())
+                    )
+                api_pass = base64.b64encode(
+                    f'{username}:{real_pw}'.encode()
+                ).decode()
+
+                # Select the right vendor
+                if vendor == 'paloalto':
+                    device_api = PaDeviceApi(
+                        hostname=hostname,
+                        xml_key=api_pass,
+                    )
+
+                elif vendor == 'juniper':
+                    device_api = JunosDeviceApi(
+                        hostname=hostname,
+                        username=username,
+                        password=real_pw,
+                    )
+
+                else:
+                    return jsonify(
+                        {
+                            "result": "Failure",
+                            "message": "Unknown vendor"
+                        }
+                    ), 500
+
+                # Get the VPN status
+                vpn_status = device_api.get_vpn_status()
+                if vpn_status:
+                    tunnel_list = []
+                    for tunnel in vpn_status:
+                        entry = {}
+
+                        entry['ike_name'] = tunnel.get('ike-name', 'None')
+                        entry['ike_status'] = tunnel.get('ike_state', 'None')
+                        entry['local_ip'] = tunnel.get('localip', 'None')
+
+                        if 'ipsec-name' in tunnel:
+                            entry['ipsec_name'] = tunnel.get('ipsec-name')
+                        elif 'name' in tunnel:
+                            entry['ipsec_name'] = tunnel.get('name')
+                        else:
+                            entry['ipsec_name'] = 'None'
+
+                        if 'peerip' in tunnel:
+                            entry['destination'] = tunnel.get('peerip')
+                        elif 'ike_address' in tunnel:
+                            entry['destination'] = tunnel.get('ike_address')
+                        else:
+                            entry['destination'] = 'None'
+
+                        if 'ipsec_state' in tunnel:
+                            entry['ipsec_status'] = tunnel.get('ipsec_state')
+                        elif 'state' in tunnel:
+                            entry['ipsec_status'] = tunnel.get('state')
+                        else:
+                            entry['ipsec_status'] = 'None'
+
+                        if entry['ipsec_status'] == 'active':
+                            entry['ipsec_status'] = 'up'
+
+                        if 'outer-if' in tunnel:
+                            entry['physical_if'] = tunnel.get('outer-if')
+                        elif 'ike_interface' in tunnel:
+                            entry['physical_if'] = tunnel.get('ike_interface')
+                        else:
+                            entry['physical_if'] = 'None'
+
+                        if 'inner-if' in tunnel:
+                            entry['tunnel_if'] = tunnel.get('inner-if')
+                        elif 'ipsec_interface' in tunnel:
+                            entry['tunnel_if'] = tunnel.get('ipsec_interface')
+                        else:
+                            entry['tunnel_if'] = 'None'
+
+                        tunnel_list.append(entry)
+
+                    return jsonify(tunnel_list)
+
+                else:
+                    return jsonify(
+                        {
+                            "result": "Failure",
+                            "message": "VPN status not found"
+                        }
+                    ), 500
+
+            # Unknown action
+            else:
+                return jsonify(
+                    {
+                        "result": "Failure",
+                        "message": "Unknown action supplied"
+                    }
+                ), 500
 
         # Unknown or missing policy type
         else:
@@ -2781,6 +2947,40 @@ class VpnView(MethodView):
                 "message": "Unknown VPN action or type"
             }
         ), 500
+
+    @ login_required
+    def delete(
+        self,
+        config: AppSettings,
+        device_manager: DeviceManager,
+    ):
+        '''
+        Handle DELETE requests for VPN settings.
+
+        Parameters:
+            config (AppSettings): The application settings object.
+            device_manager (DeviceManager): The device manager object.
+        '''
+
+        # Get the body of the request
+        data = request.json
+        result = vpn_manager.delete_vpn(data)
+
+        # Return the result
+        if result:
+            return jsonify(
+                {
+                    "result": "Success",
+                    "message": "Managed VPN deleted"
+                }
+            ), 200
+        else:
+            return jsonify(
+                {
+                    "result": "Failure",
+                    "message": "Managed VPN not found"
+                }
+            ), 500
 
 
 # Register Azure view
