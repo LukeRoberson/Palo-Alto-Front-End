@@ -1,5 +1,12 @@
 [
     {
+        "version": "1.1",
+        "date": "October 2024",
+        "changes": [
+            "Pending"
+        ]
+    },
+    {
         "version": "1.0",
         "date": "October 2024",
         "changes": [
@@ -18,7 +25,8 @@
             "Added support to add missing objects to the device (SRX and Palo Alto)",
             "Disabled compare button until two devices are selected",
             "Split loading spinners per device for object loading",
-            "Fixed a bug where a refresh would prevent comparisons"
+            "Fixed a bug where a refresh would prevent comparisons",
+            "Added VPN monitoring to the dashboard"
         ]
     },
     {

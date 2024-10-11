@@ -27,7 +27,6 @@ from jnpr.junos.exception import (
     ConnectError,
     ConnectAuthError,
     ConnectTimeoutError,
-    ConnectClosedError,
 )
 
 from lxml import etree
@@ -112,7 +111,7 @@ class DeviceApi:
             )
 
         except ConnectError as e:
-            if isinstance(e, ConnectClosedError):
+            if 'ConnectClosedError' in str(e):
                 print(
                     Fore.RED,
                     f"Connection to {self.hostname} closed",
@@ -124,11 +123,6 @@ class DeviceApi:
                 print(
                     Fore.RED,
                     f"Error connecting to {self.hostname}",
-                    Style.RESET_ALL
-                )
-                print(
-                    Fore.YELLOW,
-                    f"Exception type: {type(e).__name__}",
                     Style.RESET_ALL
                 )
 
